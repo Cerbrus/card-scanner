@@ -8,7 +8,7 @@ import { InboxPage } from './inbox/inbox.page';
 import { LoginPage } from './login/login.page';
 import { SettingsPage } from './settings/settings.page';
 import { FakeStore, card, choose, click, fakeStore, system, texts, type } from '../../testing/fakes';
-import { cardState } from '../components/card-tile/card-tile.component';
+import { cardState, languageMark } from '../components/card-tile/card-tile.component';
 import { SystemState } from '../models';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
@@ -50,8 +50,8 @@ describe('the pages around the collection', () => {
     beforeEach(() => {
         owner.value = true;
         store = fakeStore([
-            card(1, { name: 'Pikachu', priceTrend: 2.5 }),
-            card(2, { name: 'Charizard', priceTrend: 385.83, setName: 'Jungle' }),
+            card(1, { name: 'Pikachu', estimatedValue: 2.5 }),
+            card(2, { name: 'Charizard', estimatedValue: 385.83, setName: 'Jungle' }),
             card(3, { name: 'Abra' }),
             card(4, { name: 'Mystery', status: 'identified', readingState: 'done' }),
             card(5, { name: undefined, status: 'new', readingState: 'pending' })
@@ -87,6 +87,15 @@ describe('the pages around the collection', () => {
         expect(page.querySelectorAll('app-card-tile').length).toBe(5);
         expect(page.querySelector('a.badge')?.getAttribute('href')).toBe('/inbox');
         expect(texts(page, '.tile-price')).toEqual(['€385.83', '€2.50']);
+    });
+
+    it('marks language and condition on every tile, also when they are unknown', () => {
+        store.cards.set([card(1, { language: 'nl', condition: 'near_mint' }), card(2, { language: 'other' }), card(3, { status: 'new', name: undefined })]);
+        open(CollectionPage);
+
+        expect(texts(page, '.mark')).toEqual(['?', '?', '…', '?', 'NL', 'conditionShort.near_mint']);
+        expect(page.querySelectorAll('.mark.unknown').length).toBe(3);
+        expect([languageMark('en'), languageMark(undefined)]).toEqual(['EN', '?']);
     });
 
     it('filters while typing and changes the order with the sort choice', () => {

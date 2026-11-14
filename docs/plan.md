@@ -25,6 +25,7 @@ Also open for the owner to decide:
 - **Login with Google** in this app. The code is the barcode scanner's, where it works; the routes are tested with signed sessions.
 - **The scan page on a real phone**: opening the camera, the size and quality of the scaled photos, rotation of portrait photos.
 - **Condition estimates**: whether the model's judgement from phone photos is useful at all.
+- **The condition factors**: rules of thumb, not checked against real sales per condition.
 - **Dutch and other non-English prints**: found through number and set total in tests with made-up readings; not tried with real cards.
 - **`install.sh` on a fresh Pi.** On the server Pi it ran fine, but Docker and the memory settings were already there.
 - **A restore** from the Drive copy.
@@ -61,6 +62,7 @@ Also open for the owner to decide:
 - [x] Daily refresh and a snapshot per day (done 2026-11-14 15:55)
 - [x] Value per card and total value of the collection (done 2026-11-14 15:55)
 - [x] Link to the card on Cardmarket (done 2026-11-14 15:55)
+- [x] Estimated value that takes the condition into account; the total, sort, export and sheet use it (done 2026-11-14 23:06)
 
 ### Milestone 5: condition
 
@@ -77,6 +79,7 @@ Also open for the owner to decide:
 ### Milestone 7: comfort
 
 - [x] Search and sort in the collection (done 2026-11-14 15:55)
+- [x] Markers for language and condition on each card in the collection, with a mark when unknown (done 2026-11-14 23:06)
 - [x] Export as CSV (done 2026-11-14 15:55)
 - [x] Dutch and English, light and dark theme, installable on the home screen (done 2026-11-14 15:55)
 

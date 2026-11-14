@@ -18,9 +18,22 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 ## Prices
 
-**One figure per print, not per condition or language.** The source gives a trend, a 30-day average and a lowest price per card. Where it lists print variants separately (1st edition, holo, reverse holo), the app takes the figure of the variant that matches the card's finish and 1st edition mark; otherwise the card's general figure. Condition and language are not in any figure, so the card page links to the card on Cardmarket for that. Shadowless prints are not told apart.
+**One figure per print, not per condition or language.** The source gives a trend, a 30-day average and a lowest price per card. Where it lists print variants separately (1st edition, holo, reverse holo), the app takes the figure of the variant that matches the card's finish and 1st edition mark; otherwise the card's general figure. Language is not in any figure, so the card page links to the card on Cardmarket for that. Condition is handled by the app's own estimate, below. Shadowless prints are not told apart.
 
-**The price is stored with the owned card, with a snapshot per day.** The collection's value is then a plain sum, and the history shows how a card moved.
+**The estimated value is the price trend times a factor for the condition.** The source has no price per condition, so the app estimates one:
+
+| Condition | Factor |
+|---|---|
+| Mint, Near Mint | 100% |
+| Excellent | 80% |
+| Good | 60% |
+| Light Played | 45% |
+| Played | 30% |
+| Poor | 15% |
+
+The factors are rough rules of thumb for how prices on Cardmarket drop per condition step; they live in `core/rules/pricing.ts` and are meant to be tuned. A card without a condition is valued at the full trend and marked as unknown in the collection, so it is clear that its figure is too high rather than silently guessed. The collection's total, the sort on value, the export and the sheet use the estimate; the trend itself stays visible on the card page.
+
+**The source's figures are stored with the owned card, with a snapshot per day.** The estimate is worked out from them when asked, so changing a factor or a condition needs no stored data to be rewritten. The history shows how the source's price moved.
 
 ## Sources
 

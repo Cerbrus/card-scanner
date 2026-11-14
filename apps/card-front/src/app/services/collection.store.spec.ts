@@ -20,7 +20,7 @@ describe('the collection in the web app', () => {
     afterEach(() => vi.useRealTimers());
 
     it('splits the cards in confirmed ones and the inbox, and adds up the value of the confirmed ones', () => {
-        api.getCards.mockReturnValue(of([card(1, { priceTrend: 10.5 }), card(2, { priceTrend: 2 }), card(3), card(4, { status: 'identified', priceTrend: 99 })]));
+        api.getCards.mockReturnValue(of([card(1, { estimatedValue: 10.5 }), card(2, { estimatedValue: 2 }), card(3), card(4, { status: 'identified', estimatedValue: 99 })]));
 
         store.refresh().subscribe();
 

@@ -24,7 +24,7 @@ import {
 import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
 import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, isJpeg, photoFileName } from '../rules/photo-file';
-import { cardmarketUrl } from '../rules/pricing';
+import { cardmarketUrl, conditionFactor, estimateValue } from '../rules/pricing';
 
 export interface PhotoUpload {
     side: PhotoSide;
@@ -58,6 +58,8 @@ export interface CardSummary {
     priceTrend?: number;
     priceAvg30?: number;
     priceLow?: number;
+    estimatedValue?: number;
+    valueFactor: number;
     priceCheckedAt?: Date;
     createdAt: Date;
     photos: Partial<Record<PhotoSide, number>>;
@@ -272,6 +274,7 @@ export class CardService implements OnApplicationBootstrap {
                 priceTrend: card.priceTrend,
                 priceAvg30: card.priceAvg30,
                 priceLow: card.priceLow,
+                estimatedValue: estimateValue(card.priceTrend, card.condition),
                 priceCheckedAt: card.priceCheckedAt,
                 status: card.status,
                 notes: card.notes,
@@ -404,6 +407,8 @@ export class CardService implements OnApplicationBootstrap {
             priceTrend: card.priceTrend ?? undefined,
             priceAvg30: card.priceAvg30 ?? undefined,
             priceLow: card.priceLow ?? undefined,
+            estimatedValue: estimateValue(card.priceTrend, card.condition),
+            valueFactor: conditionFactor(card.condition),
             priceCheckedAt: card.priceCheckedAt ?? undefined,
             createdAt: card.createdAt,
             photos: Object.fromEntries(photos.filter((photo) => photo.ownedCardId === card.id).map((photo) => [photo.side, photo.id]))

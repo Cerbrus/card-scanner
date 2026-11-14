@@ -69,7 +69,7 @@
         "trend": "Price trend",
         "avg30": "30-day average",
         "low": "From",
-        "priceNote": "Cardmarket, checked {date}. One figure per card: condition and language are not in it.",
+        "priceNote": "Cardmarket, checked {date}. The source has one figure per card, without condition or language.",
         "noPriceLong": "The price source has no figure for this card.",
         "priceAfterConfirm": "The price follows once you have picked the card.",
         "cardmarket": "Open on Cardmarket",
@@ -83,7 +83,10 @@
         "notes": "Notes",
         "delete": "Delete card",
         "deleteSure": "Yes, delete",
-        "missing": "This card does not exist (any more)."
+        "missing": "This card does not exist (any more).",
+        "estimate": "Estimated value",
+        "estimateNote": "{percent}% of the price trend, for condition {condition}.",
+        "estimateUnknown": "Condition not set: the estimate is the full price trend. Set the condition for a better figure."
     },
     "condition": {
         "mint": "Mint",
@@ -114,7 +117,7 @@
     },
     "collection": {
         "title": "Collection",
-        "valueOf": "{priced} of {count, plural, one {# confirmed card} other {# confirmed cards}} with a price",
+        "valueOf": "Estimated for condition. {priced} of {count, plural, one {# confirmed card} other {# confirmed cards}} with a price",
         "waiting": "{count} in the inbox",
         "search": "Search name, set or number",
         "sort": "Sort",
@@ -190,5 +193,18 @@
                 "dark": "Dark"
             }
         }
+    },
+    "conditionShort": {
+        "mint": "MT",
+        "near_mint": "NM",
+        "excellent": "EX",
+        "good": "GD",
+        "light_played": "LP",
+        "played": "PL",
+        "poor": "PO"
+    },
+    "mark": {
+        "language": "Language of the card",
+        "condition": "Condition of the card"
     }
 }

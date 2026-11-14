@@ -84,7 +84,11 @@
             @if (card.priceTrend || card.priceAvg30 || card.priceLow) {
                 <div class="flex flex-wrap gap-x-6 gap-y-2">
                     <span>
-                        <span class="block text-2xl font-bold">{{ card.priceTrend | currency: 'EUR' }}</span>
+                        <span class="block text-2xl font-bold">{{ card.estimatedValue | currency: 'EUR' }}</span>
+                        <span class="muted text-xs">{{ 'card.estimate' | translate }}</span>
+                    </span>
+                    <span>
+                        <span class="block text-lg font-semibold">{{ card.priceTrend | currency: 'EUR' }}</span>
                         <span class="muted text-xs">{{ 'card.trend' | translate }}</span>
                     </span>
                     <span>
@@ -96,7 +100,14 @@
                         <span class="muted text-xs">{{ 'card.low' | translate }}</span>
                     </span>
                 </div>
-                <p class="muted mt-2 text-xs">{{ 'card.priceNote' | translate: { date: (card.priceCheckedAt | date: 'd MMM y') } }}</p>
+                <p class="mt-2 text-xs" [class.muted]="card.condition">
+                    @if (card.condition; as condition) {
+                        {{ 'card.estimateNote' | translate: { percent: card.valueFactor * 100 | number: '1.0-0', condition: ('condition.' + condition | translate) } }}
+                    } @else {
+                        {{ 'card.estimateUnknown' | translate }}
+                    }
+                </p>
+                <p class="muted mt-1 text-xs">{{ 'card.priceNote' | translate: { date: (card.priceCheckedAt | date: 'd MMM y') } }}</p>
             } @else {
                 <p class="muted text-sm">{{ (card.status === 'confirmed' ? 'card.noPriceLong' : 'card.priceAfterConfirm') | translate }}</p>
             }

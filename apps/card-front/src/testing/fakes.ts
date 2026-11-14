@@ -12,6 +12,7 @@ export function card(id: number, changes: Partial<CardSummary> = {}): CardSummar
         setName: 'Base Set',
         number: String(id),
         firstEdition: false,
+        valueFactor: 1,
         createdAt: `2026-11-${String(id).padStart(2, '0')}T10:00:00.000Z`,
         photos: { front: id * 10, back: id * 10 + 1 },
         ...changes
@@ -59,8 +60,8 @@ export function fakeStore(cards: Array<CardSummary> = []): FakeStore {
         confirmed,
         inbox: computed(() => list().filter((known) => known.status !== 'confirmed')),
         reading: computed(() => list().some((known) => known.readingState === 'pending')),
-        totalValue: computed(() => confirmed().reduce((total, known) => total + (known.priceTrend ?? 0), 0)),
-        pricedCount: computed(() => confirmed().filter((known) => known.priceTrend !== undefined).length),
+        totalValue: computed(() => confirmed().reduce((total, known) => total + (known.estimatedValue ?? 0), 0)),
+        pricedCount: computed(() => confirmed().filter((known) => known.estimatedValue !== undefined).length),
         refresh: vi.fn(() => of(list())),
         followReadings: vi.fn(() => of(list())),
         put: vi.fn(),

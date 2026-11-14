@@ -95,6 +95,8 @@ The pool is every catalogue card with that number or with the name as part of it
 2. for a reverse holo without its own variant: the card's foil figures;
 3. otherwise the card's general figure.
 
+The estimated value of an owned card is that figure's trend times the factor of its condition (`CONDITION_FACTORS`); without a condition the factor is 1. The API returns it as `estimatedValue` with `valueFactor` next to the source's figures.
+
 A daily job asks the price of every confirmed card again and writes a snapshot. Card details are kept for 20 hours, so a second request within a day costs nothing.
 
 ## Reading photos
@@ -147,10 +149,10 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 
 | Page | Content |
 |---|---|
-| Collection | Total value, search, sort, a tile per card |
+| Collection | Total estimated value, search, sort, a tile per card with markers for language and condition (a dashed `?` when unknown) |
 | Scan | Two photos, save, straight on to the next card |
 | Inbox | Cards that are not confirmed, with their state |
-| Card | Photos, catalogue picture, candidates, catalogue search, price with history, the print and condition, delete |
+| Card | Photos, catalogue picture, candidates, catalogue search, estimated value and the source's price with history, the print and condition, delete |
 | Settings | What is on and off and why, Google connection, catalogue and prices, export, theme, language, log out |
 | Login | The Google button |
 

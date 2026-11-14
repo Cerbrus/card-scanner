@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -19,7 +19,7 @@ const HISTORY_LENGTH = 8;
 @Component({
     selector: 'app-card-page',
     standalone: true,
-    imports: [CurrencyPipe, DatePipe, RouterLink, TranslateModule, CandidateListComponent],
+    imports: [CurrencyPipe, DatePipe, DecimalPipe, RouterLink, TranslateModule, CandidateListComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './card.page.html',
     styleUrl: './card.page.scss'

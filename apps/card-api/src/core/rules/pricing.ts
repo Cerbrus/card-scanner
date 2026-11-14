@@ -1,4 +1,4 @@
-import { CardPricing, Finish, PriceFigures, VariantPrice } from '../../data/entities/types';
+import { CardPricing, Condition, Finish, PriceFigures, VariantPrice } from '../../data/entities/types';
 
 export interface PrintChoice {
     variant?: Finish | null;
@@ -33,6 +33,16 @@ const FIRST_EDITION_STAMP = '1st-edition';
 const PLAIN_SUBTYPES = [undefined, 'unlimited'];
 const CARDMARKET_PRODUCT_URL = 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=';
 const CARDMARKET_SEARCH_URL = 'https://www.cardmarket.com/en/Pokemon/Products/Search?searchString=';
+
+export const CONDITION_FACTORS: Record<Condition, number> = {
+    mint: 1,
+    near_mint: 1,
+    excellent: 0.8,
+    good: 0.6,
+    light_played: 0.45,
+    played: 0.3,
+    poor: 0.15
+};
 
 const amount = (value?: number | null): number | undefined => (typeof value === 'number' && value > 0 ? value : undefined);
 
@@ -102,6 +112,14 @@ export function pickPrice(pricing: CardPricing | null | undefined, print: PrintC
     }
 
     return pricing.standard ?? exact?.price ?? pricing.variants[0]?.price;
+}
+
+export function conditionFactor(condition?: Condition | null): number {
+    return condition ? CONDITION_FACTORS[condition] : 1;
+}
+
+export function estimateValue(price: number | null | undefined, condition?: Condition | null): number | undefined {
+    return typeof price === 'number' ? Math.round(price * conditionFactor(condition) * 100) / 100 : undefined;
 }
 
 export function cardmarketUrl(productId: number | null | undefined, name: string): string {

@@ -69,7 +69,7 @@
         "trend": "Prijstrend",
         "avg30": "Gemiddelde over 30 dagen",
         "low": "Vanaf",
-        "priceNote": "Cardmarket, bekeken op {date}. Eén bedrag per kaart: conditie en taal zitten er niet in.",
+        "priceNote": "Cardmarket, bekeken op {date}. De bron heeft één bedrag per kaart, zonder conditie of taal.",
         "noPriceLong": "De prijsbron heeft geen bedrag voor deze kaart.",
         "priceAfterConfirm": "De prijs volgt zodra je de kaart hebt gekozen.",
         "cardmarket": "Openen op Cardmarket",
@@ -83,7 +83,10 @@
         "notes": "Notities",
         "delete": "Kaart verwijderen",
         "deleteSure": "Ja, verwijderen",
-        "missing": "Deze kaart bestaat niet (meer)."
+        "missing": "Deze kaart bestaat niet (meer).",
+        "estimate": "Geschatte waarde",
+        "estimateNote": "{percent}% van de prijstrend, voor conditie {condition}.",
+        "estimateUnknown": "Conditie niet ingevuld: de schatting is de volle prijstrend. Vul de conditie in voor een beter bedrag."
     },
     "condition": {
         "mint": "Mint",
@@ -114,7 +117,7 @@
     },
     "collection": {
         "title": "Collectie",
-        "valueOf": "{priced} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} met een prijs",
+        "valueOf": "Geschat naar conditie. {priced} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} met een prijs",
         "waiting": "{count} in de inbox",
         "search": "Zoek op naam, set of nummer",
         "sort": "Sorteren",
@@ -190,5 +193,18 @@
                 "dark": "Donker"
             }
         }
+    },
+    "conditionShort": {
+        "mint": "MT",
+        "near_mint": "NM",
+        "excellent": "EX",
+        "good": "GD",
+        "light_played": "LP",
+        "played": "PL",
+        "poor": "PO"
+    },
+    "mark": {
+        "language": "Taal van de kaart",
+        "condition": "Conditie van de kaart"
     }
 }

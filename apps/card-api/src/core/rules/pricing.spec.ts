@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { SourceCard, cardmarketUrl, dayOf, pickPrice, readPricing } from './pricing';
+import { SourceCard, cardmarketUrl, conditionFactor, dayOf, estimateValue, pickPrice, readPricing } from './pricing';
 
 const charizard: SourceCard = {
     rarity: 'Rare',
@@ -47,6 +47,16 @@ describe('prices of a card', () => {
         assert.equal(pickPrice(readPricing({}), { variant: 'holo', firstEdition: false }), undefined);
         assert.equal(pickPrice(readPricing({ pricing: { cardmarket: { idProduct: 5, trend: 0, avg30: null } } }), { firstEdition: false }), undefined);
         assert.equal(pickPrice(undefined, { firstEdition: false }), undefined);
+    });
+
+    it('lowers the estimated value with the condition, and leaves it alone when the condition is unknown', () => {
+        assert.equal(estimateValue(100, 'near_mint'), 100);
+        assert.equal(estimateValue(100, 'good'), 60);
+        assert.equal(estimateValue(385.83, 'played'), 115.75);
+        assert.equal(estimateValue(100, 'poor'), 15);
+        assert.equal(estimateValue(100, null), 100);
+        assert.equal(estimateValue(null, 'good'), undefined);
+        assert.deepEqual([conditionFactor('excellent'), conditionFactor('light_played'), conditionFactor(undefined)], [0.8, 0.45, 1]);
     });
 
     it('links to the product on Cardmarket, or to a search when the product is unknown', () => {

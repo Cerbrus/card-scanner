@@ -13,7 +13,7 @@ export type Sort = (typeof SORTS)[number];
 const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> = {
     newest: (left, right) => right.createdAt.localeCompare(left.createdAt) || right.id - left.id,
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
-    value: (left, right) => (right.priceTrend ?? -1) - (left.priceTrend ?? -1),
+    value: (left, right) => (right.estimatedValue ?? -1) - (left.estimatedValue ?? -1),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
 

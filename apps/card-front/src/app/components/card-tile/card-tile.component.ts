@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { CardSummary } from '../../models';
+import { CardSummary, Language } from '../../models';
 import { ApiService } from '../../services/api.service';
 
 @Component({
@@ -20,9 +20,13 @@ import { ApiService } from '../../services/api.service';
             }
             <span class="tile-name">{{ card().name ?? ('card.unknown' | translate) }}</span>
             <span class="tile-line muted">{{ card().setName ?? '' }}</span>
+            <span class="tile-marks">
+                <span class="mark" [class.unknown]="!card().language" [title]="'mark.language' | translate">{{ language() }}</span>
+                <span class="mark" [class.unknown]="!card().condition" [title]="'mark.condition' | translate">{{ condition() | translate }}</span>
+            </span>
             @if (card().status !== 'confirmed') {
                 <span class="badge">{{ 'state.' + state() | translate }}</span>
-            } @else if (card().priceTrend; as price) {
+            } @else if (card().estimatedValue; as price) {
                 <span class="tile-price">{{ price | currency: 'EUR' }}</span>
             } @else {
                 <span class="tile-line muted">{{ 'card.noPrice' | translate }}</span>
@@ -37,6 +41,12 @@ import { ApiService } from '../../services/api.service';
         }
         .tile-name { overflow: hidden; font-size: 0.82rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
         .tile-line { overflow: hidden; font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
+        .tile-marks { display: flex; gap: 4px; }
+        .mark {
+            min-width: 24px; padding: 0 5px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface);
+            font-size: 0.66rem; font-weight: 700; line-height: 16px; text-align: center;
+        }
+        .mark.unknown { border-style: dashed; border-color: var(--warning); color: var(--text-muted); }
         .tile-price { color: var(--accent); font-size: 0.82rem; font-weight: 700; }
         .badge { align-self: flex-start; }
     `
@@ -53,6 +63,22 @@ export class CardTileComponent {
     });
 
     protected readonly state = computed(() => cardState(this.card()));
+    protected readonly language = computed(() => languageMark(this.card().language));
+    protected readonly condition = computed(() => {
+        const condition = this.card().condition;
+
+        return condition ? `conditionShort.${condition}` : UNKNOWN_MARK;
+    });
+}
+
+export const UNKNOWN_MARK = '?';
+
+export function languageMark(language?: Language): string {
+    if (!language) {
+        return UNKNOWN_MARK;
+    }
+
+    return language === 'other' ? '…' : language.toUpperCase();
 }
 
 export function cardState(card: CardSummary): string {

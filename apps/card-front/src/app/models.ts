@@ -61,6 +61,8 @@ export interface CardSummary {
     priceTrend?: number;
     priceAvg30?: number;
     priceLow?: number;
+    estimatedValue?: number;
+    valueFactor: number;
     priceCheckedAt?: string;
     createdAt: string;
     photos: Partial<Record<PhotoSide, number>>;
