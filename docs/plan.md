@@ -8,15 +8,14 @@ Everything below is built. Each item is switched off, or not reachable, until th
 
 | # | What | Until then | To do |
 |---|---|---|---|
-| 1 | **Image package public** | The Pi cannot pull new versions by itself; the first image was loaded by hand | On GitHub: profile, Packages, `cardscanner-app`, Package settings, Change visibility, Public. Then delete the repository variable `IMAGE_AS_ARTIFACT`. |
-| 2 | **Google Cloud project** (login and Drive) | Login is off: the app is open on the home network. The Drive copy is off. | Create the project and OAuth client, fill in `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `PUBLIC_URL`, `ALLOWED_EMAILS` in `/opt/cardscanner/.env`, restart |
-| 3 | **Reverse proxy host** for the site's name | The site is only reachable on the home network, at the Pi's address and port 3030, over plain HTTP | Add the proxy host in Nginx Proxy Manager, after item 2 or with an access list. Then set `ALLOWED_SOURCE`. |
-| 4 | **Connect Google Drive** | Nothing is copied to Drive or the sheet | After items 2 and 3: Settings page, Connect Google Drive |
-| 5 | **Anthropic API key** | Photos are not read: each card is picked by hand from the catalogue | Put `ANTHROPIC_API_KEY` in `.env`, restart |
+| 1 | **Google Cloud project** (login and Drive) | Login is off: the app is open on the home network. The Drive copy is off. | Create the project and OAuth client, fill in `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `PUBLIC_URL`, `ALLOWED_EMAILS` in `/opt/cardscanner/.env`, restart |
+| 2 | **Reverse proxy host** for the site's name | The site is only reachable on the home network, at the Pi's address and port 3030, over plain HTTP | Add the proxy host in Nginx Proxy Manager, after item 1 or with an access list. Then set `ALLOWED_SOURCE`. |
+| 3 | **Connect Google Drive** | Nothing is copied to Drive or the sheet | After items 1 and 2: Settings page, Connect Google Drive |
+| 4 | **Anthropic API key** | Photos are not read: each card is picked by hand from the catalogue | Put `ANTHROPIC_API_KEY` in `.env`, restart |
 
 Also open for the owner to decide:
 
-- Dependabot is set up as in the barcode scanner and will open pull requests on Mondays. The Claude review helper of that project is not copied: it needs the secret `CLAUDE_CODE_OAUTH_TOKEN` in this repository.
+- Dependabot is set up as in the barcode scanner. It opened its first nine pull requests right after the first push, several of them major versions; none is merged. The Claude review helper of that project is not copied: it needs the secret `CLAUDE_CODE_OAUTH_TOKEN` in this repository.
 - The branch ruleset `protect-master` of the barcode scanner (no force-push, no deletion) is not set here.
 
 ## Never tested
@@ -27,7 +26,7 @@ Also open for the owner to decide:
 - **The scan page on a real phone**: opening the camera, the size and quality of the scaled photos, rotation of portrait photos.
 - **Condition estimates**: whether the model's judgement from phone photos is useful at all.
 - **Dutch and other non-English prints**: found through number and set total in tests with made-up readings; not tried with real cards.
-- **`install.sh` on a fresh Pi.** On the server Pi Docker and the memory settings were already there.
+- **`install.sh` on a fresh Pi.** On the server Pi it ran fine, but Docker and the memory settings were already there.
 - **A restore** from the Drive copy.
 
 ## Done
@@ -38,9 +37,9 @@ Also open for the owner to decide:
 - [x] Health endpoint with version (done 2026-11-14 15:55)
 - [x] Login with Google for an allowlist; off until configured (done 2026-11-14 15:55)
 - [x] Dockerfile, compose file, build workflow, install, update and firewall scripts (done 2026-11-14 15:55)
-- [ ] Running on the server Pi
-- [ ] Reachable from the phone on the home network
-- [ ] Behind the reverse proxy with HTTPS: waits for the owner, item 3
+- [x] Running on the server Pi: installed with `install.sh`, the Pi pulled version 0.1.0 by itself, health check green, about 110 MB of memory in use (done 2026-11-14 16:05)
+- [x] Reachable on the home network at the Pi's address, port 3030: scan upload, catalogue search, confirm, price, CSV and the pages checked from a laptop (done 2026-11-14 16:05)
+- [ ] Behind the reverse proxy with HTTPS: waits for the owner, item 2
 
 ### Milestone 2: capture
 
@@ -54,7 +53,7 @@ Also open for the owner to decide:
 - [x] Local copy of the TCGdex catalogue, fetched at first start and weekly (done 2026-11-14 15:55)
 - [x] Search by name and number, best fit first; tap to confirm (done 2026-11-14 15:55)
 - [x] Inbox with the cards that are not confirmed (done 2026-11-14 15:55)
-- [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set, item 5 (done 2026-11-14 15:55)
+- [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set, item 4 (done 2026-11-14 15:55)
 
 ### Milestone 4: prices
 
@@ -66,14 +65,14 @@ Also open for the owner to decide:
 ### Milestone 5: condition
 
 - [x] Condition on Cardmarket's scale, set by hand (done 2026-11-14 15:55)
-- [x] Estimate by the model in the same reading, with notes; never overwrites the user's choice. Off until a key is set, item 5 (done 2026-11-14 15:55)
+- [x] Estimate by the model in the same reading, with notes; never overwrites the user's choice. Off until a key is set, item 4 (done 2026-11-14 15:55)
 
 ### Milestone 6: Google sync
 
 - [x] Consent from the Settings page, owner only (done 2026-11-14 15:55)
 - [x] Photos to `photos/`, the collection to the sheet (tabs `Cards` and `Prices`), nightly database copy to `backup/` (done 2026-11-14 15:55)
 - [x] State, last error and "Copy now" on the Settings page; a failed run catches up (done 2026-11-14 15:55)
-- [ ] Running against the real Google: waits for the owner, items 2 to 4
+- [ ] Running against the real Google: waits for the owner, items 1 to 3
 
 ### Milestone 7: comfort
 
@@ -96,5 +95,5 @@ Also open for the owner to decide:
 
 - TCGdex returns Cardmarket prices for the old sets, and separate figures for 1st edition prints (checked 2026-11-14 with Base Set Charizard).
 - TCGdex's Dutch catalogue lacks the old sets, so the English catalogue is used.
-- The whole catalogue (221 sets, 23,912 cards) loads into SQLite in about a second on a laptop.
+- The whole catalogue (221 sets, 23,912 cards) loads into SQLite in about a second on a laptop and in 8 seconds on the Pi.
 - GitHub's ARM build runners are free for a public repository.

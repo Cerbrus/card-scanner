@@ -12,7 +12,7 @@ The Pi pulls; nothing pushes to the Pi.
 
 The repository and the image are public, so the Pi needs no GitHub token and no registry login. Secrets never go into the image.
 
-**The image package must be set to public once.** A new package starts private, even in a public repository. Making it public is done on the GitHub website: your profile, Packages, `cardscanner-app`, Package settings, Change visibility, Public. Until then the Pi cannot pull, and the updater keeps the image it has.
+The image package took its visibility from the public repository at its first build, so nothing has to be set by hand. Should a pull ever be refused, check on GitHub under your profile, Packages, `cardscanner-app`, Package settings that the package is public.
 
 ## On the Pi
 
@@ -120,10 +120,6 @@ Notes:
 ### Version numbers
 
 Every build of `master` gets a version `major.minor.patch`, worked out by `.github/scripts/version.sh`: `major.minor` from `version` in the root `package.json`, and as `patch` the number of commits since that last changed. The workflow tags the commit `v<version>` and creates a GitHub release with the commit subjects.
-
-### Image as a file with the build
-
-While the repository variable `IMAGE_AS_ARTIFACT` is `true`, each build also keeps the image as a file with the workflow run for two days. That was used to load the first image onto the Pi before the package was public. Delete the variable once the package is public.
 
 ### Dependency updates
 

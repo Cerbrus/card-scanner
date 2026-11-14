@@ -114,19 +114,6 @@ jobs:
                 if: github.event_name == 'push'
                 run: docker push --all-tags "$IMAGE"
 
-            -   name: Save the image as a file
-                if: github.event_name == 'push' && vars.IMAGE_AS_ARTIFACT == 'true'
-                run: docker save "$IMAGE:latest" | gzip > cardscanner-app.tar.gz
-
-            -   name: Keep the image file with the run
-                if: github.event_name == 'push' && vars.IMAGE_AS_ARTIFACT == 'true'
-                uses: actions/upload-artifact@v4
-                with:
-                    name: cardscanner-app
-                    path: cardscanner-app.tar.gz
-                    retention-days: 2
-                    compression-level: 0
-
     tag:
         name: tag v${{ needs.checks.outputs.version }}
         needs: [ checks, image ]
