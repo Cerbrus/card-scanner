@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.angular/
+.nx/
+.idea/
+.env
+.env.*
+data/
