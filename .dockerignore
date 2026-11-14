@@ -1,0 +1,16 @@
+.git
+.github
+.idea
+.vscode
+.nx
+.run
+.claude
+node_modules
+dist
+docs
+deployment
+data
+coverage
+**/.env
+**/.env.*
+*.log

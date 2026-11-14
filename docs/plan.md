@@ -1,75 +1,100 @@
 # Plan
 
-Milestones in the order they will be built. Each one leaves a working app. When something is finished, mark it with date and time (`done 2026-11-14 15:30`).
+What is done, what waits for the owner, and what was never tested. When something is finished, mark it with date and time (`done 2026-11-14 15:55`).
 
-Status on 2026-11-14: planning. No code yet.
+## Needs the owner
 
-## To check before building
+Everything below is built. Each item is switched off, or not reachable, until the owner does his part. The steps are in [deployment.md](deployment.md).
 
-These are assumptions the plan rests on. Each one is a short test.
+| # | What | Until then | To do |
+|---|---|---|---|
+| 1 | **Image package public** | The Pi cannot pull new versions by itself; the first image was loaded by hand | On GitHub: profile, Packages, `cardscanner-app`, Package settings, Change visibility, Public. Then delete the repository variable `IMAGE_AS_ARTIFACT`. |
+| 2 | **Google Cloud project** (login and Drive) | Login is off: the app is open on the home network. The Drive copy is off. | Create the project and OAuth client, fill in `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `PUBLIC_URL`, `ALLOWED_EMAILS` in `/opt/cardscanner/.env`, restart |
+| 3 | **Reverse proxy host** for the site's name | The site is only reachable on the home network, at the Pi's address and port 3030, over plain HTTP | Add the proxy host in Nginx Proxy Manager, after item 2 or with an access list. Then set `ALLOWED_SOURCE`. |
+| 4 | **Connect Google Drive** | Nothing is copied to Drive or the sheet | After items 2 and 3: Settings page, Connect Google Drive |
+| 5 | **Anthropic API key** | Photos are not read: each card is picked by hand from the catalogue | Put `ANTHROPIC_API_KEY` in `.env`, restart |
 
-- [ ] TCGdex has Dutch card data: request `/v2/nl/cards` and a few known old cards. If Dutch is missing, Dutch prints are matched to the English card and the language is stored on the owned card only.
-- [ ] TCGdex returns a Cardmarket price for cards from the old sets (Base, Jungle, Fossil, Team Rocket, Neo). Its FAQ says some cards have no price.
-- [ ] How TCGdex tells 1st edition, shadowless and unlimited prints apart, if at all.
-- [ ] A Google OAuth app with the `drive.file` scope can be set to "In production" without Google's verification, so its refresh token does not expire after 7 days.
-- [ ] GitHub's ARM build runners are available to a private repository on the free plan. If not: build with emulation, or make the repository public.
-- [ ] The image library (`sharp`) stays within the container's memory limit on the Pi when it resizes a phone photo.
+Also open for the owner to decide:
 
-## Milestone 1: skeleton
+- Dependabot is set up as in the barcode scanner and will open pull requests on Mondays. The Claude review helper of that project is not copied: it needs the secret `CLAUDE_CODE_OAUTH_TOKEN` in this repository.
+- The branch ruleset `protect-master` of the barcode scanner (no force-push, no deletion) is not set here.
 
-- [ ] Nx workspace with `card-api` (NestJS, TypeORM, SQLite) and `card-front` (Angular, TailwindCSS), copied in structure from the barcode scanner
-- [ ] Health endpoint with version
-- [ ] Login with Google for an allowlist, as in the barcode scanner
-- [ ] Dockerfile, compose file, build workflow, install and update scripts
-- [ ] Running on the server Pi behind the reverse proxy, reachable from the phone
+## Never tested
 
-## Milestone 2: capture
+- **Reading photos with the real model.** The call is written against the Anthropic SDK and type-checked; the flow around it is tested with a stand-in reader. No API key was available, so no real photo has been read yet. The instructions for the model in `card.reader.ts` are a first version.
+- **The real Google Drive and Sheets.** The sync is tested against a fake Google that answers like the real one for the calls used. Consent, folder lookup in a real Drive, upload and sheet writing have not run against Google.
+- **Login with Google** in this app. The code is the barcode scanner's, where it works; the routes are tested with signed sessions.
+- **The scan page on a real phone**: opening the camera, the size and quality of the scaled photos, rotation of portrait photos.
+- **Condition estimates**: whether the model's judgement from phone photos is useful at all.
+- **Dutch and other non-English prints**: found through number and set total in tests with made-up readings; not tried with real cards.
+- **`install.sh` on a fresh Pi.** On the server Pi Docker and the memory settings were already there.
+- **A restore** from the Drive copy.
 
-- [ ] Scan page: take the front photo, take the back photo, save
-- [ ] Photos are made smaller on the phone before upload and stored on the Pi's disk
-- [ ] Collection page: a grid of the owned cards with their front photo
-- [ ] Card page: both photos, all fields editable by hand, delete
+## Done
 
-After this milestone the app is a usable photo catalogue, without any automatic detection.
+### Milestone 1: skeleton
 
-## Milestone 3: identification
+- [x] Nx workspace with `card-api` and `card-front`, structure taken from the barcode scanner (done 2026-11-14 15:55)
+- [x] Health endpoint with version (done 2026-11-14 15:55)
+- [x] Login with Google for an allowlist; off until configured (done 2026-11-14 15:55)
+- [x] Dockerfile, compose file, build workflow, install, update and firewall scripts (done 2026-11-14 15:55)
+- [ ] Running on the server Pi
+- [ ] Reachable from the phone on the home network
+- [ ] Behind the reverse proxy with HTTPS: waits for the owner, item 3
 
-- [ ] Local copy of the TCGdex catalogue (sets and cards), refreshed on request
-- [ ] After a scan, Claude reads both photos and returns name, card number, set, language, edition mark, holo or not
-- [ ] The server matches that against the catalogue and offers the best candidates with their reference picture
-- [ ] The user confirms one with a tap, or searches by hand when none fits
-- [ ] A scan that could not be matched waits in an inbox
+### Milestone 2: capture
 
-## Milestone 4: prices
+- [x] Scan page: front photo, back photo, save (done 2026-11-14 15:55)
+- [x] Photos made smaller on the phone, with a thumbnail, stored on disk (done 2026-11-14 15:55)
+- [x] Collection page: grid of the cards with their front photo (done 2026-11-14 15:55)
+- [x] Card page: both photos, details editable, delete (done 2026-11-14 15:55)
 
-- [ ] Cardmarket price from TCGdex stored per catalogue card, refreshed daily
-- [ ] A price snapshot per day, so the value over time can be shown
-- [ ] Value per card and total value of the collection
-- [ ] A link per card that opens it on Cardmarket, for the price per condition and language
+### Milestone 3: identification
 
-## Milestone 5: condition
+- [x] Local copy of the TCGdex catalogue, fetched at first start and weekly (done 2026-11-14 15:55)
+- [x] Search by name and number, best fit first; tap to confirm (done 2026-11-14 15:55)
+- [x] Inbox with the cards that are not confirmed (done 2026-11-14 15:55)
+- [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set, item 5 (done 2026-11-14 15:55)
 
-- [ ] Claude judges the condition from both photos on Cardmarket's scale and names what it saw (edge wear, scratches, creases)
-- [ ] The result is stored as a suggestion; the user can overrule it, and the card remembers which of the two it is
-- [ ] A mark on cards that may be worth grading
+### Milestone 4: prices
 
-## Milestone 6: Google sync
+- [x] Cardmarket price per card from TCGdex, with its own figure per print variant (done 2026-11-14 15:55)
+- [x] Daily refresh and a snapshot per day (done 2026-11-14 15:55)
+- [x] Value per card and total value of the collection (done 2026-11-14 15:55)
+- [x] Link to the card on Cardmarket (done 2026-11-14 15:55)
 
-- [ ] Consent for Drive once, from the settings page
-- [ ] Photos are uploaded to the Drive folder; each photo remembers its Drive file
-- [ ] The sheet is rewritten after changes: one row per owned card, a second tab with the price history
-- [ ] A nightly copy of the database goes to Drive
-- [ ] Sync status on the settings page, with a button to run it now; a failed upload is retried
+### Milestone 5: condition
 
-## Milestone 7: comfort
+- [x] Condition on Cardmarket's scale, set by hand (done 2026-11-14 15:55)
+- [x] Estimate by the model in the same reading, with notes; never overwrites the user's choice. Off until a key is set, item 5 (done 2026-11-14 15:55)
 
-- [ ] Quick mode: scan card after card, processing happens in the background
-- [ ] Filter and sort the collection (set, value, condition, language)
-- [ ] Count of duplicates
-- [ ] Export as CSV
+### Milestone 6: Google sync
 
-## Open questions for the owner
+- [x] Consent from the Settings page, owner only (done 2026-11-14 15:55)
+- [x] Photos to `photos/`, the collection to the sheet (tabs `Cards` and `Prices`), nightly database copy to `backup/` (done 2026-11-14 15:55)
+- [x] State, last error and "Copy now" on the Settings page; a failed run catches up (done 2026-11-14 15:55)
+- [ ] Running against the real Google: waits for the owner, items 2 to 4
 
-- The Drive folder: see "Drive folder" in [decisions.md](decisions.md). The app cannot write into a folder it did not create, so the proposal is that the app creates the folder and the owner moves it into place once.
-- The address of the site (a subdomain behind the reverse proxy).
-- One Google Cloud project shared with the barcode scanner, or a new one. Proposal: a new one.
+### Milestone 7: comfort
+
+- [x] Search and sort in the collection (done 2026-11-14 15:55)
+- [x] Export as CSV (done 2026-11-14 15:55)
+- [x] Dutch and English, light and dark theme, installable on the home screen (done 2026-11-14 15:55)
+
+## Open
+
+- A mark on cards that may be worth grading (high value, good condition).
+- Count of duplicates of the same catalogue card.
+- Filter the collection by set, condition or language.
+- A chart of the collection's value over time; the snapshots are there.
+- Crop and straighten the photo on the phone.
+- Remove a card's photos from Drive when the card is deleted; now they stay there.
+- Tests in a real browser, as the barcode scanner has.
+- A system log page, as the barcode scanner has; the log is written to `data/logs/app.log`.
+
+## Checked before building
+
+- TCGdex returns Cardmarket prices for the old sets, and separate figures for 1st edition prints (checked 2026-11-14 with Base Set Charizard).
+- TCGdex's Dutch catalogue lacks the old sets, so the English catalogue is used.
+- The whole catalogue (221 sets, 23,912 cards) loads into SQLite in about a second on a laptop.
+- GitHub's ARM build runners are free for a public repository.

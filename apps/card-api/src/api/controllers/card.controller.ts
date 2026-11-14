@@ -1,0 +1,84 @@
+import {
+    BadRequestException,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    ParseIntPipe,
+    Patch,
+    Post,
+    UploadedFiles,
+    UseInterceptors
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+
+import { MAX_PHOTO_BYTES } from '../../core/rules/photo-file';
+import { CardDetail, CardService, CardSummary, PhotoUpload } from '../../core/services/card.service';
+import { PhotoSide } from '../../data/entities/types';
+import { CardChangesDto } from '../dto/card-changes.dto';
+import { ConfirmCardDto } from '../dto/confirm-card.dto';
+
+type UploadedPhotos = Partial<Record<string, Array<{ buffer: Buffer }>>>;
+
+const SIDES: Array<PhotoSide> = ['front', 'back'];
+const UPLOAD_FIELDS = SIDES.flatMap((side) => [
+    { name: side, maxCount: 1 },
+    { name: `${side}Thumb`, maxCount: 1 }
+]);
+
+@Controller({ path: 'cards', version: '1' })
+export class CardController {
+    constructor(private readonly cards: CardService) {
+    }
+
+    @Get()
+    public list(): Promise<Array<CardSummary>> {
+        return this.cards.list();
+    }
+
+    @Post()
+    @UseInterceptors(FileFieldsInterceptor(UPLOAD_FIELDS, { limits: { fileSize: MAX_PHOTO_BYTES } }))
+    public create(@UploadedFiles() files: UploadedPhotos = {}): Promise<CardSummary> {
+        const uploads = SIDES.map((side): PhotoUpload => {
+            const photo = files[side]?.[0]?.buffer;
+            const thumb = files[`${side}Thumb`]?.[0]?.buffer;
+            if (!photo || !thumb) {
+                throw new BadRequestException(`Missing photo: ${side}`);
+            }
+
+            return { side, photo, thumb };
+        });
+
+        return this.cards.create(uploads);
+    }
+
+    @Get(':id')
+    public get(@Param('id', ParseIntPipe) id: number): Promise<CardDetail> {
+        return this.cards.get(id);
+    }
+
+    @Patch(':id')
+    public update(@Param('id', ParseIntPipe) id: number, @Body() changes: CardChangesDto): Promise<CardDetail> {
+        return this.cards.update(id, changes);
+    }
+
+    @Post(':id/confirm')
+    @HttpCode(200)
+    public confirm(@Param('id', ParseIntPipe) id: number, @Body() body: ConfirmCardDto): Promise<CardDetail> {
+        return this.cards.confirm(id, body.catalogCardId);
+    }
+
+    @Post(':id/read')
+    @HttpCode(200)
+    public read(@Param('id', ParseIntPipe) id: number): Promise<CardDetail> {
+        return this.cards.read(id);
+    }
+
+    @Delete(':id')
+    @HttpCode(204)
+    public remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+        return this.cards.remove(id);
+    }
+}

@@ -1,6 +1,6 @@
 # Architecture
 
-The design as planned. Nothing is built yet; adjust this document as the code arrives.
+How the app is built. Keep this document in step with the code.
 
 ## Parts
 
@@ -11,110 +11,147 @@ phone browser  --HTTPS-->  reverse proxy  -->  app container on the server Pi
                                                 |-- SQLite      (/data/app.db)
                                                 `-- photos      (/data/photos/)
 
-app container  -->  Anthropic API   (read the photos)
-               -->  TCGdex          (catalogue, prices)
-               -->  Google Drive and Sheets (copy of photos and data)
+app container  -->  TCGdex          (catalogue, prices)
+               -->  Anthropic API   (read the photos; optional)
+               -->  Google Drive and Sheets (copy of photos and data; optional)
 ```
 
 | Part | Directory | Stack |
 |---|---|---|
-| API | `apps/card-api/` | NestJS, TypeORM, SQLite; layers `api`, `core`, `data`, `config` |
+| API | `apps/card-api/` | NestJS, TypeORM, SQLite |
 | Web app | `apps/card-front/` | Angular, TailwindCSS |
 | Deployment | `deployment/` | Docker Compose, systemd timer, shell scripts |
 
+## API layers
+
+| Layer | Content |
+|---|---|
+| `api` | Controllers, request types, the login guard, security headers |
+| `core/rules` | Pure functions: matching, prices, the collection table, photo checks, session signing, content policy |
+| `core/connectors` | The outside world: `CatalogSource` (TCGdex), `CardReader` (Claude), `GoogleClient` (Drive, Sheets) |
+| `core/services` | `CardService`, `CatalogService`, `PriceService`, `SyncService`, `JobsService`, `SettingService`, `ChangesService`, plus login and log |
+| `data` | Entities, the migration, the database options |
+| `config` | `AppConfig`, the only place that reads the environment |
+
+Imports point inward: `api` to `core` to `data`. Lint enforces it.
+
 ## Data model
 
-**`catalog_set`**: a set from the catalogue. Id, name, series, release date, symbol picture, card count.
+**`catalog_set`**: a set from the catalogue. Id, name, official and total card count, logo, symbol.
 
-**`catalog_card`**: a card from the catalogue. Id, set, number, name, rarity, picture, the variants it exists in (normal, holo, reverse holo, 1st edition), the current price fields and when they were fetched.
+**`catalog_card`**: a card from the catalogue. Id, set, number within the set (`local_id`), name, picture. Filled in later, per card: rarity, the prices (`pricing`, as JSON: the general figure, the reverse figure, and one figure per print variant) and when they were fetched.
 
 **`owned_card`**: one physical card in the collection.
 
 | Field | Meaning |
 |---|---|
 | `id` | Own id |
-| `catalog_card_id` | The catalogue card; empty while unidentified |
-| `status` | `new`, `identified`, `confirmed` |
-| `language` | Language of the print |
-| `variant` | Normal, holo, reverse holo |
-| `first_edition` | Yes or no |
-| `condition` | A step on Cardmarket's scale; may be empty |
-| `condition_source` | `model` or `user` |
-| `condition_notes` | What the model saw |
+| `catalog_card_id` | The catalogue card; empty until the user confirmed one |
+| `status` | `new`, `identified` (candidates found, waits for the user), `confirmed` |
+| `reading_state` | `none`, `pending`, `done`, `failed` |
+| `reading`, `reading_error` | What the model returned, or why it failed |
+| `candidates` | The catalogue cards offered to the user, best first |
+| `language`, `variant`, `first_edition` | The print: language, finish (`normal`, `holo`, `reverse`), 1st edition mark |
+| `condition`, `condition_source`, `condition_notes` | A step on Cardmarket's scale, who set it (`model` or `user`), what the model saw |
 | `notes` | Free text |
+| `price_trend`, `price_avg30`, `price_low`, `price_product_id`, `price_checked_at` | The current price figures in EUR, Cardmarket's product id, when checked |
 | `created_at`, `updated_at` | Times |
-| `synced_at` | When this card last reached the sheet |
 
-Two copies of the same card are two rows. That keeps a photo and a condition per physical card.
+**`photo`**: a file belonging to an owned card. Side (`front` or `back`), file name, thumbnail file name, size, `drive_file_id` and `synced_at`.
 
-**`photo`**: a file belonging to an owned card. Side (`front` or `back`), path under `data/photos/`, width, height, `drive_file_id`, `synced_at`.
+**`price_snapshot`**: owned card, day, trend, 30-day average, lowest. One row per card per day.
 
-**`identification`**: one reading by the model. The owned card, the fields the model returned, the candidates the server found with their score, and the time. Kept so a wrong match can be traced.
-
-**`price_snapshot`**: catalogue card, date, trend price and averages in EUR. One row per card per day at most.
-
-**`sync_job`**: the queue for Google. What to do (upload a photo, rewrite the sheet, copy the database), state, attempts, last error.
-
-**`setting`**: key and value. Holds the ids of the Drive folder and the sheet.
+**`setting`**: key and value. Holds when the catalogue was fetched, and for the sync: the ids of the Drive folders and the sheet, the last run and the last error.
 
 Schema changes go through migrations; `synchronize` is off.
 
 ## The scan flow
 
-1. The user opens the scan page and takes the front photo, then the back photo.
-2. The web app scales both down and uploads them. The server stores the files and creates an `owned_card` with status `new`.
-3. The server asks the model to read the photos (next section) and looks for candidates in the catalogue.
-4. The web app shows the candidates with their reference picture next to the user's own photo. The user taps the right one: status `confirmed`. No fit: search by name or number, or leave the card in the inbox.
-5. Price and condition follow by themselves once the card is known.
-6. The sync queue gets its jobs.
+1. The user opens the Scan page and takes the front photo, then the back photo, with the phone's camera app.
+2. The web app scales each photo to 2400 pixels, makes a 480-pixel thumbnail, and uploads the four files. The server checks that they are JPEGs, stores them as `<id>-front.jpg`, `<id>-front-thumb.jpg` and so on, and creates an `owned_card` with status `new`.
+3. With reading switched on, the card is queued for the model. The upload answers at once; the next card can be scanned.
+4. The reading fills in language, finish, 1st edition and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.
+5. The card waits in the Inbox. On its page the user taps the right candidate, or searches the catalogue by name and number and taps a result: status `confirmed`.
+6. Confirming fetches the card's details and sets the price.
+7. Twenty seconds after the last change the sync copies what is new to Google, when connected.
 
-Steps 3 and later do not hold up the user: after step 2 the next card can be scanned.
+A failed reading or a failed lookup leaves the card as it is, with its photos.
 
-## Identification
+## Matching
 
-The model gets both photos and answers in a fixed structure:
+`core/rules/matching.ts` scores every catalogue card in a pool against a query of name, printed number and set name:
 
-- name as printed
-- card number and set total as printed (`4/102`), when present
-- set, as far as the model can tell from symbol and layout
-- language
-- 1st edition mark: yes or no
-- holo, reverse holo or neither
-- how sure it is
+- the number matches (leading zeros and case ignored): 4 points, plus 4 when the printed set total equals the set's card count;
+- the name matches exactly: 5 points; partly: 3;
+- the set name matches exactly: 3 points; partly: 2.
 
-The server then searches the local catalogue: first on number plus set total, then on name within the likely sets. Candidates are ranked; the model's answer is never stored as the truth without a catalogue match and the user's tap.
-
-A failed model call or a failed lookup leaves the card as `new`. It never loses the photos.
-
-## Condition
-
-A second question to the model, with both photos: which step on Cardmarket's scale, and why. The answer is stored with `condition_source = model`. A change by the user sets it to `user`, and the model's later runs leave it alone.
+The pool is every catalogue card with that number or with the name as part of its name. The best eight are offered. Number and set total are the same in every language, so a German or Dutch print finds its English catalogue card.
 
 ## Prices
 
-A daily job fetches the price of every catalogue card that is owned and writes a `price_snapshot`. The collection's value is the sum of the latest price per owned card. The card page shows the figure, its date, and a link to the card on Cardmarket.
+`core/rules/pricing.ts` turns a TCGdex card into the stored `pricing` and picks the figure for a print:
+
+1. the print variant with the same finish and the same 1st edition mark, preferring the plain (unlimited) one;
+2. for a reverse holo without its own variant: the card's foil figures;
+3. otherwise the card's general figure.
+
+A daily job asks the price of every confirmed card again and writes a snapshot. Card details are kept for 20 hours, so a second request within a day costs nothing.
+
+## Reading photos
+
+`CardReader` sends both photos to Claude with the instructions in `core/connectors/card.reader.ts` and gets back a fixed structure: is it a Pokémon card, name, number, set name, language, 1st edition, finish, confidence, condition, condition notes. Readings run one at a time. With no API key the reader is off: uploads are stored with `reading_state` `none`.
 
 ## Google sync
 
-- **Photos**: uploaded once each to `photos/` in the Drive folder, named after the owned card's id and the side.
-- **Sheet**: tab `Cards` with one row per owned card: name, set, number, language, variant, 1st edition, condition, condition source, price, price date, date added, links to both photos, link to Cardmarket. Tab `Prices` with the snapshots. Rewritten whole.
-- **Database**: a nightly copy to `backup/` in the Drive folder.
-- Everything goes through `sync_job`, one at a time, with retries. The settings page shows the queue's state.
+`SyncService.run()`:
 
-## Web app pages
+1. Find or create the folder path from `DRIVE_FOLDER`, with `photos/` and `backup/` below it and the spreadsheet next to them. The ids are remembered and checked at the start of each run; when a folder was deleted, everything is created again and all photos are uploaded again.
+2. Upload every photo without a Drive file id.
+3. Rewrite the tab `Cards` (one row per owned card, with links to its photos and to Cardmarket) and the tab `Prices` (the snapshots).
+4. Once a night, and on "Copy now": write a consistent copy of the database with `VACUUM INTO` and upload it as `backup/app.db`, replacing the previous one.
+
+A failed run stores its error for the Settings page; the next run starts over and catches up.
+
+## Background jobs
+
+`JobsService` starts them, unless `BACKGROUND_JOBS=off` (the tests):
+
+| Job | When |
+|---|---|
+| Fetch the catalogue | At start when it is empty, and when it is older than 7 days (checked every 6 hours) |
+| Refresh prices | 2 minutes after start, then every 24 hours |
+| Sync | 20 seconds after the last change |
+| Sync with database copy | Every 24 hours |
+
+## API
+
+All under `/api/v1`. With login on, every route needs a session except the ones marked public.
+
+| Route | Purpose |
+|---|---|
+| `GET /health` (public) | Status and version |
+| `GET /auth/me`, `GET /auth/google`, `GET /auth/google/callback`, `POST /auth/logout` (public) | Login |
+| `GET /system` | Version and the state of login, reading, catalogue and sync |
+| `POST /system/catalog/refresh`, `POST /system/prices/refresh` (owner) | Start a refresh |
+| `GET /cards`, `POST /cards` | The collection; a new scan as multipart with `front`, `back`, `frontThumb`, `backThumb` |
+| `GET /cards/:id`, `PATCH /cards/:id`, `DELETE /cards/:id` | One card with candidates and price history; change the print, condition, notes; remove |
+| `POST /cards/:id/confirm` | Say which catalogue card it is |
+| `POST /cards/:id/read` | Read the photos again |
+| `GET /photos/:id`, `GET /photos/:id?thumb` | A photo or its thumbnail |
+| `GET /catalog/search?name=&number=` | Catalogue cards that fit |
+| `GET /export/cards.csv` | The collection as CSV |
+| `GET /google/connect`, `GET /google/callback`, `POST /google/disconnect`, `POST /google/sync` (owner) | The Google Drive copy |
+| `POST /csp-reports` (public) | Content policy reports from the browser |
+
+## Web app
 
 | Page | Content |
 |---|---|
-| Scan | Two photos, then straight on to the next card |
-| Inbox | Cards waiting for a confirmation |
-| Collection | Grid with photo, name, value; filter and sort; total value |
-| Card | Photos, catalogue picture, all fields, price history, links |
-| Settings | Google connection, sync state, catalogue refresh, version |
+| Collection | Total value, search, sort, a tile per card |
+| Scan | Two photos, save, straight on to the next card |
+| Inbox | Cards that are not confirmed, with their state |
+| Card | Photos, catalogue picture, candidates, catalogue search, price with history, the print and condition, delete |
+| Settings | What is on and off and why, Google connection, catalogue and prices, export, theme, language, log out |
+| Login | The Google button |
 
-## Rules carried over from the barcode scanner
-
-- Controller calls service, service uses TypeORM directly. Imports point inward: `api` to `core` to `data`.
-- Settings are read through one config class.
-- An outside source that fails must never fail a scan.
-- No secrets in the repository or the image. Settings live in `.env` on the Pi, keys and tokens in its `data/` folder.
-- Signals over observables in components; every visible text in English and Dutch.
+State lives in `CollectionStore` (signals). Pages use signals; services return observables. Texts are in `src/assets/i18n/en.json` and `nl.json`.

@@ -1,0 +1,18 @@
+.photos {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+
+    img {
+        display: block;
+        width: 104px;
+        aspect-ratio: 63 / 88;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .reference {
+        border-color: var(--accent);
+    }
+}

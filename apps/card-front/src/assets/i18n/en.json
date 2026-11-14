@@ -1,0 +1,194 @@
+{
+    "common": {
+        "appName": "Pokémon cards",
+        "unreachable": "The server cannot be reached",
+        "loading": "Loading…",
+        "failed": "That did not work. Try again.",
+        "cancel": "Cancel"
+    },
+    "nav": {
+        "collection": "Collection",
+        "scan": "Scan",
+        "inbox": "Inbox",
+        "settings": "Settings"
+    },
+    "login": {
+        "intro": "Log in to see the card collection.",
+        "google": "Log in with Google",
+        "error": {
+            "not_allowed": "This Google account has no access.",
+            "failed": "Logging in did not work. Try again."
+        }
+    },
+    "scan": {
+        "title": "Scan a card",
+        "intro": "Photograph the front and the back of one card, then save.",
+        "front": "Front",
+        "back": "Back",
+        "tap": "Tap to take a photo",
+        "save": "Save card",
+        "saving": "Saving…",
+        "again": "Start over",
+        "saved": "Card saved",
+        "failed": "The card could not be saved. Try again.",
+        "unreadable": "That photo could not be used. Take it again.",
+        "count": "{count, plural, one {# card} other {# cards}} scanned just now.",
+        "toInbox": "{count, plural, one {# card waits} other {# cards wait}} in the inbox",
+        "tipLight": "Use even light without glare; foil reflects.",
+        "tipFill": "Let the card fill the picture, on a plain dark surface.",
+        "tipBack": "The back shows most wear: keep edges and corners sharp."
+    },
+    "state": {
+        "unknown": "Not identified",
+        "reading": "Reading…",
+        "failed": "Reading failed",
+        "identified": "Check the match",
+        "confirmed": "Confirmed"
+    },
+    "card": {
+        "unknown": "Unknown card",
+        "noPrice": "No price",
+        "back": "Collection",
+        "reference": "Picture from the catalogue",
+        "which": "Which card is this",
+        "change": "Change",
+        "hint": {
+            "unknown": "Search the catalogue and pick the card.",
+            "reading": "The photos are being read.",
+            "failed": "Search the catalogue yourself, or read again.",
+            "identified": "Tap the card that matches your photo.",
+            "confirmed": ""
+        },
+        "notACard": "The photos do not seem to show a Pokémon card.",
+        "searchName": "Name",
+        "searchNumber": "Number",
+        "search": "Search",
+        "noResults": "Nothing found. Try the number alone, such as 4/102.",
+        "readAgain": "Read the photos again",
+        "value": "Value",
+        "trend": "Price trend",
+        "avg30": "30-day average",
+        "low": "From",
+        "priceNote": "Cardmarket, checked {date}. One figure per card: condition and language are not in it.",
+        "noPriceLong": "The price source has no figure for this card.",
+        "priceAfterConfirm": "The price follows once you have picked the card.",
+        "cardmarket": "Open on Cardmarket",
+        "details": "This copy",
+        "condition": "Condition",
+        "notSet": "Not set",
+        "conditionByModel": "Estimated from the photos.",
+        "variant": "Finish",
+        "language": "Language",
+        "firstEdition": "1st edition stamp",
+        "notes": "Notes",
+        "delete": "Delete card",
+        "deleteSure": "Yes, delete",
+        "missing": "This card does not exist (any more)."
+    },
+    "condition": {
+        "mint": "Mint",
+        "near_mint": "Near Mint",
+        "excellent": "Excellent",
+        "good": "Good",
+        "light_played": "Light Played",
+        "played": "Played",
+        "poor": "Poor"
+    },
+    "variant": {
+        "normal": "Normal",
+        "holo": "Holo",
+        "reverse": "Reverse holo"
+    },
+    "language": {
+        "en": "English",
+        "nl": "Dutch",
+        "de": "German",
+        "fr": "French",
+        "it": "Italian",
+        "es": "Spanish",
+        "pt": "Portuguese",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "zh": "Chinese",
+        "other": "Other"
+    },
+    "collection": {
+        "title": "Collection",
+        "valueOf": "{priced} of {count, plural, one {# confirmed card} other {# confirmed cards}} with a price",
+        "waiting": "{count} in the inbox",
+        "search": "Search name, set or number",
+        "sort": "Sort",
+        "sortBy": {
+            "newest": "Newest",
+            "name": "Name",
+            "value": "Value",
+            "set": "Set"
+        },
+        "noMatch": "No card matches that search.",
+        "empty": "No cards yet. Scan the first one."
+    },
+    "inbox": {
+        "title": "Inbox",
+        "intro": "Cards that are not confirmed yet. Open one to say which card it is.",
+        "empty": "Nothing waiting. Every card is confirmed."
+    },
+    "settings": {
+        "title": "Settings",
+        "on": "On",
+        "off": "Off",
+        "reload": "Reload",
+        "version": "Version {version}",
+        "logout": "Log out",
+        "reading": {
+            "title": "Reading photos",
+            "on": "Photos are read by {model}: card, print and condition are proposed.",
+            "off": "Switched off: the server has no Anthropic API key. Pick each card yourself by searching the catalogue."
+        },
+        "google": {
+            "title": "Google Drive and sheet",
+            "notConfigured": "Switched off: the server has no Google client settings yet.",
+            "notConnected": "Not connected. Connect to copy photos and the collection to {folder}.",
+            "connected": "Photos and the collection are copied to {folder}.",
+            "lastRun": "Last copy {time}",
+            "neverRun": "Not copied yet",
+            "waiting": "{count, plural, =0 {no photos waiting} one {# photo waiting} other {# photos waiting}}",
+            "connect": "Connect Google Drive",
+            "syncNow": "Copy now",
+            "sheet": "Open the sheet",
+            "disconnect": "Disconnect",
+            "started": "Copying started",
+            "outcome": {
+                "connected": "Google Drive is connected. The first copy is running.",
+                "failed": "Connecting Google Drive did not work. Try again.",
+                "not_configured": "Google Drive cannot be connected: the server has no Google client settings."
+            }
+        },
+        "catalog": {
+            "title": "Catalogue and prices",
+            "size": "{sets} sets and {cards} cards from TCGdex.",
+            "refreshing": "The catalogue is being fetched…",
+            "refreshedAt": "Fetched {time}",
+            "never": "Not fetched yet",
+            "refresh": "Fetch catalogue",
+            "started": "Fetching the catalogue; this takes a minute"
+        },
+        "prices": {
+            "refresh": "Refresh prices",
+            "done": "Prices refreshed"
+        },
+        "export": {
+            "title": "Export",
+            "csv": "Download as CSV"
+        },
+        "display": {
+            "title": "Display",
+            "theme": "Theme",
+            "language": "Language",
+            "themes": {
+                "auto": "As the device",
+                "light": "Light",
+                "dark": "Dark"
+            }
+        }
+    }
+}

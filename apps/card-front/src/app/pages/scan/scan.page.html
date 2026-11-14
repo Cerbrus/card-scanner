@@ -1,0 +1,49 @@
+<div class="page">
+    <h1 class="page-title">{{ 'scan.title' | translate }}</h1>
+    <p class="muted mb-3 text-sm">{{ 'scan.intro' | translate }}</p>
+
+    <div class="sides">
+        @for (side of sides; track side) {
+            <label class="side" [class.filled]="shots()[side]">
+                <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="busy()" (change)="choose(side, $event)" />
+                @if (shots()[side]; as shot) {
+                    <img [src]="shot.preview" [alt]="'scan.' + side | translate" />
+                    <span class="side-label">
+                        <i class="material-symbols-outlined">check_circle</i>
+                        {{ 'scan.' + side | translate }}
+                    </span>
+                } @else {
+                    <i class="material-symbols-outlined side-icon">{{ busy() === side ? 'hourglass_top' : 'add_a_photo' }}</i>
+                    <span class="font-semibold">{{ 'scan.' + side | translate }}</span>
+                    <span class="muted text-xs">{{ 'scan.tap' | translate }}</span>
+                }
+            </label>
+        }
+    </div>
+
+    <div class="mt-4 flex gap-2">
+        <button type="button" class="btn primary grow" [disabled]="!complete() || busy()" (click)="save()">
+            <i class="material-symbols-outlined">save</i>
+            {{ (busy() === 'saving' ? 'scan.saving' : 'scan.save') | translate }}
+        </button>
+        <button type="button" class="btn" [disabled]="busy() || !(shots().front || shots().back)" (click)="forget()">
+            <i class="material-symbols-outlined">restart_alt</i>
+            {{ 'scan.again' | translate }}
+        </button>
+    </div>
+
+    @if (saved(); as count) {
+        <p class="card mt-4 text-sm">
+            {{ 'scan.count' | translate: { count } }}
+            @if (store.inbox().length; as waiting) {
+                <a class="font-semibold underline" routerLink="/inbox">{{ 'scan.toInbox' | translate: { count: waiting } }}</a>
+            }
+        </p>
+    }
+
+    <ul class="muted mt-4 list-disc pl-5 text-sm">
+        <li>{{ 'scan.tipLight' | translate }}</li>
+        <li>{{ 'scan.tipFill' | translate }}</li>
+        <li>{{ 'scan.tipBack' | translate }}</li>
+    </ul>
+</div>

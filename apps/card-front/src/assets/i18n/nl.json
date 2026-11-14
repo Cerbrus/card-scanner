@@ -1,0 +1,194 @@
+{
+    "common": {
+        "appName": "Pokémon kaarten",
+        "unreachable": "De server is niet bereikbaar",
+        "loading": "Laden…",
+        "failed": "Dat lukte niet. Probeer het opnieuw.",
+        "cancel": "Annuleren"
+    },
+    "nav": {
+        "collection": "Collectie",
+        "scan": "Scannen",
+        "inbox": "Inbox",
+        "settings": "Instellingen"
+    },
+    "login": {
+        "intro": "Log in om de kaartencollectie te zien.",
+        "google": "Inloggen met Google",
+        "error": {
+            "not_allowed": "Dit Google-account heeft geen toegang.",
+            "failed": "Inloggen lukte niet. Probeer het opnieuw."
+        }
+    },
+    "scan": {
+        "title": "Kaart scannen",
+        "intro": "Fotografeer de voorkant en de achterkant van één kaart en sla op.",
+        "front": "Voorkant",
+        "back": "Achterkant",
+        "tap": "Tik om een foto te maken",
+        "save": "Kaart opslaan",
+        "saving": "Opslaan…",
+        "again": "Opnieuw",
+        "saved": "Kaart opgeslagen",
+        "failed": "De kaart kon niet worden opgeslagen. Probeer het opnieuw.",
+        "unreadable": "Die foto kon niet worden gebruikt. Maak hem opnieuw.",
+        "count": "Zojuist {count, plural, one {# kaart} other {# kaarten}} gescand.",
+        "toInbox": "{count, plural, one {# kaart wacht} other {# kaarten wachten}} in de inbox",
+        "tipLight": "Gebruik gelijkmatig licht zonder schittering; folie spiegelt.",
+        "tipFill": "Laat de kaart het beeld vullen, op een effen donkere ondergrond.",
+        "tipBack": "De achterkant toont de meeste slijtage: houd randen en hoeken scherp."
+    },
+    "state": {
+        "unknown": "Niet herkend",
+        "reading": "Wordt gelezen…",
+        "failed": "Lezen mislukt",
+        "identified": "Controleer de kaart",
+        "confirmed": "Bevestigd"
+    },
+    "card": {
+        "unknown": "Onbekende kaart",
+        "noPrice": "Geen prijs",
+        "back": "Collectie",
+        "reference": "Afbeelding uit de catalogus",
+        "which": "Welke kaart is dit",
+        "change": "Wijzigen",
+        "hint": {
+            "unknown": "Zoek in de catalogus en kies de kaart.",
+            "reading": "De foto's worden gelezen.",
+            "failed": "Zoek zelf in de catalogus, of lees opnieuw.",
+            "identified": "Tik op de kaart die bij je foto past.",
+            "confirmed": ""
+        },
+        "notACard": "Op de foto's lijkt geen Pokémon-kaart te staan.",
+        "searchName": "Naam",
+        "searchNumber": "Nummer",
+        "search": "Zoeken",
+        "noResults": "Niets gevonden. Probeer alleen het nummer, zoals 4/102.",
+        "readAgain": "Foto's opnieuw lezen",
+        "value": "Waarde",
+        "trend": "Prijstrend",
+        "avg30": "Gemiddelde over 30 dagen",
+        "low": "Vanaf",
+        "priceNote": "Cardmarket, bekeken op {date}. Eén bedrag per kaart: conditie en taal zitten er niet in.",
+        "noPriceLong": "De prijsbron heeft geen bedrag voor deze kaart.",
+        "priceAfterConfirm": "De prijs volgt zodra je de kaart hebt gekozen.",
+        "cardmarket": "Openen op Cardmarket",
+        "details": "Dit exemplaar",
+        "condition": "Conditie",
+        "notSet": "Niet ingevuld",
+        "conditionByModel": "Geschat op basis van de foto's.",
+        "variant": "Afwerking",
+        "language": "Taal",
+        "firstEdition": "1st edition-stempel",
+        "notes": "Notities",
+        "delete": "Kaart verwijderen",
+        "deleteSure": "Ja, verwijderen",
+        "missing": "Deze kaart bestaat niet (meer)."
+    },
+    "condition": {
+        "mint": "Mint",
+        "near_mint": "Near Mint",
+        "excellent": "Excellent",
+        "good": "Good",
+        "light_played": "Light Played",
+        "played": "Played",
+        "poor": "Poor"
+    },
+    "variant": {
+        "normal": "Normaal",
+        "holo": "Holo",
+        "reverse": "Reverse holo"
+    },
+    "language": {
+        "en": "Engels",
+        "nl": "Nederlands",
+        "de": "Duits",
+        "fr": "Frans",
+        "it": "Italiaans",
+        "es": "Spaans",
+        "pt": "Portugees",
+        "ja": "Japans",
+        "ko": "Koreaans",
+        "zh": "Chinees",
+        "other": "Anders"
+    },
+    "collection": {
+        "title": "Collectie",
+        "valueOf": "{priced} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} met een prijs",
+        "waiting": "{count} in de inbox",
+        "search": "Zoek op naam, set of nummer",
+        "sort": "Sorteren",
+        "sortBy": {
+            "newest": "Nieuwste",
+            "name": "Naam",
+            "value": "Waarde",
+            "set": "Set"
+        },
+        "noMatch": "Geen kaart past bij die zoekopdracht.",
+        "empty": "Nog geen kaarten. Scan de eerste."
+    },
+    "inbox": {
+        "title": "Inbox",
+        "intro": "Kaarten die nog niet bevestigd zijn. Open er een om te zeggen welke kaart het is.",
+        "empty": "Niets te doen. Elke kaart is bevestigd."
+    },
+    "settings": {
+        "title": "Instellingen",
+        "on": "Aan",
+        "off": "Uit",
+        "reload": "Vernieuwen",
+        "version": "Versie {version}",
+        "logout": "Uitloggen",
+        "reading": {
+            "title": "Foto's lezen",
+            "on": "Foto's worden gelezen door {model}: kaart, druk en conditie worden voorgesteld.",
+            "off": "Uitgeschakeld: de server heeft geen Anthropic API-sleutel. Kies elke kaart zelf door in de catalogus te zoeken."
+        },
+        "google": {
+            "title": "Google Drive en spreadsheet",
+            "notConfigured": "Uitgeschakeld: de server heeft nog geen Google-clientinstellingen.",
+            "notConnected": "Niet gekoppeld. Koppel om foto's en de collectie naar {folder} te kopiëren.",
+            "connected": "Foto's en de collectie worden gekopieerd naar {folder}.",
+            "lastRun": "Laatste kopie {time}",
+            "neverRun": "Nog niet gekopieerd",
+            "waiting": "{count, plural, =0 {geen foto's in de wacht} one {# foto in de wacht} other {# foto's in de wacht}}",
+            "connect": "Google Drive koppelen",
+            "syncNow": "Nu kopiëren",
+            "sheet": "Spreadsheet openen",
+            "disconnect": "Ontkoppelen",
+            "started": "Kopiëren gestart",
+            "outcome": {
+                "connected": "Google Drive is gekoppeld. De eerste kopie loopt.",
+                "failed": "Google Drive koppelen lukte niet. Probeer het opnieuw.",
+                "not_configured": "Google Drive kan niet worden gekoppeld: de server heeft geen Google-clientinstellingen."
+            }
+        },
+        "catalog": {
+            "title": "Catalogus en prijzen",
+            "size": "{sets} sets en {cards} kaarten van TCGdex.",
+            "refreshing": "De catalogus wordt opgehaald…",
+            "refreshedAt": "Opgehaald op {time}",
+            "never": "Nog niet opgehaald",
+            "refresh": "Catalogus ophalen",
+            "started": "De catalogus wordt opgehaald; dit duurt een minuut"
+        },
+        "prices": {
+            "refresh": "Prijzen verversen",
+            "done": "Prijzen ververst"
+        },
+        "export": {
+            "title": "Exporteren",
+            "csv": "Downloaden als CSV"
+        },
+        "display": {
+            "title": "Weergave",
+            "theme": "Thema",
+            "language": "Taal",
+            "themes": {
+                "auto": "Zoals het apparaat",
+                "light": "Licht",
+                "dark": "Donker"
+            }
+        }
+    }
+}

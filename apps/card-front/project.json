@@ -1,0 +1,84 @@
+{
+    "name": "card-front",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "projectType": "application",
+    "prefix": "app",
+    "sourceRoot": "apps/card-front/src",
+    "tags": [],
+    "targets": {
+        "build": {
+            "executor": "@angular/build:application",
+            "outputs": [
+                "{options.outputPath}"
+            ],
+            "defaultConfiguration": "production",
+            "options": {
+                "outputPath": "dist/apps/card-front",
+                "index": "apps/card-front/src/index.html",
+                "browser": "apps/card-front/src/main.ts",
+                "tsConfig": "apps/card-front/tsconfig.app.json",
+                "inlineStyleLanguage": "scss",
+                "assets": [
+                    "apps/card-front/src/favicon.ico",
+                    "apps/card-front/src/assets"
+                ],
+                "styles": [
+                    "apps/card-front/src/styles.scss"
+                ],
+                "scripts": []
+            },
+            "configurations": {
+                "production": {
+                    "budgets": [
+                        {
+                            "type": "initial",
+                            "maximumWarning": "500kb",
+                            "maximumError": "1mb"
+                        },
+                        {
+                            "type": "anyComponentStyle",
+                            "maximumWarning": "2kb",
+                            "maximumError": "4kb"
+                        }
+                    ],
+                    "outputHashing": "all"
+                },
+                "development": {
+                    "optimization": false,
+                    "extractLicenses": false,
+                    "sourceMap": true
+                }
+            }
+        },
+        "serve": {
+            "executor": "@angular/build:dev-server",
+            "defaultConfiguration": "development",
+            "continuous": true,
+            "configurations": {
+                "production": {
+                    "buildTarget": "card-front:build:production"
+                },
+                "development": {
+                    "buildTarget": "card-front:build:development"
+                }
+            },
+            "readyWhen": {
+                "signal": true
+            }
+        },
+        "test": {
+            "executor": "@angular/build:unit-test",
+            "options": {
+                "buildTarget": "card-front:build:development",
+                "tsConfig": "apps/card-front/tsconfig.spec.json",
+                "watch": false
+            }
+        },
+        "extract-i18n": {
+            "executor": "@angular/build:extract-i18n",
+            "options": {
+                "buildTarget": "card-front:build"
+            }
+        }
+    }
+}

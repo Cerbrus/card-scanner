@@ -1,0 +1,28 @@
+{
+    "name": "card-api",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/card-api/src",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "build": {
+            "outputs": ["{workspaceRoot}/dist/apps/card"],
+            "defaultConfiguration": "production"
+        },
+        "serve": {
+            "executor": "@nx/js:node",
+            "defaultConfiguration": "development",
+            "options": {
+                "buildTarget": "card-api:build"
+            },
+            "configurations": {
+                "development": {
+                    "buildTarget": "card-api:build:development"
+                },
+                "production": {
+                    "buildTarget": "card-api:build:production"
+                }
+            }
+        }
+    }
+}

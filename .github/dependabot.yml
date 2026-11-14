@@ -1,0 +1,38 @@
+version: 2
+
+updates:
+    -   package-ecosystem: npm
+        directory: /
+        schedule:
+            interval: weekly
+            day: monday
+        open-pull-requests-limit: 8
+        groups:
+            angular:
+                patterns: [ '@angular/*', '@angular-devkit/*', '@schematics/angular', 'angular-eslint', '@angular-eslint/*' ]
+            nx:
+                patterns: [ 'nx', '@nx/*' ]
+            nestjs:
+                patterns: [ '@nestjs/*' ]
+            linting:
+                patterns: [ 'eslint', 'eslint-*', '@eslint/*', 'typescript-eslint', '@typescript-eslint/*', 'jsonc-eslint-parser', 'prettier' ]
+            minor-and-patch:
+                update-types: [ minor, patch ]
+
+    -   package-ecosystem: docker
+        directory: /
+        schedule:
+            interval: weekly
+            day: monday
+        groups:
+            base-images:
+                patterns: [ '*' ]
+
+    -   package-ecosystem: github-actions
+        directory: /
+        schedule:
+            interval: weekly
+            day: monday
+        groups:
+            actions:
+                patterns: [ '*' ]

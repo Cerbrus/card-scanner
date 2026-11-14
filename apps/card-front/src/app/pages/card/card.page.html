@@ -1,0 +1,187 @@
+<div class="page">
+    <a class="back-bar" routerLink="/collection">
+        <i class="material-symbols-outlined">arrow_back</i>
+        {{ 'card.back' | translate }}
+    </a>
+
+    @if (card(); as card) {
+        <h1 class="page-title">{{ card.name ?? ('card.unknown' | translate) }}</h1>
+
+        <div class="photos">
+            @if (card.photos.front; as front) {
+                <a [href]="api.photoUrl(front)" target="_blank" rel="noopener">
+                    <img [src]="api.photoUrl(front, true)" [alt]="'scan.front' | translate" />
+                </a>
+            }
+            @if (card.photos.back; as back) {
+                <a [href]="api.photoUrl(back)" target="_blank" rel="noopener">
+                    <img [src]="api.photoUrl(back, true)" [alt]="'scan.back' | translate" />
+                </a>
+            }
+            @if (card.status === 'confirmed' && catalogImage(card.image); as image) {
+                <img class="reference" [src]="image" [alt]="'card.reference' | translate" />
+            }
+        </div>
+
+        <h2 class="section-title">{{ 'card.which' | translate }}</h2>
+        <div class="card">
+            @if (card.status === 'confirmed') {
+                <div class="flex items-center gap-3">
+                    <span class="grow">
+                        <span class="block font-semibold">{{ card.name }}</span>
+                        <span class="muted block text-sm">{{ card.setName }} · {{ card.number }}{{ card.rarity ? ' · ' + card.rarity : '' }}</span>
+                    </span>
+                    <button type="button" class="btn" (click)="searchOpen.set(!searchOpen())">{{ 'card.change' | translate }}</button>
+                </div>
+            } @else {
+                <p class="mb-2 flex items-center gap-2 text-sm">
+                    <span class="badge" [class.off]="state() === 'unknown'">{{ 'state.' + state() | translate }}</span>
+                    <span class="muted">{{ 'card.hint.' + state() | translate }}</span>
+                </p>
+                @if (card.readingError) {
+                    <p class="mb-2 text-sm text-[color:var(--danger)]">{{ card.readingError }}</p>
+                }
+                @if (card.reading && !card.reading.isPokemonCard) {
+                    <p class="mb-2 text-sm">{{ 'card.notACard' | translate }}</p>
+                }
+
+                <app-candidate-list [candidates]="card.candidates" (chosen)="confirm($event)" />
+            }
+
+            @if (searchOpen() || card.status !== 'confirmed') {
+                <form class="mt-3 flex flex-wrap items-end gap-2" (submit)="$event.preventDefault(); search(name.value, number.value)">
+                    <label class="min-w-0 grow basis-40">
+                        <span class="field-label !mt-0">{{ 'card.searchName' | translate }}</span>
+                        <input #name class="field" type="search" autocomplete="off" [value]="card.reading?.name ?? ''" />
+                    </label>
+                    <label class="w-28">
+                        <span class="field-label !mt-0">{{ 'card.searchNumber' | translate }}</span>
+                        <input #number class="field" type="search" autocomplete="off" placeholder="4/102" [value]="card.reading?.number ?? ''" />
+                    </label>
+                    <button type="submit" class="btn primary" [disabled]="searching()">
+                        <i class="material-symbols-outlined">search</i>
+                        {{ 'card.search' | translate }}
+                    </button>
+                </form>
+
+                @if (results(); as found) {
+                    <app-candidate-list class="mt-3 block" [candidates]="found" (chosen)="confirm($event)">
+                        <p class="muted text-sm">{{ 'card.noResults' | translate }}</p>
+                    </app-candidate-list>
+                }
+            }
+
+            @if (visionEnabled() && card.readingState !== 'pending') {
+                <button type="button" class="btn mt-3" (click)="readAgain()">
+                    <i class="material-symbols-outlined">auto_awesome</i>
+                    {{ 'card.readAgain' | translate }}
+                </button>
+            }
+        </div>
+
+        <h2 class="section-title">{{ 'card.value' | translate }}</h2>
+        <div class="card">
+            @if (card.priceTrend || card.priceAvg30 || card.priceLow) {
+                <div class="flex flex-wrap gap-x-6 gap-y-2">
+                    <span>
+                        <span class="block text-2xl font-bold">{{ card.priceTrend | currency: 'EUR' }}</span>
+                        <span class="muted text-xs">{{ 'card.trend' | translate }}</span>
+                    </span>
+                    <span>
+                        <span class="block text-lg font-semibold">{{ card.priceAvg30 | currency: 'EUR' }}</span>
+                        <span class="muted text-xs">{{ 'card.avg30' | translate }}</span>
+                    </span>
+                    <span>
+                        <span class="block text-lg font-semibold">{{ card.priceLow | currency: 'EUR' }}</span>
+                        <span class="muted text-xs">{{ 'card.low' | translate }}</span>
+                    </span>
+                </div>
+                <p class="muted mt-2 text-xs">{{ 'card.priceNote' | translate: { date: (card.priceCheckedAt | date: 'd MMM y') } }}</p>
+            } @else {
+                <p class="muted text-sm">{{ (card.status === 'confirmed' ? 'card.noPriceLong' : 'card.priceAfterConfirm') | translate }}</p>
+            }
+            @if (card.cardmarketUrl; as url) {
+                <a class="btn mt-3" [href]="url" target="_blank" rel="noopener">
+                    <i class="material-symbols-outlined">open_in_new</i>
+                    {{ 'card.cardmarket' | translate }}
+                </a>
+            }
+            @if (history().length > 1) {
+                <table class="mt-3 w-full text-sm">
+                    @for (point of history(); track point.day) {
+                        <tr>
+                            <td class="muted py-0.5">{{ point.day | date: 'd MMM' }}</td>
+                            <td class="py-0.5 text-right">{{ point.trend | currency: 'EUR' }}</td>
+                        </tr>
+                    }
+                </table>
+            }
+        </div>
+
+        <h2 class="section-title">{{ 'card.details' | translate }}</h2>
+        <div class="card">
+            <label>
+                <span class="field-label !mt-0">{{ 'card.condition' | translate }}</span>
+                <select class="field" (change)="change({ condition: $any($event.target).value || null })">
+                    <option value="" [selected]="!card.condition">{{ 'card.notSet' | translate }}</option>
+                    @for (condition of conditions; track condition) {
+                        <option [value]="condition" [selected]="condition === card.condition">{{ 'condition.' + condition | translate }}</option>
+                    }
+                </select>
+            </label>
+            @if (card.conditionSource === 'model') {
+                <p class="muted mt-1 text-xs">{{ 'card.conditionByModel' | translate }} {{ card.conditionNotes }}</p>
+            }
+
+            <div class="flex gap-2">
+                <label class="grow">
+                    <span class="field-label">{{ 'card.variant' | translate }}</span>
+                    <select class="field" (change)="change({ variant: $any($event.target).value || null })">
+                        <option value="" [selected]="!card.variant">{{ 'card.notSet' | translate }}</option>
+                        @for (finish of finishes; track finish) {
+                            <option [value]="finish" [selected]="finish === card.variant">{{ 'variant.' + finish | translate }}</option>
+                        }
+                    </select>
+                </label>
+                <label class="grow">
+                    <span class="field-label">{{ 'card.language' | translate }}</span>
+                    <select class="field" (change)="change({ language: $any($event.target).value || null })">
+                        <option value="" [selected]="!card.language">{{ 'card.notSet' | translate }}</option>
+                        @for (language of languages; track language) {
+                            <option [value]="language" [selected]="language === card.language">{{ 'language.' + language | translate }}</option>
+                        }
+                    </select>
+                </label>
+            </div>
+
+            <label class="mt-3 flex items-center gap-2">
+                <input type="checkbox" class="h-5 w-5" [checked]="card.firstEdition" (change)="change({ firstEdition: $any($event.target).checked })" />
+                <span>{{ 'card.firstEdition' | translate }}</span>
+            </label>
+
+            <label>
+                <span class="field-label">{{ 'card.notes' | translate }}</span>
+                <textarea class="field" rows="2" [value]="card.notes" (change)="change({ notes: $any($event.target).value })"></textarea>
+            </label>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-2">
+            @if (deleteAsked()) {
+                <button type="button" class="btn" (click)="deleteAsked.set(false)">{{ 'common.cancel' | translate }}</button>
+                <button type="button" class="btn danger" (click)="remove()">
+                    <i class="material-symbols-outlined">delete</i>
+                    {{ 'card.deleteSure' | translate }}
+                </button>
+            } @else {
+                <button type="button" class="btn danger" (click)="deleteAsked.set(true)">
+                    <i class="material-symbols-outlined">delete</i>
+                    {{ 'card.delete' | translate }}
+                </button>
+            }
+        </div>
+    } @else if (missing()) {
+        <p class="empty">{{ 'card.missing' | translate }}</p>
+    } @else {
+        <p class="empty">{{ 'common.loading' | translate }}</p>
+    }
+</div>

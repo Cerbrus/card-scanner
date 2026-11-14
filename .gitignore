@@ -1,9 +1,33 @@
 node_modules/
-dist/
-coverage/
-.angular/
-.nx/
-.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Environment
 .env
 .env.*
-data/
+
+# Build output
+dist/
+coverage/
+
+# Local data: database, photos, keys and tokens
+/data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.claude/
+
+# Caches
+.nx/
+.angular/
+.yarn/install-state.gz

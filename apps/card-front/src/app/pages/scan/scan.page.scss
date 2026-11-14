@@ -1,0 +1,56 @@
+.sides {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.side {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    aspect-ratio: 63 / 88;
+    overflow: hidden;
+    border: 2px dashed var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    cursor: pointer;
+
+    &.filled {
+        border-style: solid;
+        border-color: var(--ok);
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.side-icon {
+    color: var(--accent);
+    font-size: 44px;
+}
+
+.side-label {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px;
+    background: rgb(0 0 0 / 60%);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    i {
+        font-size: 18px;
+    }
+}

@@ -1,0 +1,151 @@
+<div class="page">
+    <h1 class="page-title">{{ 'settings.title' | translate }}</h1>
+
+    @if (googleOutcome(); as outcome) {
+        <p class="card mb-3 text-sm" role="status">{{ outcome | translate }}</p>
+    }
+
+    @if (system(); as system) {
+        <h2 class="section-title">{{ 'settings.reading.title' | translate }}</h2>
+        <div class="card text-sm">
+            <p class="flex items-center gap-2">
+                <span class="badge" [class.ok]="system.vision.enabled" [class.off]="!system.vision.enabled">
+                    {{ (system.vision.enabled ? 'settings.on' : 'settings.off') | translate }}
+                </span>
+                <span>{{ (system.vision.enabled ? 'settings.reading.on' : 'settings.reading.off') | translate: { model: system.vision.model } }}</span>
+            </p>
+        </div>
+
+        <h2 class="section-title">{{ 'settings.google.title' | translate }}</h2>
+        <div class="card text-sm">
+            <p class="flex items-center gap-2">
+                <span class="badge" [class.ok]="system.sync.connected" [class.off]="!system.sync.connected">
+                    {{ (system.sync.connected ? 'settings.on' : 'settings.off') | translate }}
+                </span>
+                <span>
+                    @if (!system.sync.configured) {
+                        {{ 'settings.google.notConfigured' | translate }}
+                    } @else if (!system.sync.connected) {
+                        {{ 'settings.google.notConnected' | translate: { folder: system.sync.folder } }}
+                    } @else {
+                        {{ 'settings.google.connected' | translate: { folder: system.sync.folder } }}
+                    }
+                </span>
+            </p>
+            @if (system.sync.connected) {
+                <p class="muted mt-2">
+                    @if (system.sync.lastRunAt; as lastRun) {
+                        {{ 'settings.google.lastRun' | translate: { time: (lastRun | date: 'd MMM HH:mm') } }}
+                    } @else {
+                        {{ 'settings.google.neverRun' | translate }}
+                    }
+                    · {{ 'settings.google.waiting' | translate: { count: system.sync.waitingPhotos } }}
+                </p>
+            }
+            @if (system.sync.lastError; as error) {
+                <p class="mt-2 text-[color:var(--danger)]">{{ error }}</p>
+            }
+            @if (auth.owner()) {
+                <div class="mt-3 flex flex-wrap gap-2">
+                    @if (system.sync.configured && !system.sync.connected) {
+                        <a class="btn primary" [href]="api.googleConnectUrl">
+                            <i class="material-symbols-outlined">add_to_drive</i>
+                            {{ 'settings.google.connect' | translate }}
+                        </a>
+                    }
+                    @if (system.sync.connected) {
+                        <button type="button" class="btn primary" [disabled]="busy() || system.sync.running" (click)="syncNow()">
+                            <i class="material-symbols-outlined">sync</i>
+                            {{ 'settings.google.syncNow' | translate }}
+                        </button>
+                        @if (system.sync.sheetUrl; as sheet) {
+                            <a class="btn" [href]="sheet" target="_blank" rel="noopener">
+                                <i class="material-symbols-outlined">table</i>
+                                {{ 'settings.google.sheet' | translate }}
+                            </a>
+                        }
+                        <button type="button" class="btn danger" [disabled]="busy()" (click)="disconnect()">{{ 'settings.google.disconnect' | translate }}</button>
+                    }
+                </div>
+            }
+        </div>
+
+        <h2 class="section-title">{{ 'settings.catalog.title' | translate }}</h2>
+        <div class="card text-sm">
+            <p>{{ 'settings.catalog.size' | translate: { sets: system.catalog.sets, cards: system.catalog.cards } }}</p>
+            <p class="muted">
+                @if (system.catalog.refreshing) {
+                    {{ 'settings.catalog.refreshing' | translate }}
+                } @else if (system.catalog.refreshedAt; as refreshedAt) {
+                    {{ 'settings.catalog.refreshedAt' | translate: { time: (refreshedAt | date: 'd MMM y HH:mm') } }}
+                } @else {
+                    {{ 'settings.catalog.never' | translate }}
+                }
+            </p>
+            @if (system.catalog.error; as error) {
+                <p class="mt-2 text-[color:var(--danger)]">{{ error }}</p>
+            }
+            @if (auth.owner()) {
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <button type="button" class="btn" [disabled]="busy() || system.catalog.refreshing" (click)="refreshCatalog()">
+                        <i class="material-symbols-outlined">refresh</i>
+                        {{ 'settings.catalog.refresh' | translate }}
+                    </button>
+                    <button type="button" class="btn" [disabled]="busy()" (click)="refreshPrices()">
+                        <i class="material-symbols-outlined">euro</i>
+                        {{ 'settings.prices.refresh' | translate }}
+                    </button>
+                    <button type="button" class="btn" [disabled]="busy()" (click)="reload()">
+                        <i class="material-symbols-outlined">autorenew</i>
+                        {{ 'settings.reload' | translate }}
+                    </button>
+                </div>
+            }
+        </div>
+
+        <h2 class="section-title">{{ 'settings.export.title' | translate }}</h2>
+        <div class="card text-sm">
+            <a class="btn" [href]="api.exportUrl">
+                <i class="material-symbols-outlined">download</i>
+                {{ 'settings.export.csv' | translate }}
+            </a>
+        </div>
+    } @else {
+        <p class="empty">{{ 'common.loading' | translate }}</p>
+    }
+
+    <h2 class="section-title">{{ 'settings.display.title' | translate }}</h2>
+    <div class="card flex gap-2">
+        <label class="grow">
+            <span class="field-label !mt-0">{{ 'settings.display.theme' | translate }}</span>
+            <select class="field" (change)="useTheme($any($event.target).value)">
+                @for (option of themes; track option) {
+                    <option [value]="option" [selected]="option === theme.theme()">{{ 'settings.display.themes.' + option | translate }}</option>
+                }
+            </select>
+        </label>
+        <label class="grow">
+            <span class="field-label !mt-0">{{ 'settings.display.language' | translate }}</span>
+            <select class="field" (change)="useLanguage($any($event.target).value)">
+                @for (option of appLanguages; track option) {
+                    <option [value]="option" [selected]="option === language.language()">{{ 'language.' + option | translate }}</option>
+                }
+            </select>
+        </label>
+    </div>
+
+    <div class="mt-6 flex items-center justify-between gap-3 text-sm">
+        <span class="muted">
+            {{ 'settings.version' | translate: { version: system()?.version ?? '…' } }}
+            @if (auth.state()?.email; as email) {
+                · {{ email }}
+            }
+        </span>
+        @if (auth.state()?.enabled) {
+            <button type="button" class="btn" (click)="logout()">
+                <i class="material-symbols-outlined">logout</i>
+                {{ 'settings.logout' | translate }}
+            </button>
+        }
+    </div>
+</div>
