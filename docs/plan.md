@@ -79,7 +79,8 @@ Also open for the owner to decide:
 ### Milestone 7: comfort
 
 - [x] Search and sort in the collection (done 2026-11-14 15:55)
-- [x] Markers for language and condition on each card in the collection, with a mark when unknown (done 2026-11-14 23:06)
+- [x] Markers on each card in the collection: flag for the language, coloured pill for the condition, a mark when unknown, a star for holo and reverse holo (done 2026-11-14 23:29)
+- [x] The card page says whether the price is the print's own, the foil figure or the card's general one (done 2026-11-14 23:29)
 - [x] Export as CSV (done 2026-11-14 15:55)
 - [x] Dutch and English, light and dark theme, installable on the home screen (done 2026-11-14 15:55)
 

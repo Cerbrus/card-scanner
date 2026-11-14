@@ -107,6 +107,11 @@
                         {{ 'card.estimateUnknown' | translate }}
                     }
                 </p>
+                @if (card.priceBasis; as basis) {
+                    <p class="basis mt-2 text-xs" [class.muted]="basis === 'print'">
+                        {{ (basis === 'general' && !card.variant ? 'card.basis.finishUnknown' : 'card.basis.' + basis) | translate }}
+                    </p>
+                }
                 <p class="muted mt-1 text-xs">{{ 'card.priceNote' | translate: { date: (card.priceCheckedAt | date: 'd MMM y') } }}</p>
             } @else {
                 <p class="muted text-sm">{{ (card.status === 'confirmed' ? 'card.noPriceLong' : 'card.priceAfterConfirm') | translate }}</p>

@@ -8,7 +8,7 @@ import { InboxPage } from './inbox/inbox.page';
 import { LoginPage } from './login/login.page';
 import { SettingsPage } from './settings/settings.page';
 import { FakeStore, card, choose, click, fakeStore, system, texts, type } from '../../testing/fakes';
-import { cardState, languageMark } from '../components/card-tile/card-tile.component';
+import { cardState, languageFlag } from '../components/card-tile/card-tile.component';
 import { SystemState } from '../models';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
@@ -93,9 +93,26 @@ describe('the pages around the collection', () => {
         store.cards.set([card(1, { language: 'nl', condition: 'near_mint' }), card(2, { language: 'other' }), card(3, { status: 'new', name: undefined })]);
         open(CollectionPage);
 
-        expect(texts(page, '.mark')).toEqual(['?', '?', '…', '?', 'NL', 'conditionShort.near_mint']);
-        expect(page.querySelectorAll('.mark.unknown').length).toBe(3);
-        expect([languageMark('en'), languageMark(undefined)]).toEqual(['EN', '?']);
+        const rows = Array.from(page.querySelectorAll('app-card-tile'), (tile) => texts(tile, '.tile-row > *'));
+
+        expect(rows).toEqual([
+            ['card.unknown', '?', 'Base Set', '?'],
+            ['Card 2', languageFlag('other'), 'Base Set', '?'],
+            ['Card 1', languageFlag('nl'), 'Base Set', 'conditionShort.near_mint']
+        ]);
+        expect(page.querySelectorAll('.pill.unknown').length).toBe(3);
+        expect(page.querySelector('.pill.near_mint')).not.toBeNull();
+        expect([languageFlag('nl'), languageFlag(undefined)]).toEqual(['🇳🇱', '?']);
+    });
+
+    it('puts a star on holo cards, an open one on reverse holos, and none on the rest', () => {
+        store.cards.set([card(1, { variant: 'holo' }), card(2, { variant: 'reverse' }), card(3, { variant: 'normal' }), card(4)]);
+        open(CollectionPage);
+
+        const stars = Array.from(page.querySelectorAll('app-card-tile'), (tile) => tile.querySelector('.finish')?.className ?? 'none');
+
+        expect(stars).toEqual(['none', 'none', 'finish reverse', 'finish holo']);
+        expect(page.querySelector('.finish.holo')?.getAttribute('title')).toBe('variant.holo');
     });
 
     it('filters while typing and changes the order with the sort choice', () => {

@@ -86,7 +86,13 @@
         "missing": "Deze kaart bestaat niet (meer).",
         "estimate": "Geschatte waarde",
         "estimateNote": "{percent}% van de prijstrend, voor conditie {condition}.",
-        "estimateUnknown": "Conditie niet ingevuld: de schatting is de volle prijstrend. Vul de conditie in voor een beter bedrag."
+        "estimateUnknown": "Conditie niet ingevuld: de schatting is de volle prijstrend. Vul de conditie in voor een beter bedrag.",
+        "basis": {
+            "print": "De eigen prijs van de bron voor deze druk (afwerking en editie).",
+            "foil": "De folieprijs van de kaart, gebruikt voor de reverse holo.",
+            "general": "Algemene prijs van deze kaart: de bron heeft geen eigen bedrag voor deze afwerking, dus andere afwerkingen krijgen dezelfde prijs.",
+            "finishUnknown": "Algemene prijs van deze kaart: de afwerking is niet ingevuld. Vul die in voor de prijs van de juiste druk."
+        }
     },
     "condition": {
         "mint": "Mint",

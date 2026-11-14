@@ -25,28 +25,36 @@ describe('prices of a card', () => {
     });
 
     it('gives the unlimited print for a holo that is not a first edition', () => {
-        assert.equal(pickPrice(readPricing(charizard), { variant: 'holo', firstEdition: false })?.productId, 273699);
+        assert.equal(pickPrice(readPricing(charizard), { variant: 'holo', firstEdition: false })?.price.productId, 273699);
     });
 
     it('gives the first edition print its own, higher price', () => {
-        const price = pickPrice(readPricing(charizard), { variant: 'holo', firstEdition: true });
+        const pick = pickPrice(readPricing(charizard), { variant: 'holo', firstEdition: true });
 
-        assert.deepEqual([price?.productId, price?.trend], [660224, 3489.25]);
+        assert.deepEqual([pick?.price.productId, pick?.price.trend, pick?.basis], [660224, 3489.25, 'print']);
     });
 
     it('falls back to the general price when the print is unknown or has no variant of its own', () => {
-        assert.equal(pickPrice(readPricing(charizard), { variant: null, firstEdition: false })?.trend, 385.83);
-        assert.equal(pickPrice(readPricing(common), { variant: 'normal', firstEdition: false })?.trend, 0.12);
+        assert.equal(pickPrice(readPricing(charizard), { variant: null, firstEdition: false })?.price.trend, 385.83);
+        assert.equal(pickPrice(readPricing(common), { variant: 'normal', firstEdition: false })?.price.trend, 0.12);
     });
 
     it('uses the foil figures for a reverse holo', () => {
-        assert.equal(pickPrice(readPricing(common), { variant: 'reverse', firstEdition: false })?.trend, 0.9);
+        assert.equal(pickPrice(readPricing(common), { variant: 'reverse', firstEdition: false })?.price.trend, 0.9);
     });
 
     it('has no price for a card the source has no figures for', () => {
         assert.equal(pickPrice(readPricing({}), { variant: 'holo', firstEdition: false }), undefined);
         assert.equal(pickPrice(readPricing({ pricing: { cardmarket: { idProduct: 5, trend: 0, avg30: null } } }), { firstEdition: false }), undefined);
         assert.equal(pickPrice(undefined, { firstEdition: false }), undefined);
+    });
+
+    it('says which figure it took: the print\'s own, the foil figure, or the card\'s general one', () => {
+        assert.equal(pickPrice(readPricing(charizard), { variant: 'holo', firstEdition: false })?.basis, 'print');
+        assert.equal(pickPrice(readPricing(charizard), { variant: 'normal', firstEdition: false })?.basis, 'general');
+        assert.equal(pickPrice(readPricing(charizard), { variant: null, firstEdition: false })?.basis, 'general');
+        assert.equal(pickPrice(readPricing(common), { variant: 'reverse', firstEdition: false })?.basis, 'foil');
+        assert.equal(pickPrice(readPricing(common), { variant: 'holo', firstEdition: false })?.basis, 'general');
     });
 
     it('lowers the estimated value with the condition, and leaves it alone when the condition is unknown', () => {

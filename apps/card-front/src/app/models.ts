@@ -82,6 +82,7 @@ export interface CardDetail extends CardSummary {
     conditionNotes?: string;
     notes: string;
     cardmarketUrl?: string;
+    priceBasis?: 'print' | 'foil' | 'general';
     priceHistory: Array<PricePoint>;
 }
 

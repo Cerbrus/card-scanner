@@ -13,7 +13,7 @@ import { ToastService } from '../../services/toast.service';
 
 const charizard: Candidate = { catalogCardId: 'base1-4', name: 'Charizard', localId: '4', setId: 'base1', setName: 'Base Set', image: 'https://assets.example/base1/4', score: 13 };
 const reprint: Candidate = { ...charizard, catalogCardId: 'base4-4', setId: 'base4', setName: 'Base Set 2', image: undefined };
-const confirmed = detail(7, { name: 'Charizard', rarity: 'Rare', catalogCardId: 'base1-4', priceTrend: 385.83, priceAvg30: 407.53, priceLow: 90, estimatedValue: 231.5, valueFactor: 0.6, condition: 'good', cardmarketUrl: 'https://www.cardmarket.com/x' });
+const confirmed = detail(7, { name: 'Charizard', rarity: 'Rare', catalogCardId: 'base1-4', priceTrend: 385.83, priceAvg30: 407.53, priceLow: 90, estimatedValue: 231.5, valueFactor: 0.6, condition: 'good', variant: 'holo', priceBasis: 'print', cardmarketUrl: 'https://www.cardmarket.com/x' });
 const waiting = detail(7, { status: 'identified', readingState: 'done', name: 'Charizard', candidates: [charizard, reprint] });
 
 describe('CardPage', () => {
@@ -73,6 +73,7 @@ describe('CardPage', () => {
         expect(page.textContent).toContain('€231.50');
         expect(page.textContent).toContain('€385.83');
         expect(page.textContent).toContain('card.estimateNote');
+        expect(texts(page, '.basis')).toEqual(['card.basis.print']);
         expect(page.querySelector('a[href="https://www.cardmarket.com/x"]')).not.toBeNull();
         expect(page.querySelector('app-candidate-list')).toBeNull();
     });
@@ -82,6 +83,19 @@ describe('CardPage', () => {
 
         expect(page.textContent).toContain('card.estimateUnknown');
         expect(page.textContent).not.toContain('card.estimateNote');
+    });
+
+    it('tells when the price is the card\'s general one, and why', async () => {
+        await open({ ...confirmed, priceBasis: 'general' });
+        expect(texts(page, '.basis')).toEqual(['card.basis.general']);
+
+        fixture.destroy();
+        await open({ ...confirmed, variant: undefined, priceBasis: 'general' });
+        expect(texts(page, '.basis')).toEqual(['card.basis.finishUnknown']);
+
+        fixture.destroy();
+        await open({ ...confirmed, variant: 'reverse', priceBasis: 'foil' });
+        expect(texts(page, '.basis')).toEqual(['card.basis.foil']);
     });
 
     it('offers the catalogue cards that fit and confirms the one that is tapped', async () => {

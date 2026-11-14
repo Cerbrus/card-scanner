@@ -86,7 +86,13 @@
         "missing": "This card does not exist (any more).",
         "estimate": "Estimated value",
         "estimateNote": "{percent}% of the price trend, for condition {condition}.",
-        "estimateUnknown": "Condition not set: the estimate is the full price trend. Set the condition for a better figure."
+        "estimateUnknown": "Condition not set: the estimate is the full price trend. Set the condition for a better figure.",
+        "basis": {
+            "print": "The source's own price for this print (finish and edition).",
+            "foil": "The card's foil price, used for the reverse holo.",
+            "general": "General price of this card: the source has no own figure for this finish, so other finishes get the same price.",
+            "finishUnknown": "General price of this card: the finish is not set. Set it to get the price of the right print."
+        }
     },
     "condition": {
         "mint": "Mint",

@@ -24,7 +24,7 @@ import {
 import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
 import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, isJpeg, photoFileName } from '../rules/photo-file';
-import { cardmarketUrl, conditionFactor, estimateValue } from '../rules/pricing';
+import { PriceBasis, cardmarketUrl, conditionFactor, estimateValue, pickPrice } from '../rules/pricing';
 
 export interface PhotoUpload {
     side: PhotoSide;
@@ -72,6 +72,7 @@ export interface CardDetail extends CardSummary {
     conditionNotes?: string;
     notes: string;
     cardmarketUrl?: string;
+    priceBasis?: PriceBasis;
     priceHistory: Array<Pick<PriceSnapshotEntity, 'day' | 'trend' | 'avg30' | 'low'>>;
 }
 
@@ -149,6 +150,7 @@ export class CardService implements OnApplicationBootstrap {
     public async get(id: number): Promise<CardDetail> {
         const card = await this.find(id);
         const [summary] = await this.summaries([card]);
+        const known = card.catalogCardId ? (await this.catalog.byIds([card.catalogCardId])).get(card.catalogCardId) : undefined;
 
         return {
             ...summary,
@@ -158,6 +160,7 @@ export class CardService implements OnApplicationBootstrap {
             conditionNotes: card.conditionNotes ?? undefined,
             notes: card.notes,
             cardmarketUrl: summary.name ? cardmarketUrl(card.priceProductId, summary.name) : undefined,
+            priceBasis: card.priceTrend == null ? undefined : pickPrice(known?.pricing, { variant: card.variant, firstEdition: card.firstEdition })?.basis,
             priceHistory: (await this.prices.history(id)).map(({ day, trend, avg30, low }) => ({ day, trend, avg30, low }))
         };
     }

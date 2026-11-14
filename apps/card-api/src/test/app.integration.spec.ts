@@ -31,6 +31,7 @@ interface Card {
     priceTrend?: number;
     estimatedValue?: number;
     valueFactor?: number;
+    priceBasis?: string;
     cardmarketUrl?: string;
     candidates?: Array<{ catalogCardId: string }>;
     priceHistory?: Array<{ day: string; trend: number }>;
@@ -157,7 +158,7 @@ describe('the whole app', () => {
 
         assert.deepEqual([confirmed.status, confirmed.name, confirmed.setName, confirmed.rarity], ['confirmed', 'Charizard', 'Base Set', 'Rare']);
         assert.equal(confirmed.priceTrend, 385.83);
-        assert.deepEqual([confirmed.estimatedValue, confirmed.valueFactor], [385.83, 1]);
+        assert.deepEqual([confirmed.estimatedValue, confirmed.valueFactor, confirmed.priceBasis], [385.83, 1, 'general']);
         assert.equal(confirmed.cardmarketUrl, 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699');
         assert.equal(confirmed.priceHistory?.length, 1);
         assert.equal((await fetch(`${api}/cards/${card.id}/confirm`, send('POST', { catalogCardId: 'nope-1' }))).status, 400);
@@ -169,7 +170,7 @@ describe('the whole app', () => {
         const changed = await json<Card>(`/cards/${card.id}`, send('PATCH', { variant: 'holo', firstEdition: true, condition: 'played', notes: 'from the attic' }));
 
         assert.deepEqual([changed.priceTrend, changed.condition, changed.conditionSource], [3489.25, 'played', 'user']);
-        assert.deepEqual([changed.estimatedValue, changed.valueFactor], [1046.77, 0.3]);
+        assert.deepEqual([changed.estimatedValue, changed.valueFactor, changed.priceBasis], [1046.77, 0.3, 'print']);
         assert.equal((await fetch(`${api}/cards/${card.id}`, send('PATCH', { condition: 'shiny' }))).status, 400);
     });
 

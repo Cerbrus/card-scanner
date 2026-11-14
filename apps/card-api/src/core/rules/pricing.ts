@@ -5,6 +5,13 @@ export interface PrintChoice {
     firstEdition: boolean;
 }
 
+export type PriceBasis = 'print' | 'foil' | 'general';
+
+export interface PricePick {
+    price: PriceFigures;
+    basis: PriceBasis;
+}
+
 interface SourcePrice {
     idProduct?: number | null;
     trend?: number | null;
@@ -93,7 +100,7 @@ export function readPricing(card: SourceCard): CardPricing {
     };
 }
 
-export function pickPrice(pricing: CardPricing | null | undefined, print: PrintChoice): PriceFigures | undefined {
+export function pickPrice(pricing: CardPricing | null | undefined, print: PrintChoice): PricePick | undefined {
     if (!pricing) {
         return undefined;
     }
@@ -102,16 +109,18 @@ export function pickPrice(pricing: CardPricing | null | undefined, print: PrintC
     const sameFinish = sameEdition.filter((variant) => !print.variant || variant.type === print.variant);
     const exact = sameFinish.find((variant) => PLAIN_SUBTYPES.includes(variant.subtype)) ?? sameFinish[0];
     if (exact && (print.variant || print.firstEdition)) {
-        return exact.price;
+        return { price: exact.price, basis: 'print' };
     }
     if (print.firstEdition && sameEdition.length) {
-        return sameEdition[0].price;
+        return { price: sameEdition[0].price, basis: 'print' };
     }
     if (print.variant === 'reverse' && pricing.reverse) {
-        return pricing.reverse;
+        return { price: pricing.reverse, basis: 'foil' };
     }
 
-    return pricing.standard ?? exact?.price ?? pricing.variants[0]?.price;
+    const general = pricing.standard ?? exact?.price ?? pricing.variants[0]?.price;
+
+    return general ? { price: general, basis: 'general' } : undefined;
 }
 
 export function conditionFactor(condition?: Condition | null): number {

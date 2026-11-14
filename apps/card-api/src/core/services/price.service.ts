@@ -4,10 +4,11 @@ import { Repository } from 'typeorm';
 
 import { CatalogService } from './catalog.service';
 import { PriceFigures, PriceSnapshotEntity } from '../../data/entities';
-import { PrintChoice, dayOf, hasPrice, pickPrice } from '../rules/pricing';
+import { PriceBasis, PrintChoice, dayOf, hasPrice, pickPrice } from '../rules/pricing';
 
 export interface Quote {
     price?: PriceFigures;
+    basis?: PriceBasis;
     reachedSource: boolean;
 }
 
@@ -21,9 +22,10 @@ export class PriceService {
 
     public async quote(catalogCardId: string, print: PrintChoice): Promise<Quote> {
         const card = await this.catalog.withDetails(catalogCardId);
-        const price = pickPrice(card?.pricing, print);
+        const pick = pickPrice(card?.pricing, print);
+        const priced = hasPrice(pick?.price);
 
-        return { price: hasPrice(price) ? price : undefined, reachedSource: card?.detailsFetchedAt != null };
+        return { price: priced ? pick?.price : undefined, basis: priced ? pick?.basis : undefined, reachedSource: card?.detailsFetchedAt != null };
     }
 
     public async record(ownedCardId: number, price: PriceFigures, now = new Date()): Promise<void> {
