@@ -13,7 +13,7 @@ import { ToastService } from '../../services/toast.service';
 
 const charizard: Candidate = { catalogCardId: 'base1-4', name: 'Charizard', localId: '4', setId: 'base1', setName: 'Base Set', image: 'https://assets.example/base1/4', score: 13 };
 const reprint: Candidate = { ...charizard, catalogCardId: 'base4-4', setId: 'base4', setName: 'Base Set 2', image: undefined };
-const confirmed = detail(7, { name: 'Charizard', rarity: 'Rare', catalogCardId: 'base1-4', priceTrend: 385.83, priceAvg30: 407.53, priceLow: 90, estimatedValue: 231.5, valueFactor: 0.6, condition: 'good', variant: 'holo', priceBasis: 'print', cardmarketUrl: 'https://www.cardmarket.com/x' });
+const confirmed = detail(7, { name: 'Charizard', rarity: 'Rare', catalogCardId: 'base1-4', priceTrend: 385.83, priceAvg30: 407.53, priceLow: 90, value: 385.83, valueSource: 'trend', condition: 'good', variant: 'holo', priceBasis: 'print', cardmarketUrl: 'https://www.cardmarket.com/x' });
 const waiting = detail(7, { status: 'identified', readingState: 'done', name: 'Charizard', candidates: [charizard, reprint] });
 
 describe('CardPage', () => {
@@ -70,19 +70,32 @@ describe('CardPage', () => {
 
         expect(texts(page, 'h1')).toEqual(['Charizard']);
         expect(Array.from(page.querySelectorAll('.photos img'), (image) => image.getAttribute('src'))).toEqual(['/photos/70?thumb', '/photos/71?thumb', 'https://assets.example/base1/4/low.webp']);
-        expect(page.textContent).toContain('€231.50');
-        expect(page.textContent).toContain('€385.83');
-        expect(page.textContent).toContain('card.estimateNote');
+        expect(texts(page, '.value')).toEqual(['€385.83']);
+        expect(texts(page, '.value-label')).toEqual(['card.valueFrom.trend']);
         expect(texts(page, '.basis')).toEqual(['card.basis.print']);
         expect(page.querySelector('a[href="https://www.cardmarket.com/x"]')).not.toBeNull();
         expect(page.querySelector('app-candidate-list')).toBeNull();
     });
 
-    it('says that the estimate is the full price while the condition is not set', async () => {
-        await open({ ...confirmed, condition: undefined, estimatedValue: 385.83, valueFactor: 1 });
+    it('takes the price the user types for this copy, with a comma or a point, and clears it when emptied', async () => {
+        api.updateCard.mockReturnValue(of({ ...confirmed, ownPrice: 120.5, value: 120.5, valueSource: 'own' }));
+        await open(confirmed);
+        const field = page.querySelector('.own-price') as HTMLInputElement;
+        const enter = async (text: string): Promise<void> => {
+            field.value = text;
+            field.dispatchEvent(new Event('change'));
+            await settle();
+        };
 
-        expect(page.textContent).toContain('card.estimateUnknown');
-        expect(page.textContent).not.toContain('card.estimateNote');
+        await enter('120,50');
+        expect(texts(page, '.value')).toEqual(['€120.50']);
+        expect(texts(page, '.value-label')).toEqual(['card.valueFrom.own']);
+
+        await enter(' ');
+        await enter('cheap');
+
+        expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ ownPrice: 120.5 }, { ownPrice: null }]);
+        expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['common.failed']);
     });
 
     it('tells when the price is the card\'s general one, and why', async () => {

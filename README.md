@@ -6,8 +6,8 @@ Photograph a Pokémon card, front and back, with a phone. The app keeps the phot
 
 - **Scan**: two photos per card, taken with the phone's own camera app. The phone makes them smaller before upload.
 - **Identify**: a local copy of the TCGdex catalogue (about 24,000 cards) is searched by name and number. With an Anthropic API key, Claude reads the photos and proposes the card, the print and the condition; the user confirms with a tap. Without a key, the user searches and picks the card.
-- **Price**: the Cardmarket price in EUR per card, with its own figure for a 1st edition or a reverse holo where the source has one. Refreshed daily, with a history per card. The estimated value lowers that price by a factor for the card's condition.
-- **Collection**: grid with search and sort, markers for language and condition on each card, total estimated value, a page per card, an inbox for cards that are not confirmed yet, export as CSV.
+- **Price**: the Cardmarket price in EUR per card, with its own figure for a 1st edition or a reverse holo where the source has one. Refreshed daily, with a history per card. For the real price of a copy in its condition and language, the card page links to the filtered offers on Cardmarket and takes the price you find there.
+- **Collection**: grid with search and sort, markers for language and condition on each card, total value, a page per card, an inbox for cards that are not confirmed yet, export as CSV.
 - **Google**: once connected, photos go to a Drive folder, the collection to a sheet, and a copy of the database follows nightly. One way: the app writes, Google receives.
 - **Phone**: installable on the home screen, light and dark theme, Dutch and English.
 

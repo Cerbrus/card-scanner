@@ -61,8 +61,9 @@ export interface CardSummary {
     priceTrend?: number;
     priceAvg30?: number;
     priceLow?: number;
-    estimatedValue?: number;
-    valueFactor: number;
+    ownPrice?: number;
+    value?: number;
+    valueSource?: 'own' | 'trend';
     priceCheckedAt?: string;
     createdAt: string;
     photos: Partial<Record<PhotoSide, number>>;
@@ -91,6 +92,7 @@ export interface CardChanges {
     variant?: Finish | null;
     firstEdition?: boolean;
     condition?: Condition | null;
+    ownPrice?: number | null;
     notes?: string;
 }
 

@@ -50,8 +50,8 @@ describe('the pages around the collection', () => {
     beforeEach(() => {
         owner.value = true;
         store = fakeStore([
-            card(1, { name: 'Pikachu', estimatedValue: 2.5 }),
-            card(2, { name: 'Charizard', estimatedValue: 385.83, setName: 'Jungle' }),
+            card(1, { name: 'Pikachu', value: 2.5, valueSource: 'own' }),
+            card(2, { name: 'Charizard', value: 385.83, valueSource: 'trend', setName: 'Jungle' }),
             card(3, { name: 'Abra' }),
             card(4, { name: 'Mystery', status: 'identified', readingState: 'done' }),
             card(5, { name: undefined, status: 'new', readingState: 'pending' })
@@ -86,7 +86,8 @@ describe('the pages around the collection', () => {
         expect(page.querySelector('.text-2xl')?.textContent).toContain('388.33');
         expect(page.querySelectorAll('app-card-tile').length).toBe(5);
         expect(page.querySelector('a.badge')?.getAttribute('href')).toBe('/inbox');
-        expect(texts(page, '.tile-price')).toEqual(['€385.83', '€2.50']);
+        expect(texts(page, '.tile-price')).toEqual(['≈ €385.83', '€2.50']);
+        expect(page.querySelectorAll('.tile-price.rough').length).toBe(1);
     });
 
     it('marks language and condition on every tile, also when they are unknown', () => {

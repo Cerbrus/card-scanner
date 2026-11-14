@@ -18,22 +18,13 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 ## Prices
 
-**One figure per print, not per condition or language.** The source gives a trend, a 30-day average and a lowest price per card. Where it lists print variants separately (1st edition, holo, reverse holo), the app takes the figure of the variant that matches the card's finish and 1st edition mark; otherwise the card's general figure. Language is not in any figure, so the card page links to the card on Cardmarket for that. Condition is handled by the app's own estimate, below. Shadowless prints are not told apart.
+**One figure per print, not per condition or language.** The source gives a trend, a 30-day average and a lowest price per card. Where it lists print variants separately (1st edition, holo, reverse holo), the app takes the figure of the variant that matches the card's finish and 1st edition mark; otherwise the card's general figure. Condition and language are not in any figure; the owner's own price, below, covers those. Shadowless prints are not told apart.
 
-**The estimated value is the price trend times a factor for the condition.** The source has no price per condition, so the app estimates one:
+**The value of a copy is what the owner looked up for it; otherwise the general price trend.** Cardmarket's product page can be filtered on language and condition and then shows what a copy like the owner's really costs. The app cannot read that page: Cardmarket refuses requests from programs, its API is closed, and getting around its bot check is not something this app does. So the owner does the looking: the card page links to the product with the copy's language and condition in the filter, and has a field for the price found there. That figure is the copy's value. A copy without one is valued at the source's general trend and marked with ≈ in the collection, so the total shows which part is real and which is rough.
 
-| Condition | Factor |
-|---|---|
-| Mint, Near Mint | 100% |
-| Excellent | 80% |
-| Good | 60% |
-| Light Played | 45% |
-| Played | 30% |
-| Poor | 15% |
+A factor per condition was tried for one evening (2026-11-14) and dropped: rules of thumb are not prices.
 
-The factors are rough rules of thumb for how prices on Cardmarket drop per condition step; they live in `core/rules/pricing.ts` and are meant to be tuned. A card without a condition is valued at the full trend and marked as unknown in the collection, so it is clear that its figure is too high rather than silently guessed. The collection's total, the sort on value, the export and the sheet use the estimate; the trend itself stays visible on the card page.
-
-**The source's figures are stored with the owned card, with a snapshot per day.** The estimate is worked out from them when asked, so changing a factor or a condition needs no stored data to be rewritten. The history shows how the source's price moved.
+**The source's figures are stored with the owned card, with a snapshot per day**, next to the owner's own price. The history shows how the source's price moved.
 
 ## Sources
 

@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -19,7 +19,7 @@ const HISTORY_LENGTH = 8;
 @Component({
     selector: 'app-card-page',
     standalone: true,
-    imports: [CurrencyPipe, DatePipe, DecimalPipe, RouterLink, TranslateModule, CandidateListComponent],
+    imports: [CurrencyPipe, DatePipe, RouterLink, TranslateModule, CandidateListComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './card.page.html',
     styleUrl: './card.page.scss'
@@ -78,6 +78,17 @@ export class CardPage {
 
     protected change(changes: CardChanges): void {
         this.run(this.api.updateCard(Number(this.id()), changes));
+    }
+
+    protected setOwnPrice(text: string): void {
+        const entered = text.trim().replace(',', '.');
+        const price = Number(entered);
+        if (entered && !(price >= 0)) {
+            this.fail();
+            return;
+        }
+
+        this.change({ ownPrice: entered ? Math.round(price * 100) / 100 : null });
     }
 
     protected confirm(candidate: Candidate): void {

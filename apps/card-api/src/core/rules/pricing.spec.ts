@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { SourceCard, cardmarketUrl, conditionFactor, dayOf, estimateValue, pickPrice, readPricing } from './pricing';
+import { SourceCard, cardmarketUrl, dayOf, ownedValue, pickPrice, readPricing } from './pricing';
 
 const charizard: SourceCard = {
     rarity: 'Rare',
@@ -57,14 +57,18 @@ describe('prices of a card', () => {
         assert.equal(pickPrice(readPricing(common), { variant: 'holo', firstEdition: false })?.basis, 'general');
     });
 
-    it('lowers the estimated value with the condition, and leaves it alone when the condition is unknown', () => {
-        assert.equal(estimateValue(100, 'near_mint'), 100);
-        assert.equal(estimateValue(100, 'good'), 60);
-        assert.equal(estimateValue(385.83, 'played'), 115.75);
-        assert.equal(estimateValue(100, 'poor'), 15);
-        assert.equal(estimateValue(100, null), 100);
-        assert.equal(estimateValue(null, 'good'), undefined);
-        assert.deepEqual([conditionFactor('excellent'), conditionFactor('light_played'), conditionFactor(undefined)], [0.8, 0.45, 1]);
+    it('values a copy at the price its owner entered, and at the price trend when there is none', () => {
+        assert.deepEqual(ownedValue(40, 385.83), { value: 40, source: 'own' });
+        assert.deepEqual(ownedValue(0, 385.83), { value: 0, source: 'own' });
+        assert.deepEqual(ownedValue(null, 385.83), { value: 385.83, source: 'trend' });
+        assert.deepEqual(ownedValue(12.5, null), { value: 12.5, source: 'own' });
+        assert.equal(ownedValue(undefined, undefined), undefined);
+    });
+
+    it('opens Cardmarket with the language and condition of the copy in the filter', () => {
+        assert.equal(cardmarketUrl(273699, 'Ninetales', { language: 'nl', condition: 'excellent' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&language=12&minCondition=3');
+        assert.equal(cardmarketUrl(273699, 'Ninetales', { language: 'en' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&language=1');
+        assert.equal(cardmarketUrl(273699, 'Ninetales', { language: 'other', condition: 'poor' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&minCondition=7');
     });
 
     it('links to the product on Cardmarket, or to a search when the product is unknown', () => {

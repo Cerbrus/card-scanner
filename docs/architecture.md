@@ -55,6 +55,7 @@ Imports point inward: `api` to `core` to `data`. Lint enforces it.
 | `condition`, `condition_source`, `condition_notes` | A step on Cardmarket's scale, who set it (`model` or `user`), what the model saw |
 | `notes` | Free text |
 | `price_trend`, `price_avg30`, `price_low`, `price_product_id`, `price_checked_at` | The current price figures in EUR, Cardmarket's product id, when checked |
+| `own_price`, `own_price_at` | The price the owner looked up for this copy, and when |
 | `created_at`, `updated_at` | Times |
 
 **`photo`**: a file belonging to an owned card. Side (`front` or `back`), file name, thumbnail file name, size, `drive_file_id` and `synced_at`.
@@ -97,7 +98,7 @@ The pool is every catalogue card with that number or with the name as part of it
 
 The card page says which of the three was used (`priceBasis`: `print`, `foil` or `general`), so a fallback to the general figure is visible.
 
-The estimated value of an owned card is that figure's trend times the factor of its condition (`CONDITION_FACTORS`); without a condition the factor is 1. The API returns it as `estimatedValue` with `valueFactor` next to the source's figures.
+The value of an owned card is the owner's own price for that copy (`own_price`) when there is one, and the source's trend otherwise. The API returns it as `value` with `valueSource` (`own` or `trend`) next to the source's figures. The link to Cardmarket carries the copy's language and condition as filter (`language`, `minCondition`).
 
 A daily job asks the price of every confirmed card again and writes a snapshot. Card details are kept for 20 hours, so a second request within a day costs nothing.
 
@@ -151,10 +152,10 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 
 | Page | Content |
 |---|---|
-| Collection | Total estimated value, search, sort, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards |
+| Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards |
 | Scan | Two photos, save, straight on to the next card |
 | Inbox | Cards that are not confirmed, with their state |
-| Card | Photos, catalogue picture, candidates, catalogue search, estimated value and the source's price with history, the print and condition, delete |
+| Card | Photos, catalogue picture, candidates, catalogue search, value, the field for the owner's own price, the source's price with history, the print and condition, delete |
 | Settings | What is on and off and why, Google connection, catalogue and prices, export, theme, language, log out |
 | Login | The Google button |
 

@@ -69,10 +69,10 @@
         "trend": "Prijstrend",
         "avg30": "Gemiddelde over 30 dagen",
         "low": "Vanaf",
-        "priceNote": "Cardmarket, bekeken op {date}. De bron heeft één bedrag per kaart, zonder conditie of taal.",
+        "priceNote": "Prijstrend van Cardmarket, bekeken op {date}.",
         "noPriceLong": "De prijsbron heeft geen bedrag voor deze kaart.",
         "priceAfterConfirm": "De prijs volgt zodra je de kaart hebt gekozen.",
-        "cardmarket": "Openen op Cardmarket",
+        "cardmarket": "Aanbod voor dit exemplaar op Cardmarket",
         "details": "Dit exemplaar",
         "condition": "Conditie",
         "notSet": "Niet ingevuld",
@@ -84,15 +84,18 @@
         "delete": "Kaart verwijderen",
         "deleteSure": "Ja, verwijderen",
         "missing": "Deze kaart bestaat niet (meer).",
-        "estimate": "Geschatte waarde",
-        "estimateNote": "{percent}% van de prijstrend, voor conditie {condition}.",
-        "estimateUnknown": "Conditie niet ingevuld: de schatting is de volle prijstrend. Vul de conditie in voor een beter bedrag.",
         "basis": {
             "print": "De eigen prijs van de bron voor deze druk (afwerking en editie).",
             "foil": "De folieprijs van de kaart, gebruikt voor de reverse holo.",
             "general": "Algemene prijs van deze kaart: de bron heeft geen eigen bedrag voor deze afwerking, dus andere afwerkingen krijgen dezelfde prijs.",
             "finishUnknown": "Algemene prijs van deze kaart: de afwerking is niet ingevuld. Vul die in voor de prijs van de juiste druk."
-        }
+        },
+        "valueFrom": {
+            "own": "Jouw prijs voor dit exemplaar",
+            "trend": "Algemene prijstrend, niet voor deze conditie of taal"
+        },
+        "ownPrice": "Prijs voor dit exemplaar (EUR)",
+        "ownPriceHint": "Open Cardmarket hieronder: het aanbod is gefilterd op de taal en conditie van dit exemplaar. Typ hier de prijs die je vindt. Maak het veld leeg om terug te gaan naar de prijstrend."
     },
     "condition": {
         "mint": "Mint",
@@ -123,7 +126,7 @@
     },
     "collection": {
         "title": "Collectie",
-        "valueOf": "Geschat naar conditie. {priced} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} met een prijs",
+        "valueOf": "{own} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} door jou geprijsd, de rest tegen de algemene prijstrend (≈)",
         "waiting": "{count} in de inbox",
         "search": "Zoek op naam, set of nummer",
         "sort": "Sorteren",
@@ -211,6 +214,10 @@
     },
     "mark": {
         "language": "Taal van de kaart",
-        "condition": "Conditie van de kaart"
+        "condition": "Conditie van de kaart",
+        "value": {
+            "own": "Jouw prijs voor dit exemplaar",
+            "trend": "Algemene prijstrend, niet geprijsd voor dit exemplaar"
+        }
     }
 }

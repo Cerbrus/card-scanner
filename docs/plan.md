@@ -25,7 +25,7 @@ Also open for the owner to decide:
 - **Login with Google** in this app. The code is the barcode scanner's, where it works; the routes are tested with signed sessions.
 - **The scan page on a real phone**: opening the camera, the size and quality of the scaled photos, rotation of portrait photos.
 - **Condition estimates**: whether the model's judgement from phone photos is useful at all.
-- **The condition factors**: rules of thumb, not checked against real sales per condition.
+- **The filtered Cardmarket link.** It is built from the product id (`Products?idProduct=...&language=...&minCondition=...`). Whether Cardmarket keeps the filter when it forwards to the product page, and whether the language and condition numbers are right for every language, has only been checked against one example link (Dutch, Excellent).
 - **Dutch and other non-English prints**: found through number and set total in tests with made-up readings; not tried with real cards.
 - **`install.sh` on a fresh Pi.** On the server Pi it ran fine, but Docker and the memory settings were already there.
 - **A restore** from the Drive copy.
@@ -62,7 +62,7 @@ Also open for the owner to decide:
 - [x] Daily refresh and a snapshot per day (done 2026-11-14 15:55)
 - [x] Value per card and total value of the collection (done 2026-11-14 15:55)
 - [x] Link to the card on Cardmarket (done 2026-11-14 15:55)
-- [x] Estimated value that takes the condition into account; the total, sort, export and sheet use it (done 2026-11-14 23:06)
+- [x] Own price per copy, looked up through a Cardmarket link filtered on the copy's language and condition; the total, sort, export and sheet use it, and cards without one are marked (done 2026-11-15 00:05). Replaces the factor per condition of 2026-11-14.
 
 ### Milestone 5: condition
 
@@ -86,6 +86,7 @@ Also open for the owner to decide:
 
 ## Open
 
+- A bookmarklet that reads the price from the Cardmarket page the owner has open and saves it to the card, instead of typing. Needs the site on HTTPS and a saved copy of a product page to build against.
 - A mark on cards that may be worth grading (high value, good condition).
 - Count of duplicates of the same catalogue card.
 - Filter the collection by set, condition or language.

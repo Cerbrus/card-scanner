@@ -12,7 +12,8 @@ export interface CollectionRow {
     priceTrend?: number | null;
     priceAvg30?: number | null;
     priceLow?: number | null;
-    estimatedValue?: number | null;
+    value?: number | null;
+    valueSource: string;
     priceCheckedAt?: Date | null;
     status: string;
     notes: string;
@@ -38,7 +39,8 @@ export const COLLECTION_HEADER: Array<string> = [
     'Trend (EUR)',
     '30-day average (EUR)',
     'Low (EUR)',
-    'Estimated for condition (EUR)',
+    'Value (EUR)',
+    'Value from',
     'Price date',
     'Status',
     'Notes',
@@ -69,7 +71,8 @@ export function collectionCells(row: CollectionRow): Array<Cell> {
         money(row.priceTrend),
         money(row.priceAvg30),
         money(row.priceLow),
-        money(row.estimatedValue),
+        money(row.value),
+        row.valueSource,
         day(row.priceCheckedAt),
         row.status,
         row.notes,

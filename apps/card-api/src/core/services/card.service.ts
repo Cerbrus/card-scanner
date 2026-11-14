@@ -24,7 +24,7 @@ import {
 import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
 import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, isJpeg, photoFileName } from '../rules/photo-file';
-import { PriceBasis, cardmarketUrl, conditionFactor, estimateValue, pickPrice } from '../rules/pricing';
+import { PriceBasis, ValueSource, cardmarketUrl, ownedValue, pickPrice } from '../rules/pricing';
 
 export interface PhotoUpload {
     side: PhotoSide;
@@ -37,6 +37,7 @@ export interface CardChanges {
     variant?: Finish | null;
     firstEdition?: boolean;
     condition?: Condition | null;
+    ownPrice?: number | null;
     notes?: string;
 }
 
@@ -58,8 +59,9 @@ export interface CardSummary {
     priceTrend?: number;
     priceAvg30?: number;
     priceLow?: number;
-    estimatedValue?: number;
-    valueFactor: number;
+    ownPrice?: number;
+    value?: number;
+    valueSource?: ValueSource;
     priceCheckedAt?: Date;
     createdAt: Date;
     photos: Partial<Record<PhotoSide, number>>;
@@ -159,7 +161,7 @@ export class CardService implements OnApplicationBootstrap {
             candidates: card.candidates ?? [],
             conditionNotes: card.conditionNotes ?? undefined,
             notes: card.notes,
-            cardmarketUrl: summary.name ? cardmarketUrl(card.priceProductId, summary.name) : undefined,
+            cardmarketUrl: summary.name ? cardmarketUrl(card.priceProductId, summary.name, card) : undefined,
             priceBasis: card.priceTrend == null ? undefined : pickPrice(known?.pricing, { variant: card.variant, firstEdition: card.firstEdition })?.basis,
             priceHistory: (await this.prices.history(id)).map(({ day, trend, avg30, low }) => ({ day, trend, avg30, low }))
         };
@@ -179,6 +181,10 @@ export class CardService implements OnApplicationBootstrap {
         card.variant = changes.variant === undefined ? card.variant : changes.variant;
         card.firstEdition = changes.firstEdition ?? card.firstEdition;
         card.notes = changes.notes ?? card.notes;
+        if (changes.ownPrice !== undefined && changes.ownPrice !== card.ownPrice) {
+            card.ownPrice = changes.ownPrice;
+            card.ownPriceAt = changes.ownPrice === null ? null : new Date();
+        }
         card.updatedAt = new Date();
 
         if (printChanged && card.catalogCardId) {
@@ -277,14 +283,15 @@ export class CardService implements OnApplicationBootstrap {
                 priceTrend: card.priceTrend,
                 priceAvg30: card.priceAvg30,
                 priceLow: card.priceLow,
-                estimatedValue: estimateValue(card.priceTrend, card.condition),
+                value: summary.value,
+                valueSource: summary.valueSource ?? '',
                 priceCheckedAt: card.priceCheckedAt,
                 status: card.status,
                 notes: card.notes,
                 createdAt: card.createdAt,
                 frontPhoto: link(card.id, 'front'),
                 backPhoto: link(card.id, 'back'),
-                cardmarket: summary.name && card.status === 'confirmed' ? cardmarketUrl(card.priceProductId, summary.name) : ''
+                cardmarket: summary.name && card.status === 'confirmed' ? cardmarketUrl(card.priceProductId, summary.name, card) : ''
             };
         });
     }
@@ -391,6 +398,7 @@ export class CardService implements OnApplicationBootstrap {
 
     private summary(card: OwnedCardEntity, known: CatalogCardEntity | undefined, setName: string | undefined, photos: Array<PhotoEntity>): CardSummary {
         const guess = card.candidates?.[0];
+        const worth = ownedValue(card.ownPrice, card.priceTrend);
 
         return {
             id: card.id,
@@ -410,8 +418,9 @@ export class CardService implements OnApplicationBootstrap {
             priceTrend: card.priceTrend ?? undefined,
             priceAvg30: card.priceAvg30 ?? undefined,
             priceLow: card.priceLow ?? undefined,
-            estimatedValue: estimateValue(card.priceTrend, card.condition),
-            valueFactor: conditionFactor(card.condition),
+            ownPrice: card.ownPrice ?? undefined,
+            value: worth?.value,
+            valueSource: worth?.source,
             priceCheckedAt: card.priceCheckedAt ?? undefined,
             createdAt: card.createdAt,
             photos: Object.fromEntries(photos.filter((photo) => photo.ownedCardId === card.id).map((photo) => [photo.side, photo.id]))

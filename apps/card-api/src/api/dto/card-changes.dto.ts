@@ -1,8 +1,9 @@
-import { IsBoolean, IsIn, IsOptional, IsString, MaxLength, ValidateIf } from 'class-validator';
+import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateIf } from 'class-validator';
 
 import { CONDITIONS, Condition, FINISHES, Finish, LANGUAGES, Language } from '../../data/entities/types';
 
 const MAX_NOTES_LENGTH = 2000;
+const MAX_PRICE = 1000000;
 
 export class CardChangesDto {
     @IsOptional()
@@ -23,6 +24,13 @@ export class CardChangesDto {
     @ValidateIf((_, value) => value !== null)
     @IsIn(CONDITIONS)
     public condition?: Condition | null;
+
+    @IsOptional()
+    @ValidateIf((_, value) => value !== null)
+    @IsNumber({ maxDecimalPlaces: 2 })
+    @Min(0)
+    @Max(MAX_PRICE)
+    public ownPrice?: number | null;
 
     @IsOptional()
     @IsString()

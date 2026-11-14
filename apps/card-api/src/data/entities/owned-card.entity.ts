@@ -61,6 +61,12 @@ export class OwnedCardEntity {
     @Column({ type: 'datetime', nullable: true })
     public priceCheckedAt?: Date | null;
 
+    @Column({ type: 'real', nullable: true })
+    public ownPrice?: number | null;
+
+    @Column({ type: 'datetime', nullable: true })
+    public ownPriceAt?: Date | null;
+
     @Column({ type: 'datetime' })
     public createdAt: Date;
 

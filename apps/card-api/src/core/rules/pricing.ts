@@ -1,4 +1,4 @@
-import { CardPricing, Condition, Finish, PriceFigures, VariantPrice } from '../../data/entities/types';
+import { CardPricing, Condition, Finish, Language, PriceFigures, VariantPrice } from '../../data/entities/types';
 
 export interface PrintChoice {
     variant?: Finish | null;
@@ -6,6 +6,17 @@ export interface PrintChoice {
 }
 
 export type PriceBasis = 'print' | 'foil' | 'general';
+export type ValueSource = 'own' | 'trend';
+
+export interface OwnedValue {
+    value: number;
+    source: ValueSource;
+}
+
+export interface CopyFilter {
+    language?: Language | null;
+    condition?: Condition | null;
+}
 
 export interface PricePick {
     price: PriceFigures;
@@ -41,15 +52,8 @@ const PLAIN_SUBTYPES = [undefined, 'unlimited'];
 const CARDMARKET_PRODUCT_URL = 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=';
 const CARDMARKET_SEARCH_URL = 'https://www.cardmarket.com/en/Pokemon/Products/Search?searchString=';
 
-export const CONDITION_FACTORS: Record<Condition, number> = {
-    mint: 1,
-    near_mint: 1,
-    excellent: 0.8,
-    good: 0.6,
-    light_played: 0.45,
-    played: 0.3,
-    poor: 0.15
-};
+const CARDMARKET_LANGUAGES: Partial<Record<Language, number>> = { en: 1, fr: 2, de: 3, es: 4, it: 5, zh: 6, ja: 7, pt: 8, ko: 10, nl: 12 };
+const CARDMARKET_CONDITIONS: Record<Condition, number> = { mint: 1, near_mint: 2, excellent: 3, good: 4, light_played: 5, played: 6, poor: 7 };
 
 const amount = (value?: number | null): number | undefined => (typeof value === 'number' && value > 0 ? value : undefined);
 
@@ -123,16 +127,23 @@ export function pickPrice(pricing: CardPricing | null | undefined, print: PrintC
     return general ? { price: general, basis: 'general' } : undefined;
 }
 
-export function conditionFactor(condition?: Condition | null): number {
-    return condition ? CONDITION_FACTORS[condition] : 1;
+export function ownedValue(ownPrice: number | null | undefined, trend: number | null | undefined): OwnedValue | undefined {
+    if (typeof ownPrice === 'number') {
+        return { value: ownPrice, source: 'own' };
+    }
+
+    return typeof trend === 'number' ? { value: trend, source: 'trend' } : undefined;
 }
 
-export function estimateValue(price: number | null | undefined, condition?: Condition | null): number | undefined {
-    return typeof price === 'number' ? Math.round(price * conditionFactor(condition) * 100) / 100 : undefined;
-}
+export function cardmarketUrl(productId: number | null | undefined, name: string, copy: CopyFilter = {}): string {
+    if (!productId) {
+        return `${CARDMARKET_SEARCH_URL}${encodeURIComponent(name)}`;
+    }
 
-export function cardmarketUrl(productId: number | null | undefined, name: string): string {
-    return productId ? `${CARDMARKET_PRODUCT_URL}${productId}` : `${CARDMARKET_SEARCH_URL}${encodeURIComponent(name)}`;
+    const language = copy.language ? CARDMARKET_LANGUAGES[copy.language] : undefined;
+    const condition = copy.condition ? CARDMARKET_CONDITIONS[copy.condition] : undefined;
+
+    return `${CARDMARKET_PRODUCT_URL}${productId}${language ? `&language=${language}` : ''}${condition ? `&minCondition=${condition}` : ''}`;
 }
 
 export function dayOf(date: Date): string {

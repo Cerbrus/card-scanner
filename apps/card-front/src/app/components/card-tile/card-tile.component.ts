@@ -61,8 +61,10 @@ const FLAGS: Record<Language, string> = {
             </span>
             @if (card().status !== 'confirmed') {
                 <span class="badge">{{ 'state.' + state() | translate }}</span>
-            } @else if (card().estimatedValue; as price) {
-                <span class="tile-price">{{ price | currency: 'EUR' }}</span>
+            } @else if (card().valueSource; as source) {
+                <span class="tile-price" [class.rough]="source === 'trend'" [title]="'mark.value.' + source | translate">
+                    {{ source === 'trend' ? '≈ ' : '' }}{{ card().value | currency: 'EUR' }}
+                </span>
             } @else {
                 <span class="tile-line muted">{{ 'card.noPrice' | translate }}</span>
             }
@@ -99,6 +101,7 @@ const FLAGS: Record<Language, string> = {
         .pill.poor { background: var(--condition-poor); }
         .pill.unknown { border: 1px dashed var(--warning); color: var(--text-muted); line-height: 13px; }
         .tile-price { color: var(--accent); font-size: 0.82rem; font-weight: 700; }
+        .tile-price.rough { color: var(--text-muted); font-weight: 600; }
         .badge { align-self: flex-start; }
     `
 })

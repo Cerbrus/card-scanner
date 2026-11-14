@@ -13,7 +13,7 @@ export type Sort = (typeof SORTS)[number];
 const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> = {
     newest: (left, right) => right.createdAt.localeCompare(left.createdAt) || right.id - left.id,
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
-    value: (left, right) => (right.estimatedValue ?? -1) - (left.estimatedValue ?? -1),
+    value: (left, right) => (right.value ?? -1) - (left.value ?? -1),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
 
@@ -36,7 +36,7 @@ export function visibleCards(cards: Array<CardSummary>, search: string, sort: So
             <div class="card mb-3 flex items-end justify-between gap-3">
                 <div>
                     <div class="text-2xl font-bold">{{ store.totalValue() | currency: 'EUR' }}</div>
-                    <div class="muted text-xs">{{ 'collection.valueOf' | translate: { priced: store.pricedCount(), count: store.confirmed().length } }}</div>
+                    <div class="muted text-xs">{{ 'collection.valueOf' | translate: { own: store.ownPricedCount(), count: store.confirmed().length } }}</div>
                 </div>
                 @if (store.inbox().length; as waiting) {
                     <a class="badge" routerLink="/inbox">{{ 'collection.waiting' | translate: { count: waiting } }}</a>

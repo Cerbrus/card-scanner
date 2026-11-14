@@ -18,7 +18,8 @@ const row: CollectionRow = {
     priceTrend: 385.834,
     priceAvg30: null,
     priceLow: 90,
-    estimatedValue: 231.5,
+    value: 231.5,
+    valueSource: 'own',
     priceCheckedAt: new Date('2026-11-14T08:30:00Z'),
     status: 'confirmed',
     notes: 'from the attic, "old" box',
@@ -40,8 +41,8 @@ describe('the collection as a table', () => {
     it('rounds prices to cents, leaves a missing price empty and writes dates as days', () => {
         const cells = collectionTable([row])[1];
 
-        assert.deepEqual(cells.slice(7, 15), ['yes', 'good', 'user', 385.83, '', 90, 231.5, '2026-11-14']);
-        assert.equal(cells[17], '2026-11-13');
+        assert.deepEqual(cells.slice(7, 16), ['yes', 'good', 'user', 385.83, '', 90, 231.5, 'own', '2026-11-14']);
+        assert.equal(cells[18], '2026-11-13');
     });
 
     it('quotes cells with commas or quotes in the CSV', () => {

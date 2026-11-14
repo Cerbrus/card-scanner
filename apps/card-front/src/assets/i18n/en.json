@@ -69,10 +69,10 @@
         "trend": "Price trend",
         "avg30": "30-day average",
         "low": "From",
-        "priceNote": "Cardmarket, checked {date}. The source has one figure per card, without condition or language.",
+        "priceNote": "Price trend from Cardmarket, checked {date}.",
         "noPriceLong": "The price source has no figure for this card.",
         "priceAfterConfirm": "The price follows once you have picked the card.",
-        "cardmarket": "Open on Cardmarket",
+        "cardmarket": "Offers for this copy on Cardmarket",
         "details": "This copy",
         "condition": "Condition",
         "notSet": "Not set",
@@ -84,15 +84,18 @@
         "delete": "Delete card",
         "deleteSure": "Yes, delete",
         "missing": "This card does not exist (any more).",
-        "estimate": "Estimated value",
-        "estimateNote": "{percent}% of the price trend, for condition {condition}.",
-        "estimateUnknown": "Condition not set: the estimate is the full price trend. Set the condition for a better figure.",
         "basis": {
             "print": "The source's own price for this print (finish and edition).",
             "foil": "The card's foil price, used for the reverse holo.",
             "general": "General price of this card: the source has no own figure for this finish, so other finishes get the same price.",
             "finishUnknown": "General price of this card: the finish is not set. Set it to get the price of the right print."
-        }
+        },
+        "valueFrom": {
+            "own": "Your price for this copy",
+            "trend": "General price trend, not for this condition or language"
+        },
+        "ownPrice": "Price for this copy (EUR)",
+        "ownPriceHint": "Open Cardmarket below: the offers are filtered on the language and condition of this copy. Type the price you find here. Empty the field to go back to the price trend."
     },
     "condition": {
         "mint": "Mint",
@@ -123,7 +126,7 @@
     },
     "collection": {
         "title": "Collection",
-        "valueOf": "Estimated for condition. {priced} of {count, plural, one {# confirmed card} other {# confirmed cards}} with a price",
+        "valueOf": "{own} of {count, plural, one {# confirmed card} other {# confirmed cards}} priced by you, the rest at the general price trend (≈)",
         "waiting": "{count} in the inbox",
         "search": "Search name, set or number",
         "sort": "Sort",
@@ -211,6 +214,10 @@
     },
     "mark": {
         "language": "Language of the card",
-        "condition": "Condition of the card"
+        "condition": "Condition of the card",
+        "value": {
+            "own": "Your price for this copy",
+            "trend": "General price trend, not priced for this copy"
+        }
     }
 }
