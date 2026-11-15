@@ -7,6 +7,8 @@ export function isJpeg(data: Buffer): boolean {
     return data.length > JPEG_START.length && JPEG_START.every((byte, index) => data[index] === byte);
 }
 
-export function photoFileName(ownedCardId: number, side: string, thumb: boolean): string {
-    return `${ownedCardId}-${side}${thumb ? '-thumb' : ''}.jpg`;
+export type PhotoVersion = 'photo' | 'thumb' | 'source';
+
+export function photoFileName(ownedCardId: number, side: string, version: PhotoVersion): string {
+    return `${ownedCardId}-${side}${version === 'photo' ? '' : `-${version}`}.jpg`;
 }

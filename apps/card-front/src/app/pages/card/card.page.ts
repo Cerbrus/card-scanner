@@ -26,6 +26,7 @@ interface Editing {
     side: PhotoSide;
     file: Blob;
     url: string;
+    stored: boolean;
 }
 
 const POLL_MILLISECONDS = 2500;
@@ -127,9 +128,10 @@ export class CardPage {
         }
 
         this.api
-            .getPhoto(photoId)
+            .getPhoto(photoId, true)
             .pipe(
-                tap((photo) => this.startEditing(side, photo)),
+                catchError(() => this.api.getPhoto(photoId)),
+                tap((photo) => this.startEditing(side, photo, true)),
                 catchError(() => this.fail()),
                 takeUntilDestroyed(this.destroyRef)
             )
@@ -141,7 +143,7 @@ export class CardPage {
         const file = input.files?.[0];
         input.value = '';
         if (file) {
-            this.startEditing(side, file);
+            this.startEditing(side, file, false);
         }
     }
 
@@ -163,7 +165,7 @@ export class CardPage {
 
         from(corners ? this.scaler.straighten(editing.file, corners) : this.scaler.scale(editing.file))
             .pipe(
-                switchMap((scaled) => this.api.replacePhoto(Number(this.id()), editing.side, scaled)),
+                switchMap((scaled) => this.api.replacePhoto(Number(this.id()), editing.side, scaled, editing.stored)),
                 tap((card) => {
                     this.show(card);
                     this.toasts.show({ kind: 'ok', text: this.translate.instant('card.photo.saved') });
@@ -235,10 +237,10 @@ export class CardPage {
             .subscribe();
     }
 
-    private startEditing(side: PhotoSide, file: Blob): void {
+    private startEditing(side: PhotoSide, file: Blob, stored: boolean): void {
         this.stopEditing();
         this.viewing.set(undefined);
-        this.editing.set({ side, file, url: URL.createObjectURL(file) });
+        this.editing.set({ side, file, url: URL.createObjectURL(file), stored });
     }
 
     private follow(id: number): Observable<CardDetail | undefined> {

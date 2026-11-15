@@ -16,7 +16,9 @@ const scaler = {
     scale: vi.fn((file: Blob): Promise<{ photo: Blob; thumb: Blob }> =>
         scaler.fail ? Promise.reject(new Error('not a picture')) : Promise.resolve({ photo: file, thumb: new Blob(['thumb']) })
     ),
-    straighten: vi.fn((file: Blob, _corners: Array<{ x: number; y: number }>): Promise<{ photo: Blob; thumb: Blob }> => Promise.resolve({ photo: file, thumb: new Blob(['straight']) }))
+    straighten: vi.fn((file: Blob, _corners: Array<{ x: number; y: number }>): Promise<{ photo: Blob; thumb: Blob; source: Blob }> =>
+        Promise.resolve({ photo: new Blob(['straight']), thumb: new Blob(['straight thumb']), source: file })
+    )
 };
 
 const reader = { read: vi.fn(() => Promise.resolve({ name: 'Charizard', number: '4/102' })) };
@@ -134,6 +136,7 @@ describe('ScanPage', () => {
 
         const form = api.createCard.mock.calls[0][0] as FormData;
         expect([form.get('name'), form.get('number')]).toEqual(['Charizard', '4/102']);
+        expect(Array.from(form.keys()).filter((key) => key.endsWith('Source'))).toEqual(['frontSource']);
         expect(page.querySelector('.read-result')).toBeNull();
     });
 

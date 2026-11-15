@@ -73,7 +73,7 @@ export class SyncService {
             running: this.running !== undefined,
             lastRunAt: await this.settings.get(LAST_RUN),
             lastError: await this.settings.get(LAST_ERROR),
-            waitingPhotos: (await this.cards.unsyncedPhotos()).length,
+            waitingPhotos: (await this.cards.unsyncedPhotos()).length + (await this.cards.unsyncedSources()).length,
             folder: this.config.driveFolder,
             sheetUrl: places ? `${SHEET_URL}${places.sheet}` : undefined
         };
@@ -110,6 +110,11 @@ export class SyncService {
             const data = readFileSync(join(this.config.photosPath, photo.file));
             const existing = await this.google.find(photo.file, places.photos);
             await this.cards.markPhotoSynced(photo.id, await this.google.upload(photo.file, places.photos, 'image/jpeg', data, existing));
+        }
+        for (const photo of await this.cards.unsyncedSources()) {
+            const file = photo.sourceFile as string;
+            const existing = await this.google.find(file, places.photos);
+            await this.cards.markSourceSynced(photo.id, await this.google.upload(file, places.photos, 'image/jpeg', readFileSync(join(this.config.photosPath, file)), existing));
         }
 
         await this.google.useTabs(places.sheet, [CARDS_TAB, PRICES_TAB]);

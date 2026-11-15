@@ -11,8 +11,8 @@ export class PhotoController {
 
     @Get(':id')
     @Header('Cache-Control', 'private, max-age=604800')
-    public async get(@Param('id', ParseIntPipe) id: number, @Query('thumb') thumb?: string): Promise<StreamableFile> {
-        const path = await this.cards.photoPath(id, thumb !== undefined);
+    public async get(@Param('id', ParseIntPipe) id: number, @Query('thumb') thumb?: string, @Query('source') source?: string): Promise<StreamableFile> {
+        const path = await this.cards.photoPath(id, source !== undefined ? 'source' : thumb !== undefined ? 'thumb' : 'photo');
         if (!existsSync(path)) {
             throw new NotFoundException('The photo file is gone');
         }

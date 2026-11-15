@@ -60,7 +60,33 @@ describe('finding the card in a photo', () => {
         found.forEach((corner, index) => expect(distance(corner, card[index])).toBeLessThan(4));
     });
 
-    it('turns a card lying on its side so the result stays upright in shape', () => {
+    it('puts the corners where the edges meet, outside the rounded corners, and ignores a light swirl on the back', () => {
+        const width = 300;
+        const height = 400;
+        const card = { left: 60, top: 60, right: 240, bottom: 312, radius: 14 };
+        const data = new Uint8ClampedArray(width * height * 4);
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const cornerX = Math.min(Math.max(x, card.left + card.radius), card.right - card.radius);
+                const cornerY = Math.min(Math.max(y, card.top + card.radius), card.bottom - card.radius);
+                const onCard = x >= card.left && x < card.right && y >= card.top && y < card.bottom && Math.hypot(x - cornerX, y - cornerY) <= card.radius;
+                const swirl = onCard && Math.abs(Math.hypot(x - 150, y - 186) - 55 - (x - 150) * 0.3) < 4;
+                data.set([...(swirl ? ([235, 235, 245] as Colour) : onCard ? BLUE_BACK : DARK_TABLE), 255], (y * width + x) * 4);
+            }
+        }
+        const sharp: Corners = [
+            { x: card.left, y: card.top },
+            { x: card.right, y: card.top },
+            { x: card.right, y: card.bottom },
+            { x: card.left, y: card.bottom }
+        ];
+
+        const found = findCard({ data, width, height }) as Corners;
+
+        found.forEach((corner, index) => expect(distance(corner, sharp[index])).toBeLessThan(3));
+    });
+
+        it('turns a card lying on its side so the result stays upright in shape', () => {
         const sideways = turned({ x: 213, y: 160 }, 252, 180, 3);
         const [topLeft, topRight, , bottomLeft] = findCard(photo(427, 320, sideways, YELLOW_BORDER)) as Corners;
 

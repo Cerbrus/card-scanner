@@ -294,6 +294,22 @@ describe('the whole app', () => {
         assert.equal(unread.status, 'new');
     });
 
+    it('keeps the original photo next to the straightened one, through a new crop, until a new photo replaces it', async () => {
+        const original = Buffer.concat([JPEG.subarray(0, -2), Buffer.from([0x0a, 0xff, 0xd9])]);
+        const card = await json<Card>('/cards', { method: 'POST', body: photoForm(['front', 'back', 'frontThumb', 'backThumb'], JPEG, { frontSource: original }) });
+        const source = async (photoId?: number): Promise<Response> => fetch(`${api}/photos/${photoId}?source`);
+
+        assert.deepEqual(Buffer.from(await (await source(card.photos.front)).arrayBuffer()), original);
+        assert.equal((await source(card.photos.back)).status, 404);
+
+        const recropped = await json<Card>(`/cards/${card.id}/photos/front`, { method: 'PUT', body: photoForm(['photo', 'thumb'], JPEG, {}, { keepSource: 'yes' }) });
+        assert.deepEqual(Buffer.from(await (await source(recropped.photos.front)).arrayBuffer()), original);
+
+        const retaken = await json<Card>(`/cards/${card.id}/photos/front`, { method: 'PUT', body: photoForm(['photo', 'thumb']) });
+        assert.equal((await source(retaken.photos.front)).status, 404);
+        assert.equal(existsSync(join(testFolder, 'photos', `${card.id}-front-source.jpg`)), false);
+    });
+
     it('removes a card with its photo files', async () => {
         const card = await upload();
         const file = join(testFolder, 'photos', `${card.id}-front.jpg`);

@@ -12,7 +12,7 @@ export interface CropStartCorners {
 }
 
 const LAST_CROP_KEY = 'last-crop';
-const SEARCH_SIDE = 320;
+const SEARCH_SIDE = 400;
 
 @Injectable({ providedIn: 'root' })
 export class CropStart {

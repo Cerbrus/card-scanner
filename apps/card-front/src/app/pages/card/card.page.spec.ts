@@ -116,7 +116,7 @@ describe('CardPage', () => {
 
         click(page, '.photo-actions .recrop');
         fixture.detectChanges();
-        expect(api.getPhoto).toHaveBeenCalledWith(70);
+        expect(api.getPhoto).toHaveBeenCalledWith(70, true);
         expect(page.querySelector('app-crop-editor')).not.toBeNull();
         expect(page.querySelector('.photos')).toBeNull();
 
@@ -124,7 +124,7 @@ describe('CardPage', () => {
         await settle();
 
         expect(scaler.scale).toHaveBeenCalledWith(stored);
-        expect(api.replacePhoto).toHaveBeenCalledWith(7, 'front', scaled);
+        expect(api.replacePhoto).toHaveBeenCalledWith(7, 'front', scaled, true);
         expect(Array.from(page.querySelectorAll('.photos img'), (image) => image.getAttribute('src'))).toEqual(['/photos/90?thumb', '/photos/71?thumb']);
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:editing');
         expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['card.photo.saved']);

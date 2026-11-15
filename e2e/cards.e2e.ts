@@ -103,6 +103,9 @@ test('stores the straightened front as a card shaped photo', async ({ request })
     expect(answer.headers()['content-type']).toContain('image/jpeg');
     expect(width / height).toBeCloseTo(63 / 88, 2);
     expect(height).toBeGreaterThan(1000);
+
+    const original = jpegSize(await (await request.get(`/api/v1/photos/${detail.photos.front}?source`)).body());
+    expect([original.width, original.height]).toEqual([1200, 1600]);
 });
 
 test('confirm the scanned card from the inbox, and mark it worth grading', async ({ page }) => {

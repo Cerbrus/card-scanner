@@ -27,7 +27,7 @@ Also open for the owner to decide:
 - **Crop and straighten on a real phone**: dragging the corners with a finger, and the time the straightening takes on a 12-megapixel photo. Tested in desktop Chrome with a made-up photo.
 - **Moving photos to the Drive trash** against the real Drive; tested with the fake Google.
 - **Reading name and number from real phone photos.** Tried on the catalogue pictures of eight Base Set and Jungle cards (600 pixels wide, sharper photos are expected from a phone): all seven Pokémon names right, five of seven numbers right and none wrong, about one second per card in desktop Chrome. Trainer and Energy cards, newer layouts and Dutch prints are not tried; the time on a phone is not known. First real card from the owner's phone (Fossil Dragonite): number right, name wrong; right after the change of 2026-11-15 21:30.
-- **Finding the card in real photos.** Tested with drawn cards and with catalogue pictures on a dark background (all nine found); not with photos of a card on a light or busy table, or in a shiny sleeve.
+- **Finding the card in real photos.** The line detection was tried on nine of the owner's uncropped photos on a dark mat: the seven where the whole card is in the photo got their outer edges, fronts and backs; the two where the card fills the photo got an outline along the photo's edge. Not tried on a light or busy table, or with a shiny sleeve, and not timed on a phone.
 
 ## Done
 
@@ -50,7 +50,8 @@ Also open for the owner to decide:
 - [x] Corner dragging after the owner's first try on a phone: no text selection while dragging, a magnifier in the opposite corner shows what is under the finger, thin dashed lines and small open corners (done 2026-11-15 19:05)
 - [x] Crop a stored photo again, or take a new one, from the card page (done 2026-11-15 19:05)
 - [x] Magnifier as a large rounded square in the top left, in the top right while the top-left corner is dragged (done 2026-11-15 19:45)
-- [x] The crop starts with the corners on the card: found by its colour against the background (yellow front and blue back alike), otherwise the corners of the previous crop, otherwise the middle (done 2026-11-15 21:30)
+- [x] The crop starts with the corners on the card, otherwise the corners of the previous crop, otherwise the middle (done 2026-11-15 21:30). First by colour; replaced by edge and line detection after the owner found it inaccurate on real cards (done 2026-11-15 22:40)
+- [x] The original photo is kept next to the straightened one, copied to Drive, and used when a photo is cropped again (done 2026-11-15 22:40)
 - [x] Scan instructions and the crop hint removed to save space (done 2026-11-15 21:30)
 - [x] Name read from the tallest words the engine is sure of on the name line, after the owner's Dragonite came out as "ByagoR" (done 2026-11-15 21:30)
 - [x] Collection page: grid of the cards with their front photo (done 2026-11-14 15:55)

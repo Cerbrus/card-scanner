@@ -116,6 +116,9 @@ export class ScanPage {
             }
             form.append(side, shot.photo, `${side}.jpg`);
             form.append(`${side}Thumb`, shot.thumb, `${side}-thumb.jpg`);
+            if (shot.source) {
+                form.append(`${side}Source`, shot.source, `${side}-source.jpg`);
+            }
         }
 
         this.busy.set('saving');

@@ -63,14 +63,19 @@ export class ApiService {
         return this.http.post<CardDetail>(`${this.baseUrl}/cards/${id}/read`, {});
     }
 
-    public getPhoto(photoId: number): Observable<Blob> {
-        return this.http.get(this.photoUrl(photoId), { responseType: 'blob' });
+    public getPhoto(photoId: number, source = false): Observable<Blob> {
+        return this.http.get(`${this.photoUrl(photoId)}${source ? '?source' : ''}`, { responseType: 'blob' });
     }
 
-    public replacePhoto(id: number, side: PhotoSide, scaled: ScaledPhoto): Observable<CardDetail> {
+    public replacePhoto(id: number, side: PhotoSide, scaled: ScaledPhoto, keepSource = false): Observable<CardDetail> {
         const form = new FormData();
         form.append('photo', scaled.photo, `${side}.jpg`);
         form.append('thumb', scaled.thumb, `${side}-thumb.jpg`);
+        if (keepSource) {
+            form.append('keepSource', 'yes');
+        } else if (scaled.source) {
+            form.append('source', scaled.source, `${side}-source.jpg`);
+        }
 
         return this.http.put<CardDetail>(`${this.baseUrl}/cards/${id}/photos/${side}`, form);
     }

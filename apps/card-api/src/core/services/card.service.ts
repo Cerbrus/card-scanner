@@ -3,7 +3,7 @@ import { join } from 'path';
 
 import { BadRequestException, Injectable, Logger, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import { CatalogService } from './catalog.service';
 import { ChangesService } from './changes.service';
@@ -24,13 +24,15 @@ import {
 } from '../../data/entities';
 import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
-import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, isJpeg, photoFileName } from '../rules/photo-file';
+import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, PhotoVersion, isJpeg, photoFileName } from '../rules/photo-file';
 import { PriceBasis, ValueSource, cardmarketUrl, ownedValue, pickPrice, worthGrading } from '../rules/pricing';
 
 export interface PhotoUpload {
     side: PhotoSide;
     photo: Buffer;
     thumb: Buffer;
+    source?: Buffer;
+    keepSource?: boolean;
 }
 
 export interface ScanText {
@@ -233,10 +235,15 @@ export class CardService implements OnApplicationBootstrap {
     public async remove(id: number): Promise<void> {
         const card = await this.find(id);
         for (const photo of await this.photos.findBy({ ownedCardId: id })) {
-            rmSync(join(this.config.photosPath, photo.file), { force: true });
-            rmSync(join(this.config.photosPath, photo.thumbFile), { force: true });
-            if (photo.driveFileId) {
-                await this.driveTrash.save(this.driveTrash.create({ driveFileId: photo.driveFileId, createdAt: new Date() }));
+            for (const file of [photo.file, photo.thumbFile, photo.sourceFile]) {
+                if (file) {
+                    rmSync(join(this.config.photosPath, file), { force: true });
+                }
+            }
+            for (const driveFileId of [photo.driveFileId, photo.sourceDriveFileId]) {
+                if (driveFileId) {
+                    await this.driveTrash.save(this.driveTrash.create({ driveFileId, createdAt: new Date() }));
+                }
             }
         }
         await this.photos.delete({ ownedCardId: id });
@@ -248,8 +255,16 @@ export class CardService implements OnApplicationBootstrap {
         const card = await this.find(id);
         this.checkUpload(upload);
 
+        const previous = await this.photos.findOneBy({ ownedCardId: id, side: upload.side });
+        const kept = upload.keepSource && !upload.source ? previous : undefined;
+        if (previous?.sourceFile && !kept) {
+            rmSync(join(this.config.photosPath, previous.sourceFile), { force: true });
+            if (previous.sourceDriveFileId && !upload.source) {
+                await this.driveTrash.save(this.driveTrash.create({ driveFileId: previous.sourceDriveFileId, createdAt: new Date() }));
+            }
+        }
         await this.photos.delete({ ownedCardId: id, side: upload.side });
-        await this.storePhoto(id, upload);
+        await this.storePhoto(id, upload, kept);
         card.updatedAt = new Date();
         await this.cards.save(card);
         this.changes.notify();
@@ -257,13 +272,14 @@ export class CardService implements OnApplicationBootstrap {
         return this.get(id);
     }
 
-    public async photoPath(photoId: number, thumb: boolean): Promise<string> {
+    public async photoPath(photoId: number, version: PhotoVersion): Promise<string> {
         const photo = await this.photos.findOneBy({ id: photoId });
-        if (!photo) {
+        const file = version === 'source' ? photo?.sourceFile : version === 'thumb' ? photo?.thumbFile : photo?.file;
+        if (!file) {
             throw new NotFoundException('Unknown photo');
         }
 
-        return join(this.config.photosPath, thumb ? photo.thumbFile : photo.file);
+        return join(this.config.photosPath, file);
     }
 
     public unsyncedPhotos(): Promise<Array<PhotoEntity>> {
@@ -272,6 +288,14 @@ export class CardService implements OnApplicationBootstrap {
 
     public async markPhotoSynced(photoId: number, driveFileId: string): Promise<void> {
         await this.photos.update(photoId, { driveFileId, syncedAt: new Date() });
+    }
+
+    public unsyncedSources(): Promise<Array<PhotoEntity>> {
+        return this.photos.find({ where: { sourceFile: Not(IsNull()), sourceDriveFileId: IsNull() }, order: { id: 'ASC' } });
+    }
+
+    public async markSourceSynced(photoId: number, sourceDriveFileId: string): Promise<void> {
+        await this.photos.update(photoId, { sourceDriveFileId });
     }
 
     public drivePhotosToRemove(): Promise<Array<DriveTrashEntity>> {
@@ -283,7 +307,7 @@ export class CardService implements OnApplicationBootstrap {
     }
 
     public async forgetDriveFiles(): Promise<void> {
-        await this.photos.createQueryBuilder().update().set({ driveFileId: null, syncedAt: null }).execute();
+        await this.photos.createQueryBuilder().update().set({ driveFileId: null, syncedAt: null, sourceDriveFileId: null }).execute();
     }
 
     public async rows(photoLink: (photo: PhotoEntity) => string): Promise<Array<CollectionRow>> {
@@ -361,13 +385,27 @@ export class CardService implements OnApplicationBootstrap {
         return quote.price !== undefined;
     }
 
-    private async storePhoto(cardId: number, upload: PhotoUpload): Promise<void> {
-        const file = photoFileName(cardId, upload.side, false);
-        const thumbFile = photoFileName(cardId, upload.side, true);
+    private async storePhoto(cardId: number, upload: PhotoUpload, kept?: PhotoEntity): Promise<void> {
+        const file = photoFileName(cardId, upload.side, 'photo');
+        const thumbFile = photoFileName(cardId, upload.side, 'thumb');
+        const sourceFile = upload.source ? photoFileName(cardId, upload.side, 'source') : (kept?.sourceFile ?? null);
         mkdirSync(this.config.photosPath, { recursive: true });
         writeFileSync(join(this.config.photosPath, file), upload.photo);
         writeFileSync(join(this.config.photosPath, thumbFile), upload.thumb);
-        await this.photos.save(this.photos.create({ ownedCardId: cardId, side: upload.side, file, thumbFile, bytes: upload.photo.length }));
+        if (upload.source && sourceFile) {
+            writeFileSync(join(this.config.photosPath, sourceFile), upload.source);
+        }
+        await this.photos.save(
+            this.photos.create({
+                ownedCardId: cardId,
+                side: upload.side,
+                file,
+                thumbFile,
+                bytes: upload.photo.length,
+                sourceFile,
+                sourceDriveFileId: upload.source ? null : (kept?.sourceDriveFileId ?? null)
+            })
+        );
     }
 
     private queueReading(id: number): void {
@@ -487,10 +525,10 @@ export class CardService implements OnApplicationBootstrap {
     }
 
     private checkUpload(upload: PhotoUpload): void {
-        if (!isJpeg(upload.photo) || !isJpeg(upload.thumb)) {
+        if (!isJpeg(upload.photo) || !isJpeg(upload.thumb) || (upload.source && !isJpeg(upload.source))) {
             throw new BadRequestException(`The ${upload.side} photo is not a JPEG`);
         }
-        if (upload.photo.length > MAX_PHOTO_BYTES || upload.thumb.length > MAX_THUMB_BYTES) {
+        if (upload.photo.length > MAX_PHOTO_BYTES || upload.thumb.length > MAX_THUMB_BYTES || (upload.source?.length ?? 0) > MAX_PHOTO_BYTES) {
             throw new BadRequestException(`The ${upload.side} photo is too large`);
         }
     }

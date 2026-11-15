@@ -27,4 +27,10 @@ export class PhotoEntity {
 
     @Column({ type: 'datetime', nullable: true })
     public syncedAt?: Date | null;
+
+    @Column({ type: 'varchar', nullable: true })
+    public sourceFile?: string | null;
+
+    @Column({ type: 'varchar', nullable: true })
+    public sourceDriveFileId?: string | null;
 }

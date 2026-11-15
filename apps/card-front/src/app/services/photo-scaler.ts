@@ -12,6 +12,7 @@ const SOURCE_SIDE = 3200;
 export interface ScaledPhoto {
     photo: Blob;
     thumb: Blob;
+    source?: Blob;
 }
 
 type Drawable = HTMLImageElement | HTMLCanvasElement;
@@ -48,7 +49,8 @@ export class PhotoScaler {
 
             return {
                 photo: await draw(card, size.width, size.height, PHOTO_SIDE, PHOTO_QUALITY),
-                thumb: await draw(card, size.width, size.height, THUMB_SIDE, THUMB_QUALITY)
+                thumb: await draw(card, size.width, size.height, THUMB_SIDE, THUMB_QUALITY),
+                source: await draw(image, image.naturalWidth, image.naturalHeight, PHOTO_SIDE, PHOTO_QUALITY)
             };
         });
     }

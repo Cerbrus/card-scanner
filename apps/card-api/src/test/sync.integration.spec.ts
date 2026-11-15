@@ -10,7 +10,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { FakeGoogle } from './fake-google';
-import { photoForm, startCatalogue, testFolder } from './test-env';
+import { JPEG, photoForm, startCatalogue, testFolder } from './test-env';
 import { configureApi } from '../api/configure-api';
 import { AppModule } from '../app.module';
 import { SESSION_COOKIE } from '../core/rules/session';
@@ -160,6 +160,19 @@ describe('copying the collection to Google Drive', () => {
         assert.deepEqual(cards.tables[0].range, { sheetId: cards.sheetId, startRowIndex: 0, endRowIndex: written.length, startColumnIndex: 0, endColumnIndex: written[0].length });
         assert.equal(written.length, 5);
         assert.equal((await state()).lastError, undefined);
+    });
+
+    it('copies the original photo too, and moves it to the Drive trash with the card', async () => {
+        const created = (await (await call('/cards', OWNER, { method: 'POST', body: photoForm(undefined, undefined, { backSource: Buffer.from(JPEG) }) })).json()) as { id: number };
+        await sync.run();
+        const source = google.files.find((file) => file.name === `${created.id}-back-source.jpg`);
+
+        await call(`/cards/${created.id}`, OWNER, { method: 'DELETE' });
+        await sync.run();
+
+        assert.equal(source?.parent, google.files.find((file) => file.name === 'photos')?.id);
+        assert.equal(source?.trashed, true);
+        assert.equal((await state()).waitingPhotos, 0);
     });
 
     it('moves the photos of a deleted card to the Drive trash on the next run', async () => {

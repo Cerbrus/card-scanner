@@ -52,10 +52,16 @@ export async function startCatalogue(): Promise<Server> {
     return server;
 }
 
-export function photoForm(parts: Array<string> = ['front', 'back', 'frontThumb', 'backThumb'], data: Buffer = JPEG): FormData {
+export function photoForm(parts: Array<string> = ['front', 'back', 'frontThumb', 'backThumb'], data: Buffer = JPEG, extra: Record<string, Buffer> = {}, fields: Record<string, string> = {}): FormData {
     const form = new FormData();
     for (const part of parts) {
         form.append(part, new Blob([new Uint8Array(data)], { type: 'image/jpeg' }), `${part}.jpg`);
+    }
+    for (const [part, file] of Object.entries(extra)) {
+        form.append(part, new Blob([new Uint8Array(file)], { type: 'image/jpeg' }), `${part}.jpg`);
+    }
+    for (const [name, value] of Object.entries(fields)) {
+        form.append(name, value);
     }
 
     return form;

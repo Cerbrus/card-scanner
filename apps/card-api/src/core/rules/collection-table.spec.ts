@@ -68,7 +68,8 @@ describe('photo files', () => {
     });
 
     it('names files after the card and the side', () => {
-        assert.equal(photoFileName(12, 'front', false), '12-front.jpg');
-        assert.equal(photoFileName(12, 'back', true), '12-back-thumb.jpg');
+        assert.equal(photoFileName(12, 'front', 'photo'), '12-front.jpg');
+        assert.equal(photoFileName(12, 'back', 'thumb'), '12-back-thumb.jpg');
+        assert.equal(photoFileName(12, 'back', 'source'), '12-back-source.jpg');
     });
 });

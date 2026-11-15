@@ -20,6 +20,7 @@ import { CardDetail, CardService, CardSummary, PhotoUpload } from '../../core/se
 import { PhotoSide } from '../../data/entities/types';
 import { CardChangesDto } from '../dto/card-changes.dto';
 import { ConfirmCardDto } from '../dto/confirm-card.dto';
+import { ReplacePhotoDto } from '../dto/replace-photo.dto';
 import { ScanTextDto } from '../dto/scan-text.dto';
 
 type UploadedPhotos = Partial<Record<string, Array<{ buffer: Buffer }>>>;
@@ -27,11 +28,13 @@ type UploadedPhotos = Partial<Record<string, Array<{ buffer: Buffer }>>>;
 const SIDES: Array<PhotoSide> = ['front', 'back'];
 const UPLOAD_FIELDS = SIDES.flatMap((side) => [
     { name: side, maxCount: 1 },
-    { name: `${side}Thumb`, maxCount: 1 }
+    { name: `${side}Thumb`, maxCount: 1 },
+    { name: `${side}Source`, maxCount: 1 }
 ]);
 const REPLACE_FIELDS = [
     { name: 'photo', maxCount: 1 },
-    { name: 'thumb', maxCount: 1 }
+    { name: 'thumb', maxCount: 1 },
+    { name: 'source', maxCount: 1 }
 ];
 
 @Controller({ path: 'cards', version: '1' })
@@ -54,7 +57,7 @@ export class CardController {
                 throw new BadRequestException(`Missing photo: ${side}`);
             }
 
-            return { side, photo, thumb };
+            return { side, photo, thumb, source: files[`${side}Source`]?.[0]?.buffer };
         });
 
         return this.cards.create(uploads, text);
@@ -62,7 +65,12 @@ export class CardController {
 
     @Put(':id/photos/:side')
     @UseInterceptors(FileFieldsInterceptor(REPLACE_FIELDS, { limits: { fileSize: MAX_PHOTO_BYTES } }))
-    public replacePhoto(@Param('id', ParseIntPipe) id: number, @Param('side') side: string, @UploadedFiles() files: UploadedPhotos = {}): Promise<CardDetail> {
+    public replacePhoto(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('side') side: string,
+        @UploadedFiles() files: UploadedPhotos = {},
+        @Body() options: ReplacePhotoDto = {}
+    ): Promise<CardDetail> {
         const photo = files['photo']?.[0]?.buffer;
         const thumb = files['thumb']?.[0]?.buffer;
         if (!SIDES.includes(side as PhotoSide)) {
@@ -72,7 +80,7 @@ export class CardController {
             throw new BadRequestException('Send the photo and its thumbnail');
         }
 
-        return this.cards.replacePhoto(id, { side: side as PhotoSide, photo, thumb });
+        return this.cards.replacePhoto(id, { side: side as PhotoSide, photo, thumb, source: files['source']?.[0]?.buffer, keepSource: options.keepSource === 'yes' });
     }
 
     @Get(':id')

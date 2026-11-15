@@ -58,7 +58,7 @@ Imports point inward: `api` to `core` to `data`. Lint enforces it.
 | `own_price`, `own_price_at` | The price the owner looked up for this copy, and when |
 | `created_at`, `updated_at` | Times |
 
-**`photo`**: a file belonging to an owned card. Side (`front` or `back`), file name, thumbnail file name, size, `drive_file_id` and `synced_at`.
+**`photo`**: a file belonging to an owned card. Side (`front` or `back`), file name, thumbnail file name, size, `drive_file_id` and `synced_at`, and for a straightened photo the original as taken: `source_file` and `source_drive_file_id`.
 
 **`drive_trash`**: the Drive file ids of photos of deleted cards, waiting for the next sync to move them to the Drive trash.
 
@@ -143,12 +143,12 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 | `GET /auth/me`, `GET /auth/google`, `GET /auth/google/callback`, `POST /auth/logout` (public) | Login |
 | `GET /system` | Version and the state of login, reading, catalogue and sync |
 | `POST /system/catalog/refresh`, `POST /system/prices/refresh` (owner) | Start a refresh |
-| `GET /cards`, `POST /cards` | The collection; a new scan as multipart with `front`, `back`, `frontThumb`, `backThumb`, and optionally the `name` and `number` the phone read, which are looked up in the catalogue at once |
+| `GET /cards`, `POST /cards` | The collection; a new scan as multipart with `front`, `back`, `frontThumb`, `backThumb`, optionally the originals `frontSource` and `backSource`, and optionally the `name` and `number` the phone read, which are looked up in the catalogue at once |
 | `GET /cards/:id`, `PATCH /cards/:id`, `DELETE /cards/:id` | One card with candidates and price history; change the print, condition, notes; remove |
 | `POST /cards/:id/confirm` | Say which catalogue card it is |
 | `POST /cards/:id/read` | Read the photos again |
-| `PUT /cards/:id/photos/:side` | Replace one photo, as multipart with `photo` and `thumb`; it gets a new photo id, and the sync uploads it over the same file in Drive |
-| `GET /photos/:id`, `GET /photos/:id?thumb` | A photo or its thumbnail |
+| `PUT /cards/:id/photos/:side` | Replace one photo, as multipart with `photo` and `thumb`, and `source` for a new original or `keepSource=yes` to keep the stored one; it gets a new photo id, and the sync uploads it over the same file in Drive |
+| `GET /photos/:id`, `GET /photos/:id?thumb`, `GET /photos/:id?source` | A photo, its thumbnail, or the original as taken |
 | `GET /catalog/search?name=&number=` | Catalogue cards that fit |
 | `GET /export/cards.csv` | The collection as CSV |
 | `GET /logs?limit=` (owner) | The latest lines of the app's log |
