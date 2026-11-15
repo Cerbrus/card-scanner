@@ -147,6 +147,7 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 | `GET /cards/:id`, `PATCH /cards/:id`, `DELETE /cards/:id` | One card with candidates and price history; change the print, condition, notes; remove |
 | `POST /cards/:id/confirm` | Say which catalogue card it is |
 | `POST /cards/:id/read` | Read the photos again |
+| `PUT /cards/:id/photos/:side` | Replace one photo, as multipart with `photo` and `thumb`; it gets a new photo id, and the sync uploads it over the same file in Drive |
 | `GET /photos/:id`, `GET /photos/:id?thumb` | A photo or its thumbnail |
 | `GET /catalog/search?name=&number=` | Catalogue cards that fit |
 | `GET /export/cards.csv` | The collection as CSV |
@@ -161,7 +162,7 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 | Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort, filters on set, condition and language and on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies |
 | Scan | Two photos, each cropped and straightened by dragging four corners, save, straight on to the next card |
 | Inbox | Cards that are not confirmed, with their state |
-| Card | Photos, catalogue picture, candidates, catalogue search, the other copies, value, the grading mark, the field for the owner's own price, the source's price with history, the print and condition, delete |
+| Card | Photos and catalogue picture, opened full screen with previous and next; crop a photo again or take a new one; candidates, catalogue search, the other copies, value, the grading mark, the field for the owner's own price, the source's price with history, the print and condition, delete |
 | Settings | What is on and off and why, Google connection, catalogue and prices, the log, export, theme, language, log out |
 | Log | The latest lines of the app's log, newest first, refreshed every 5 seconds (owner) |
 | Login | The Google button |

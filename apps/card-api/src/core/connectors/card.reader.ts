@@ -30,7 +30,7 @@ Fill in:
 - name: the card's name exactly as printed, in the language of the card.
 - number: the collector number exactly as printed, usually at the bottom, such as "4/102", "025/165" or "SWSH123". null when the card has none or it cannot be read.
 - setName: the English name of the set or expansion when you can tell it from the set symbol, the layout or the copyright line; null when you cannot tell.
-- language: the language the card is printed in.
+- language: the language the card is printed in; null when it is not English, Dutch, German or French.
 - firstEdition: true only when the "Edition 1" stamp is visible.
 - finish: "holo" when the artwork itself is holographic foil, "reverse" when the area around the artwork is foil and the artwork is not, otherwise "normal". Foil is hard to see in a photo; choose "normal" when nothing shows it.
 - confidence: how sure you are of name and number together.

@@ -3,8 +3,15 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { Corners, Point, startCorners } from '../../services/perspective';
 
-const HANDLE_SHARE = 0.03;
+const HANDLE_SHARE = 0.018;
 const TOUCH_SHARE = 0.07;
+const LINE_SHARE = 0.0025;
+const DASH_SHARE = 0.012;
+const LOUPE_SHARE = 0.13;
+const LOUPE_MARGIN_SHARE = 0.02;
+const LOUPE_ZOOM = 3;
+
+let nextEditor = 0;
 
 @Component({
     selector: 'app-crop-editor',
@@ -15,7 +22,7 @@ const TOUCH_SHARE = 0.07;
         <p class="muted mb-2 text-sm">{{ 'scan.crop.hint' | translate }}</p>
         <div class="stage">
             <div class="frame">
-                <img class="photo" [src]="src()" alt="" (load)="measure($any($event.target))" />
+                <img class="photo" [src]="src()" alt="" draggable="false" (load)="measure($any($event.target))" />
                 @if (size(); as size) {
                     <svg
                         class="overlay"
@@ -24,17 +31,26 @@ const TOUCH_SHARE = 0.07;
                         (pointerup)="dragging.set(undefined)"
                         (pointercancel)="dragging.set(undefined)"
                     >
+                        <defs>
+                            <clipPath [attr.id]="clipId">
+                                <circle [attr.cx]="loupe().x" [attr.cy]="loupe().y" [attr.r]="loupeRadius()" />
+                            </clipPath>
+                        </defs>
                         <path class="shade" fill-rule="evenodd" [attr.d]="shade()" />
-                        <polygon class="edge" [attr.points]="outline()" [attr.stroke-width]="handle() / 3" />
+                        <polygon class="edge" [attr.points]="outline()" [attr.stroke-width]="line()" [attr.stroke-dasharray]="dash()" />
                         @for (corner of corners(); track $index) {
-                            <circle class="handle" [attr.cx]="corner.x" [attr.cy]="corner.y" [attr.r]="handle()" [attr.stroke-width]="handle() / 3" />
-                            <circle
-                                class="grip"
-                                [attr.cx]="corner.x"
-                                [attr.cy]="corner.y"
-                                [attr.r]="grip()"
-                                (pointerdown)="grab($index, $event)"
-                            />
+                            <circle class="handle" [class.active]="dragging() === $index" [attr.cx]="corner.x" [attr.cy]="corner.y" [attr.r]="handle()" [attr.stroke-width]="line()" />
+                            <circle class="grip" [attr.cx]="corner.x" [attr.cy]="corner.y" [attr.r]="grip()" (pointerdown)="grab($index, $event)" />
+                        }
+                        @if (dragged(); as point) {
+                            <g class="loupe" [attr.clip-path]="'url(#' + clipId + ')'">
+                                <g [attr.transform]="magnify(point)">
+                                    <image [attr.href]="src()" x="0" y="0" [attr.width]="size.width" [attr.height]="size.height" />
+                                    <polygon class="edge" [attr.points]="outline()" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-dasharray="6 4" />
+                                </g>
+                            </g>
+                            <circle class="loupe-ring" [attr.cx]="loupe().x" [attr.cy]="loupe().y" [attr.r]="loupeRadius()" [attr.stroke-width]="line() * 1.5" />
+                            <path class="cross" [attr.d]="cross()" [attr.stroke-width]="line()" />
                         }
                     </svg>
                 }
@@ -50,15 +66,18 @@ const TOUCH_SHARE = 0.07;
         </div>
     `,
     styles: `
-        :host { display: block; }
+        :host { display: block; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
         .stage { position: relative; display: flex; justify-content: center; }
-        .photo { display: block; max-width: 100%; max-height: 62vh; border-radius: 8px; }
         .frame { position: relative; max-width: 100%; }
+        .photo { display: block; max-width: 100%; max-height: 62vh; border-radius: 8px; pointer-events: none; }
         .overlay { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
-        .shade { fill: var(--finish-back); }
+        .shade { fill: var(--crop-shade); }
         .edge { fill: none; stroke: var(--grading-mark); }
-        .handle { fill: var(--finish-back); stroke: var(--grading-mark); }
+        .handle { fill: none; stroke: var(--grading-mark); }
+        .handle.active { stroke: var(--finish-star); }
         .grip { fill: transparent; cursor: grab; }
+        .loupe-ring { fill: none; stroke: var(--mark-text); }
+        .cross { stroke: var(--finish-star); }
     `
 })
 export class CropEditorComponent {
@@ -66,12 +85,37 @@ export class CropEditorComponent {
     public readonly done = output<Corners | undefined>();
     public readonly cancelled = output<void>();
 
+    protected readonly clipId = `crop-loupe-${nextEditor++}`;
     protected readonly size = signal<{ width: number; height: number } | undefined>(undefined);
     protected readonly corners = signal<Corners>(startCorners(1, 1));
     protected readonly dragging = signal<number | undefined>(undefined);
     protected readonly handle = computed(() => this.longest() * HANDLE_SHARE);
     protected readonly grip = computed(() => this.longest() * TOUCH_SHARE);
+    protected readonly line = computed(() => this.longest() * LINE_SHARE);
+    protected readonly dash = computed(() => `${this.longest() * DASH_SHARE} ${this.longest() * DASH_SHARE * 0.7}`);
+    protected readonly loupeRadius = computed(() => this.longest() * LOUPE_SHARE);
     protected readonly outline = computed(() => this.corners().map(({ x, y }) => `${x},${y}`).join(' '));
+    protected readonly dragged = computed(() => {
+        const index = this.dragging();
+
+        return index === undefined ? undefined : this.corners()[index];
+    });
+
+    protected readonly loupe = computed((): Point => {
+        const width = this.size()?.width ?? 1;
+        const offset = this.loupeRadius() + this.longest() * LOUPE_MARGIN_SHARE;
+        const onLeft = (this.dragged()?.x ?? 0) > width / 2;
+
+        return { x: onLeft ? offset : width - offset, y: offset };
+    });
+
+    protected readonly cross = computed(() => {
+        const { x, y } = this.loupe();
+        const arm = this.loupeRadius() * 0.25;
+
+        return `M${x - arm} ${y}H${x + arm}M${x} ${y - arm}V${y + arm}`;
+    });
+
     protected readonly shade = computed(() => {
         const size = this.size();
         if (!size) {
@@ -89,7 +133,14 @@ export class CropEditorComponent {
         this.corners.set(startCorners(image.naturalWidth, image.naturalHeight));
     }
 
+    protected magnify(point: Point): string {
+        const { x, y } = this.loupe();
+
+        return `translate(${x - point.x * LOUPE_ZOOM} ${y - point.y * LOUPE_ZOOM}) scale(${LOUPE_ZOOM})`;
+    }
+
     protected grab(index: number, event: PointerEvent): void {
+        event.preventDefault();
         (event.target as Element).setPointerCapture?.(event.pointerId);
         this.dragging.set(index);
     }
@@ -101,6 +152,7 @@ export class CropEditorComponent {
             return;
         }
 
+        event.preventDefault();
         const box = (event.currentTarget as Element).getBoundingClientRect();
         const point: Point = {
             x: Math.min(size.width, Math.max(0, ((event.clientX - box.left) / box.width) * size.width)),

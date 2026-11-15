@@ -52,7 +52,7 @@ const PLAIN_SUBTYPES = [undefined, 'unlimited'];
 const CARDMARKET_PRODUCT_URL = 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=';
 const CARDMARKET_SEARCH_URL = 'https://www.cardmarket.com/en/Pokemon/Products/Search?searchString=';
 
-const CARDMARKET_LANGUAGES: Partial<Record<Language, number>> = { en: 1, fr: 2, de: 3, es: 4, it: 5, zh: 6, ja: 7, pt: 8, ko: 10, nl: 12 };
+const CARDMARKET_LANGUAGES: Record<Language, number> = { en: 1, fr: 2, de: 3, nl: 12 };
 const CARDMARKET_CONDITIONS: Record<Condition, number> = { mint: 1, near_mint: 2, excellent: 3, good: 4, light_played: 5, played: 6, poor: 7 };
 
 export const GRADING_MIN_VALUE = 50;

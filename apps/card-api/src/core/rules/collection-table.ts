@@ -42,14 +42,14 @@ export const COLLECTION_HEADER: Array<string> = [
     'Low (EUR)',
     'Value (EUR)',
     'Value from',
+    'Worth grading',
     'Price date',
     'Status',
     'Notes',
     'Added',
     'Front photo',
     'Back photo',
-    'Cardmarket',
-    'Worth grading'
+    'Cardmarket'
 ];
 
 const NEEDS_QUOTES = /[",\r\n]/;
@@ -75,14 +75,14 @@ export function collectionCells(row: CollectionRow): Array<Cell> {
         money(row.priceLow),
         money(row.value),
         row.valueSource,
+        row.worthGrading ? 'yes' : 'no',
         day(row.priceCheckedAt),
         row.status,
         row.notes,
         day(row.createdAt),
         row.frontPhoto,
         row.backPhoto,
-        row.cardmarket,
-        row.worthGrading ? 'yes' : 'no'
+        row.cardmarket
     ];
 }
 

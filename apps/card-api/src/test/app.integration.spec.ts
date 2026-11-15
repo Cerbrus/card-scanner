@@ -260,6 +260,25 @@ describe('the whole app', () => {
         assert.ok(lines.length <= 5);
     });
 
+    it('replaces one photo of a card under a new photo id, and refuses anything but a JPEG pair', async () => {
+        const card = await upload();
+        const replacement = new FormData();
+        const newer = Buffer.concat([JPEG.subarray(0, -2), Buffer.from([0x01, 0x02, 0xff, 0xd9])]);
+        replacement.append('photo', new Blob([new Uint8Array(newer)], { type: 'image/jpeg' }), 'photo.jpg');
+        replacement.append('thumb', new Blob([new Uint8Array(JPEG)], { type: 'image/jpeg' }), 'thumb.jpg');
+
+        const replaced = await json<Card>(`/cards/${card.id}/photos/front`, { method: 'PUT', body: replacement });
+        const served = Buffer.from(await (await fetch(`${api}/photos/${replaced.photos.front}`)).arrayBuffer());
+
+        assert.notEqual(replaced.photos.front, card.photos.front);
+        assert.equal(replaced.photos.back, card.photos.back);
+        assert.deepEqual(served, newer);
+        assert.equal((await fetch(`${api}/photos/${card.photos.front}`)).status, 404);
+        assert.equal((await fetch(`${api}/cards/${card.id}/photos/side`, { method: 'PUT', body: replacement })).status, 400);
+        assert.equal((await fetch(`${api}/cards/${card.id}/photos/back`, { method: 'PUT', body: photoForm(['photo'], JPEG) })).status, 400);
+        assert.equal((await fetch(`${api}/cards/${card.id}/photos/back`, { method: 'PUT', body: photoForm(['photo', 'thumb'], Buffer.from('not a jpeg')) })).status, 400);
+    });
+
     it('removes a card with its photo files', async () => {
         const card = await upload();
         const file = join(testFolder, 'photos', `${card.id}-front.jpg`);

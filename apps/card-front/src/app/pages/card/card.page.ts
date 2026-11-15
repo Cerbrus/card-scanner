@@ -3,24 +3,40 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Observable, Subject, catchError, exhaustMap, finalize, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
+import { Observable, Subject, catchError, exhaustMap, finalize, from, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
 
 import { CandidateListComponent } from '../../components/candidate-list/candidate-list.component';
 import { cardState } from '../../components/card-tile/card-tile.component';
-import { CONDITIONS, Candidate, CardChanges, CardDetail, FINISHES, LANGUAGES } from '../../models';
+import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
+import { PhotoViewerComponent, ViewedPhoto } from '../../components/photo-viewer/photo-viewer.component';
+import { CONDITIONS, Candidate, CardChanges, CardDetail, FINISHES, LANGUAGES, PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { CollectionStore } from '../../services/collection.store';
+import { Corners } from '../../services/perspective';
+import { PhotoScaler } from '../../services/photo-scaler';
 import { ToastService } from '../../services/toast.service';
 
+interface StripPhoto extends ViewedPhoto {
+    thumb: string;
+    side?: PhotoSide;
+}
+
+interface Editing {
+    side: PhotoSide;
+    file: Blob;
+    url: string;
+}
+
 const POLL_MILLISECONDS = 2500;
+const SIDES: Array<PhotoSide> = ['front', 'back'];
 const HISTORY_LENGTH = 8;
 const GRADING_MIN_VALUE = 50;
 
 @Component({
     selector: 'app-card-page',
     standalone: true,
-    imports: [CurrencyPipe, DatePipe, RouterLink, TranslateModule, CandidateListComponent],
+    imports: [CurrencyPipe, DatePipe, RouterLink, TranslateModule, CandidateListComponent, CropEditorComponent, PhotoViewerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './card.page.html',
     styleUrl: './card.page.scss'
@@ -38,6 +54,27 @@ export class CardPage {
     protected readonly results = signal<Array<Candidate> | undefined>(undefined);
     protected readonly deleteAsked = signal(false);
     protected readonly visionEnabled = signal(false);
+    protected readonly viewing = signal<number | undefined>(undefined);
+    protected readonly editing = signal<Editing | undefined>(undefined);
+    protected readonly savingPhoto = signal(false);
+    protected readonly strip = computed(() => {
+        const card = this.card();
+        if (!card) {
+            return [];
+        }
+
+        const photos: Array<StripPhoto> = SIDES.filter((side) => card.photos[side] !== undefined).map((side) => {
+            const id = card.photos[side] as number;
+
+            return { side, src: this.api.photoUrl(id), thumb: this.api.photoUrl(id, true), label: `scan.${side}` };
+        });
+        if (card.status === 'confirmed' && card.image) {
+            photos.push({ src: `${card.image}/high.webp`, thumb: `${card.image}/low.webp`, label: 'card.reference' });
+        }
+
+        return photos;
+    });
+
     protected readonly state = computed(() => {
         const card = this.card();
 
@@ -56,6 +93,7 @@ export class CardPage {
     protected readonly auth = inject(AuthService);
 
     private readonly store = inject(CollectionStore);
+    private readonly scaler = inject(PhotoScaler);
     private readonly toasts = inject(ToastService);
     private readonly translate = inject(TranslateService);
     private readonly router = inject(Router);
@@ -78,10 +116,63 @@ export class CardPage {
                 takeUntilDestroyed()
             )
             .subscribe();
+
+        this.destroyRef.onDestroy(() => this.stopEditing());
     }
 
-    protected catalogImage(image?: string): string | undefined {
-        return image ? `${image}/low.webp` : undefined;
+    protected recrop(side: PhotoSide): void {
+        const photoId = this.card()?.photos[side];
+        if (photoId === undefined) {
+            return;
+        }
+
+        this.api
+            .getPhoto(photoId)
+            .pipe(
+                tap((photo) => this.startEditing(side, photo)),
+                catchError(() => this.fail()),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe();
+    }
+
+    protected replace(side: PhotoSide, event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        input.value = '';
+        if (file) {
+            this.startEditing(side, file);
+        }
+    }
+
+    protected stopEditing(): void {
+        const editing = this.editing();
+        if (editing) {
+            URL.revokeObjectURL(editing.url);
+            this.editing.set(undefined);
+        }
+    }
+
+    protected saveEdited(corners: Corners | undefined): void {
+        const editing = this.editing();
+        if (!editing) {
+            return;
+        }
+        this.stopEditing();
+        this.savingPhoto.set(true);
+
+        from(corners ? this.scaler.straighten(editing.file, corners) : this.scaler.scale(editing.file))
+            .pipe(
+                switchMap((scaled) => this.api.replacePhoto(Number(this.id()), editing.side, scaled)),
+                tap((card) => {
+                    this.show(card);
+                    this.toasts.show({ kind: 'ok', text: this.translate.instant('card.photo.saved') });
+                }),
+                catchError(() => this.fail()),
+                finalize(() => this.savingPhoto.set(false)),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe();
     }
 
     protected change(changes: CardChanges): void {
@@ -142,6 +233,12 @@ export class CardPage {
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe();
+    }
+
+    private startEditing(side: PhotoSide, file: Blob): void {
+        this.stopEditing();
+        this.viewing.set(undefined);
+        this.editing.set({ side, file, url: URL.createObjectURL(file) });
     }
 
     private follow(id: number): Observable<CardDetail | undefined> {

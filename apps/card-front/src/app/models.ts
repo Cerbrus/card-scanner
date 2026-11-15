@@ -4,7 +4,7 @@ export type Finish = (typeof FINISHES)[number];
 export const CONDITIONS = ['mint', 'near_mint', 'excellent', 'good', 'light_played', 'played', 'poor'] as const;
 export type Condition = (typeof CONDITIONS)[number];
 
-export const LANGUAGES = ['en', 'nl', 'de', 'fr', 'it', 'es', 'pt', 'ja', 'ko', 'zh', 'other'] as const;
+export const LANGUAGES = ['en', 'nl', 'de', 'fr'] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export type CardStatus = 'new' | 'identified' | 'confirmed';

@@ -12,14 +12,7 @@ const FLAGS: Record<Language, string> = {
     en: '🇬🇧',
     nl: '🇳🇱',
     de: '🇩🇪',
-    fr: '🇫🇷',
-    it: '🇮🇹',
-    es: '🇪🇸',
-    pt: '🇵🇹',
-    ja: '🇯🇵',
-    ko: '🇰🇷',
-    zh: '🇨🇳',
-    other: '🏳️'
+    fr: '🇫🇷'
 };
 
 @Component({

@@ -140,6 +140,39 @@ test('show the log from the settings page', async ({ page }) => {
     await expect(page.locator('.log .line').first()).toBeVisible();
 });
 
+test('view the photos full screen, then crop the front again with the magnifier', async ({ page, request }) => {
+    const [card] = await cards(request);
+    await page.goto(`/#/cards/${card.id}`);
+    const before = await page.locator('.photos img').first().getAttribute('src');
+
+    await page.locator('.photo-open').first().click();
+    const viewer = page.locator('app-photo-viewer');
+    await expect(viewer.locator('.shown')).toBeVisible();
+    await viewer.locator('.next').click();
+    await expect(viewer.locator('.label')).toContainText('2 /');
+    await viewer.locator('.close').click();
+    await expect(viewer).toHaveCount(0);
+
+    await page.locator('.photo-actions .recrop').first().click();
+    const editor = page.locator('app-crop-editor');
+    await expect(editor.locator('circle.grip')).toHaveCount(4);
+    const grip = await editor.locator('circle.grip').nth(2).boundingBox();
+    if (!grip) {
+        throw new Error('no corner to drag');
+    }
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + grip.width / 2 - 15, grip.y + grip.height / 2 - 10, { steps: 3 });
+    await expect(editor.locator('.loupe')).toHaveCount(1);
+    expect(await page.evaluate(() => window.getSelection()?.toString() ?? '')).toBe('');
+    await page.mouse.up();
+    await expect(editor.locator('.loupe')).toHaveCount(0);
+
+    await editor.locator('button.use').click();
+    await expect(page.getByText('Foto opgeslagen')).toBeVisible();
+    await expect(page.locator('.photos img').first()).not.toHaveAttribute('src', before ?? '');
+});
+
 test('delete a card after a second tap', async ({ page, request }) => {
     const before = await cards(request);
     await page.goto(`/#/cards/${before[0].id}`);

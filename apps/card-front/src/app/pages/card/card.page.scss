@@ -3,6 +3,42 @@
     gap: 8px;
     overflow-x: auto;
 
+    .photo-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .photo-open {
+        display: block;
+        padding: 0;
+    }
+
+    .photo-actions {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+
+        button,
+        label {
+            display: flex;
+            padding: 4px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .disabled,
+        button:disabled {
+            opacity: 0.4;
+        }
+
+        i {
+            font-size: 18px;
+        }
+    }
+
     img {
         display: block;
         width: 104px;

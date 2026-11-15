@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Candidate, CardChanges, CardDetail, CardSummary, CatalogState, Health, LogLine, SyncState, SystemState } from '../models';
+import { Candidate, CardChanges, CardDetail, CardSummary, CatalogState, Health, LogLine, PhotoSide, SyncState, SystemState } from '../models';
+import { ScaledPhoto } from './photo-scaler';
 import { SettingsService } from './settings/settings.service';
 
 @Injectable({ providedIn: 'root' })
@@ -60,6 +61,18 @@ export class ApiService {
 
     public readCard(id: number): Observable<CardDetail> {
         return this.http.post<CardDetail>(`${this.baseUrl}/cards/${id}/read`, {});
+    }
+
+    public getPhoto(photoId: number): Observable<Blob> {
+        return this.http.get(this.photoUrl(photoId), { responseType: 'blob' });
+    }
+
+    public replacePhoto(id: number, side: PhotoSide, scaled: ScaledPhoto): Observable<CardDetail> {
+        const form = new FormData();
+        form.append('photo', scaled.photo, `${side}.jpg`);
+        form.append('thumb', scaled.thumb, `${side}-thumb.jpg`);
+
+        return this.http.put<CardDetail>(`${this.baseUrl}/cards/${id}/photos/${side}`, form);
     }
 
     public deleteCard(id: number): Observable<void> {

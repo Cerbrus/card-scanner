@@ -115,7 +115,7 @@ describe('copying the collection to Google Drive', () => {
 
         assert.deepEqual(cards[0].slice(0, 4), ['Id', 'Name', 'Set', 'Number']);
         assert.equal(cards.length, 2);
-        assert.equal(cards[1][19], `https://drive.google.com/file/d/${front?.id}/view`);
+        assert.equal(cards[1][20], `https://drive.google.com/file/d/${front?.id}/view`);
         assert.deepEqual(google.table('Prices')[0].slice(0, 2), ['Day', 'Card id']);
     });
 

@@ -103,7 +103,13 @@
         "ownPrice": "Prijs voor dit exemplaar (EUR)",
         "ownPriceHint": "Open Cardmarket hieronder: het aanbod is gefilterd op de taal en conditie van dit exemplaar. Typ hier de prijs die je vindt. Maak het veld leeg om terug te gaan naar de prijstrend.",
         "copies": "{count} exemplaren van deze kaart. De andere:",
-        "worthGrading": "Misschien het graderen waard: dit exemplaar is {minimum} of meer waard en near mint of beter."
+        "worthGrading": "Misschien het graderen waard: dit exemplaar is {minimum} of meer waard en near mint of beter.",
+        "photo": {
+            "crop": "Deze foto opnieuw bijsnijden",
+            "replace": "Nieuwe foto maken",
+            "editTitle": "{side} bijsnijden",
+            "saved": "Foto opgeslagen"
+        }
     },
     "condition": {
         "mint": "Mint",
@@ -123,14 +129,7 @@
         "en": "Engels",
         "nl": "Nederlands",
         "de": "Duits",
-        "fr": "Frans",
-        "it": "Italiaans",
-        "es": "Spaans",
-        "pt": "Portugees",
-        "ja": "Japans",
-        "ko": "Koreaans",
-        "zh": "Chinees",
-        "other": "Anders"
+        "fr": "Frans"
     },
     "collection": {
         "title": "Collectie",
@@ -246,5 +245,10 @@
         "title": "Log",
         "empty": "Nog niets gelogd.",
         "failed": "Het log kon niet worden geladen. Alleen de eigenaar mag het zien."
+    },
+    "viewer": {
+        "close": "Sluiten",
+        "previous": "Vorige foto",
+        "next": "Volgende foto"
     }
 }

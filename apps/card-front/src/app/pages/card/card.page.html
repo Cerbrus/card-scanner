@@ -7,21 +7,34 @@
     @if (card(); as card) {
         <h1 class="page-title">{{ card.name ?? ('card.unknown' | translate) }}</h1>
 
-        <div class="photos">
-            @if (card.photos.front; as front) {
-                <a [href]="api.photoUrl(front)" target="_blank" rel="noopener">
-                    <img [src]="api.photoUrl(front, true)" [alt]="'scan.front' | translate" />
-                </a>
-            }
-            @if (card.photos.back; as back) {
-                <a [href]="api.photoUrl(back)" target="_blank" rel="noopener">
-                    <img [src]="api.photoUrl(back, true)" [alt]="'scan.back' | translate" />
-                </a>
-            }
-            @if (card.status === 'confirmed' && catalogImage(card.image); as image) {
-                <img class="reference" [src]="image" [alt]="'card.reference' | translate" />
-            }
-        </div>
+        @if (editing(); as editing) {
+            <h2 class="section-title">{{ 'card.photo.editTitle' | translate: { side: ('scan.' + editing.side | translate) } }}</h2>
+            <app-crop-editor [src]="editing.url" (done)="saveEdited($event)" (cancelled)="stopEditing()" />
+        } @else {
+            <div class="photos">
+                @for (photo of strip(); track photo.src; let index = $index) {
+                    <div class="photo-cell">
+                        <button type="button" class="photo-open" [attr.aria-label]="photo.label | translate" (click)="viewing.set(index)">
+                            <img [src]="photo.thumb" [class.reference]="!photo.side" [alt]="photo.label | translate" />
+                        </button>
+                        @if (photo.side; as side) {
+                            <div class="photo-actions">
+                                <button type="button" class="recrop" [title]="'card.photo.crop' | translate" [disabled]="savingPhoto()" (click)="recrop(side)">
+                                    <i class="material-symbols-outlined">crop</i>
+                                </button>
+                                <label class="retake" [class.disabled]="savingPhoto()" [title]="'card.photo.replace' | translate">
+                                    <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="savingPhoto()" (change)="replace(side, $event)" />
+                                    <i class="material-symbols-outlined">photo_camera</i>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        @if (viewing() !== undefined) {
+            <app-photo-viewer [photos]="strip()" [start]="viewing() ?? 0" (closed)="viewing.set(undefined)" />
+        }
 
         <h2 class="section-title">{{ 'card.which' | translate }}</h2>
         <div class="card">

@@ -153,14 +153,14 @@ describe('the pages around the collection', () => {
     });
 
     it('marks language and condition on every tile, also when they are unknown', () => {
-        store.cards.set([card(1, { language: 'nl', condition: 'near_mint' }), card(2, { language: 'other' }), card(3, { status: 'new', name: undefined })]);
+        store.cards.set([card(1, { language: 'nl', condition: 'near_mint' }), card(2, { language: 'de' }), card(3, { status: 'new', name: undefined })]);
         open(CollectionPage);
 
         const rows = Array.from(page.querySelectorAll('app-card-tile'), (tile) => texts(tile, '.tile-row > *'));
 
         expect(rows).toEqual([
             ['card.unknown', '?', 'Base Set', '?'],
-            ['Card 2', languageFlag('other'), 'Base Set', '?'],
+            ['Card 2', languageFlag('de'), 'Base Set', '?'],
             ['Card 1', languageFlag('nl'), 'Base Set', 'conditionShort.near_mint']
         ]);
         expect(page.querySelectorAll('.pill.unknown').length).toBe(3);

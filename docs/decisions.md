@@ -14,6 +14,8 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 **Condition is an estimate, not a grading.** A phone photo does not show what a grader sees under a lamp. The app uses Cardmarket's scale (Mint, Near Mint, Excellent, Good, Light Played, Played, Poor) and stores whether the value came from the model or from the user. A condition set by the user is never overwritten by a later reading.
 
+**Four card languages: English, Dutch, German, French.** Those are the languages of the owner's cards; the lists offer nothing else, and the model leaves the language empty for any other.
+
 **Two copies of a card are two rows.** Each physical card has its own photos, condition and price history.
 
 ## Prices

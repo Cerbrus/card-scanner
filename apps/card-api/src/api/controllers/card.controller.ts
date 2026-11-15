@@ -9,6 +9,7 @@ import {
     ParseIntPipe,
     Patch,
     Post,
+    Put,
     UploadedFiles,
     UseInterceptors
 } from '@nestjs/common';
@@ -27,6 +28,10 @@ const UPLOAD_FIELDS = SIDES.flatMap((side) => [
     { name: side, maxCount: 1 },
     { name: `${side}Thumb`, maxCount: 1 }
 ]);
+const REPLACE_FIELDS = [
+    { name: 'photo', maxCount: 1 },
+    { name: 'thumb', maxCount: 1 }
+];
 
 @Controller({ path: 'cards', version: '1' })
 export class CardController {
@@ -52,6 +57,21 @@ export class CardController {
         });
 
         return this.cards.create(uploads);
+    }
+
+    @Put(':id/photos/:side')
+    @UseInterceptors(FileFieldsInterceptor(REPLACE_FIELDS, { limits: { fileSize: MAX_PHOTO_BYTES } }))
+    public replacePhoto(@Param('id', ParseIntPipe) id: number, @Param('side') side: string, @UploadedFiles() files: UploadedPhotos = {}): Promise<CardDetail> {
+        const photo = files['photo']?.[0]?.buffer;
+        const thumb = files['thumb']?.[0]?.buffer;
+        if (!SIDES.includes(side as PhotoSide)) {
+            throw new BadRequestException(`Unknown side: ${side}`);
+        }
+        if (!photo || !thumb) {
+            throw new BadRequestException('Send the photo and its thumbnail');
+        }
+
+        return this.cards.replacePhoto(id, { side: side as PhotoSide, photo, thumb });
     }
 
     @Get(':id')

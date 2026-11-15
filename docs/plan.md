@@ -8,9 +8,7 @@ Everything below is built. Each item is switched off, or not reachable, until th
 
 | # | What | Until then | To do |
 |---|---|---|---|
-| 1 | **Consent screen in production** | The Google Cloud project is set up, but its consent screen is in "Testing" with the owner as test user. Google ends the Drive consent after 7 days; then the copy stops with an error until the owner connects again. | Audience page: Publish app. Optional; reconnecting weekly also works. |
-| 2 | **`ALLOWED_SOURCE`** | The app's port on the Pi answers every address on the home network, not only the proxy | Set it to the proxy's address in `.env`. Optional: login is on. |
-| 3 | **Anthropic API key** | Photos are not read: each card is picked by hand from the catalogue | Put `ANTHROPIC_API_KEY` in `.env`, restart |
+| 1 | **Consent screen in production** | The Google Cloud project is set up, but its consent screen is in "Testing" with the owner as test user. Google ends the Drive consent after 7 days; then the copy stops with an error until the owner connects again. | Audience page: Publish app. Not for now (owner, 2026-11-15): reconnect weekly. |
 
 Also open for the owner to decide:
 
@@ -40,14 +38,18 @@ Also open for the owner to decide:
 - [x] Running on the server Pi: installed with `install.sh`, the Pi pulled version 0.1.0 by itself, health check green, about 110 MB of memory in use (done 2026-11-14 16:05)
 - [x] Reachable on the home network at the Pi's address, port 3030: scan upload, catalogue search, confirm, price, CSV and the pages checked from a laptop (done 2026-11-14 16:05)
 - [x] Behind the reverse proxy with HTTPS, login with Google for the owner's account (done 2026-11-15 17:56)
+- [x] `ALLOWED_SOURCE` set to the proxy: the port answers only the proxy and the Pi itself (done 2026-11-15 19:05)
 
 ### Milestone 2: capture
 
 - [x] Scan page: front photo, back photo, save (done 2026-11-14 15:55)
 - [x] Photos made smaller on the phone, with a thumbnail, stored on disk (done 2026-11-14 15:55)
 - [x] Crop and straighten each photo on the phone: four corners dragged onto the card, or the whole photo kept (done 2026-11-15 17:20)
+- [x] Corner dragging after the owner's first try on a phone: no text selection while dragging, a magnifier in the opposite corner shows what is under the finger, thin dashed lines and small open corners (done 2026-11-15 19:05)
+- [x] Crop a stored photo again, or take a new one, from the card page (done 2026-11-15 19:05)
 - [x] Collection page: grid of the cards with their front photo (done 2026-11-14 15:55)
 - [x] Card page: both photos, details editable, delete (done 2026-11-14 15:55)
+- [x] Photos open full screen, with previous and next (buttons, swipe, arrow keys) and a close button, instead of opening the file (done 2026-11-15 19:05)
 
 ### Milestone 3: identification
 
@@ -96,7 +98,8 @@ Also open for the owner to decide:
 
 ## Open
 
-- A chart of the collection's value over time; the snapshots are there.
+- Read the card number on the phone (Tesseract.js) from the straightened front and fill in the catalogue search with it; chosen by the owner on 2026-11-15 instead of an Anthropic API key.
+- A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - Finding the corners of the card in the photo by itself, instead of dragging them.
 
 ## Checked before building

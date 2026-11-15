@@ -83,6 +83,15 @@ describe('ScanPage', () => {
         fixture.detectChanges();
         expect(page.querySelectorAll('app-crop-editor circle.grip').length).toBe(4);
 
+        page.querySelectorAll('app-crop-editor circle.grip')[0].dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, bubbles: true, cancelable: true }));
+        fixture.detectChanges();
+        expect(page.querySelector('app-crop-editor .loupe image')?.getAttribute('href')).toBe('blob:preview');
+        expect(page.querySelector('app-crop-editor .handle.active')).not.toBeNull();
+
+        page.querySelector('app-crop-editor svg')?.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, bubbles: true }));
+        fixture.detectChanges();
+        expect(page.querySelector('app-crop-editor .loupe')).toBeNull();
+
         click(page, 'app-crop-editor .use');
         await fixture.whenStable();
         fixture.detectChanges();

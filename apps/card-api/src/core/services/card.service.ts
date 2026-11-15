@@ -131,13 +131,8 @@ export class CardService implements OnApplicationBootstrap {
             })
         );
 
-        mkdirSync(this.config.photosPath, { recursive: true });
         for (const upload of uploads) {
-            const file = photoFileName(card.id, upload.side, false);
-            const thumbFile = photoFileName(card.id, upload.side, true);
-            writeFileSync(join(this.config.photosPath, file), upload.photo);
-            writeFileSync(join(this.config.photosPath, thumbFile), upload.thumb);
-            await this.photos.save(this.photos.create({ ownedCardId: card.id, side: upload.side, file, thumbFile, bytes: upload.photo.length }));
+            await this.storePhoto(card.id, upload);
         }
 
         if (this.reader.enabled) {
@@ -239,6 +234,19 @@ export class CardService implements OnApplicationBootstrap {
         await this.photos.delete({ ownedCardId: id });
         await this.cards.remove(card);
         this.changes.notify();
+    }
+
+    public async replacePhoto(id: number, upload: PhotoUpload): Promise<CardDetail> {
+        const card = await this.find(id);
+        this.checkUpload(upload);
+
+        await this.photos.delete({ ownedCardId: id, side: upload.side });
+        await this.storePhoto(id, upload);
+        card.updatedAt = new Date();
+        await this.cards.save(card);
+        this.changes.notify();
+
+        return this.get(id);
     }
 
     public async photoPath(photoId: number, thumb: boolean): Promise<string> {
@@ -343,6 +351,15 @@ export class CardService implements OnApplicationBootstrap {
         }
 
         return quote.price !== undefined;
+    }
+
+    private async storePhoto(cardId: number, upload: PhotoUpload): Promise<void> {
+        const file = photoFileName(cardId, upload.side, false);
+        const thumbFile = photoFileName(cardId, upload.side, true);
+        mkdirSync(this.config.photosPath, { recursive: true });
+        writeFileSync(join(this.config.photosPath, file), upload.photo);
+        writeFileSync(join(this.config.photosPath, thumbFile), upload.thumb);
+        await this.photos.save(this.photos.create({ ownedCardId: cardId, side: upload.side, file, thumbFile, bytes: upload.photo.length }));
     }
 
     private queueReading(id: number): void {

@@ -9,6 +9,7 @@ import { Candidate, CardDetail } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { CollectionStore } from '../../services/collection.store';
+import { PhotoScaler } from '../../services/photo-scaler';
 import { ToastService } from '../../services/toast.service';
 
 const charizard: Candidate = { catalogCardId: 'base1-4', name: 'Charizard', localId: '4', setId: 'base1', setName: 'Base Set', image: 'https://assets.example/base1/4', score: 13 };
@@ -28,8 +29,12 @@ describe('CardPage', () => {
         confirmCard: vi.fn(),
         readCard: vi.fn(),
         deleteCard: vi.fn(),
-        searchCatalog: vi.fn()
+        searchCatalog: vi.fn(),
+        getPhoto: vi.fn(),
+        replacePhoto: vi.fn()
     };
+    const scaled = { photo: new Blob(['photo']), thumb: new Blob(['thumb']) };
+    const scaler = { scale: vi.fn(() => Promise.resolve(scaled)), straighten: vi.fn(() => Promise.resolve(scaled)) };
 
     const open = async (card: CardDetail, vision = false): Promise<void> => {
         api.getCard.mockReturnValue(of(card));
@@ -48,6 +53,8 @@ describe('CardPage', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
+        URL.createObjectURL = vi.fn(() => 'blob:editing');
+        URL.revokeObjectURL = vi.fn();
         store = fakeStore();
         TestBed.configureTestingModule({
             imports: [TranslateModule.forRoot()],
@@ -55,7 +62,8 @@ describe('CardPage', () => {
                 provideRouter([]),
                 { provide: ApiService, useValue: api },
                 { provide: CollectionStore, useValue: store },
-                { provide: AuthService, useValue: { owner: () => true } }
+                { provide: AuthService, useValue: { owner: () => true } },
+                { provide: PhotoScaler, useValue: scaler }
             ]
         });
     });
@@ -75,6 +83,68 @@ describe('CardPage', () => {
         expect(texts(page, '.basis')).toEqual(['card.basis.print']);
         expect(page.querySelector('a[href="https://www.cardmarket.com/x"]')).not.toBeNull();
         expect(page.querySelector('app-candidate-list')).toBeNull();
+    });
+
+    it('opens a photo full screen, steps to the next ones and closes again', async () => {
+        await open({ ...confirmed, image: 'https://assets.example/base1/4' });
+
+        click(page, '.photo-open', 1);
+        fixture.detectChanges();
+        const shown = (): string | null | undefined => page.querySelector('app-photo-viewer .shown')?.getAttribute('src');
+        expect(shown()).toBe('/photos/71');
+        expect(texts(page, 'app-photo-viewer .label')).toEqual(['scan.back · 2 / 3']);
+
+        click(page, 'app-photo-viewer .next');
+        fixture.detectChanges();
+        expect(shown()).toBe('https://assets.example/base1/4/high.webp');
+        expect((page.querySelector('app-photo-viewer .next') as HTMLButtonElement).disabled).toBe(true);
+
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+        fixture.detectChanges();
+        expect(shown()).toBe('/photos/71');
+
+        click(page, 'app-photo-viewer .close');
+        fixture.detectChanges();
+        expect(page.querySelector('app-photo-viewer')).toBeNull();
+    });
+
+    it('crops a stored photo again and saves it in place of the old one', async () => {
+        const stored = new Blob(['stored front']);
+        api.getPhoto.mockReturnValue(of(stored));
+        api.replacePhoto.mockReturnValue(of({ ...confirmed, photos: { front: 90, back: 71 } }));
+        await open(confirmed);
+
+        click(page, '.photo-actions .recrop');
+        fixture.detectChanges();
+        expect(api.getPhoto).toHaveBeenCalledWith(70);
+        expect(page.querySelector('app-crop-editor')).not.toBeNull();
+        expect(page.querySelector('.photos')).toBeNull();
+
+        click(page, 'app-crop-editor .whole');
+        await settle();
+
+        expect(scaler.scale).toHaveBeenCalledWith(stored);
+        expect(api.replacePhoto).toHaveBeenCalledWith(7, 'front', scaled);
+        expect(Array.from(page.querySelectorAll('.photos img'), (image) => image.getAttribute('src'))).toEqual(['/photos/90?thumb', '/photos/71?thumb']);
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:editing');
+        expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['card.photo.saved']);
+    });
+
+    it('takes a new photo for one side and lets it be cropped before saving', async () => {
+        api.replacePhoto.mockReturnValue(of(confirmed));
+        await open(confirmed);
+
+        const input = page.querySelectorAll('.photo-actions input[type=file]')[1] as HTMLInputElement;
+        const file = new File(['new back'], 'back.jpg', { type: 'image/jpeg' });
+        Object.defineProperty(input, 'files', { configurable: true, value: [file] });
+        input.dispatchEvent(new Event('change'));
+        fixture.detectChanges();
+        expect(texts(page, 'h2.section-title')[0]).toBe('card.photo.editTitle');
+
+        click(page, 'app-crop-editor .cancel');
+        fixture.detectChanges();
+        expect(page.querySelector('app-crop-editor')).toBeNull();
+        expect(api.replacePhoto).not.toHaveBeenCalled();
     });
 
     it('lists the other copies of the same card and says when this copy may be worth grading', async () => {

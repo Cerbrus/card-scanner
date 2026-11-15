@@ -42,9 +42,8 @@ describe('the collection as a table', () => {
     it('rounds prices to cents, leaves a missing price empty and writes dates as days', () => {
         const cells = collectionTable([row])[1];
 
-        assert.deepEqual(cells.slice(7, 16), ['yes', 'good', 'user', 385.83, '', 90, 231.5, 'own', '2026-11-14']);
-        assert.equal(cells[18], '2026-11-13');
-        assert.equal(cells.at(-1), 'yes');
+        assert.deepEqual(cells.slice(7, 17), ['yes', 'good', 'user', 385.83, '', 90, 231.5, 'own', 'yes', '2026-11-14']);
+        assert.equal(cells[19], '2026-11-13');
     });
 
     it('quotes cells with commas or quotes in the CSV', () => {

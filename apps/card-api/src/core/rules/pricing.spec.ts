@@ -77,7 +77,7 @@ describe('prices of a card', () => {
     it('opens Cardmarket with the language and condition of the copy in the filter', () => {
         assert.equal(cardmarketUrl(273699, 'Ninetales', { language: 'nl', condition: 'excellent' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&language=12&minCondition=3');
         assert.equal(cardmarketUrl(273699, 'Ninetales', { language: 'en' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&language=1');
-        assert.equal(cardmarketUrl(273699, 'Ninetales', { language: 'other', condition: 'poor' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&minCondition=7');
+        assert.equal(cardmarketUrl(273699, 'Ninetales', { language: null, condition: 'poor' }), 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699&minCondition=7');
     });
 
     it('links to the product on Cardmarket, or to a search when the product is unknown', () => {

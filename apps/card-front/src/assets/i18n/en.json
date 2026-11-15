@@ -103,7 +103,13 @@
         "ownPrice": "Price for this copy (EUR)",
         "ownPriceHint": "Open Cardmarket below: the offers are filtered on the language and condition of this copy. Type the price you find here. Empty the field to go back to the price trend.",
         "copies": "{count} copies of this card. The others:",
-        "worthGrading": "Maybe worth grading: this copy is worth {minimum} or more and is near mint or better."
+        "worthGrading": "Maybe worth grading: this copy is worth {minimum} or more and is near mint or better.",
+        "photo": {
+            "crop": "Crop this photo again",
+            "replace": "Take a new photo",
+            "editTitle": "Crop the {side}",
+            "saved": "Photo saved"
+        }
     },
     "condition": {
         "mint": "Mint",
@@ -123,14 +129,7 @@
         "en": "English",
         "nl": "Dutch",
         "de": "German",
-        "fr": "French",
-        "it": "Italian",
-        "es": "Spanish",
-        "pt": "Portuguese",
-        "ja": "Japanese",
-        "ko": "Korean",
-        "zh": "Chinese",
-        "other": "Other"
+        "fr": "French"
     },
     "collection": {
         "title": "Collection",
@@ -246,5 +245,10 @@
         "title": "Log",
         "empty": "Nothing logged yet.",
         "failed": "The log could not be loaded. Only the owner may see it."
+    },
+    "viewer": {
+        "close": "Close",
+        "previous": "Previous photo",
+        "next": "Next photo"
     }
 }
