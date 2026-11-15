@@ -26,6 +26,7 @@ Also open for the owner to decide:
 - **A restore** from the Drive copy.
 - **Crop and straighten on a real phone**: dragging the corners with a finger, and the time the straightening takes on a 12-megapixel photo. Tested in desktop Chrome with a made-up photo.
 - **Moving photos to the Drive trash** against the real Drive; tested with the fake Google.
+- **Reading name and number from real phone photos.** Tried on the catalogue pictures of eight Base Set and Jungle cards (600 pixels wide, sharper photos are expected from a phone): all seven Pokémon names right, five of seven numbers right and none wrong, about one second per card in desktop Chrome. Trainer and Energy cards, newer layouts and Dutch prints are not tried; the time on a phone is not known.
 
 ## Done
 
@@ -57,7 +58,8 @@ Also open for the owner to decide:
 - [x] Local copy of the TCGdex catalogue, fetched at first start and weekly (done 2026-11-14 15:55)
 - [x] Search by name and number, best fit first; tap to confirm (done 2026-11-14 15:55)
 - [x] Inbox with the cards that are not confirmed (done 2026-11-14 15:55)
-- [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set, item 4 (done 2026-11-14 15:55)
+- [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set; the owner will not set one (done 2026-11-14 15:55)
+- [x] Reading name and number on the phone with Tesseract.js from fixed strips of the straightened front; the scan arrives in the inbox with the catalogue cards that fit, and the search fields filled in (done 2026-11-15 20:40)
 
 ### Milestone 4: prices
 
@@ -100,7 +102,6 @@ Also open for the owner to decide:
 
 ## Open
 
-- Read the card number on the phone (Tesseract.js) from the straightened front and fill in the catalogue search with it; chosen by the owner on 2026-11-15 instead of an Anthropic API key.
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - Finding the corners of the card in the photo by itself, instead of dragging them.
 

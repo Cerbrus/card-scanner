@@ -24,7 +24,7 @@ export function inlineScriptHashes(html: string): Array<string> {
 export function buildPolicy(scriptHashes: Array<string>, reportPath: string): string {
     return [
         "default-src 'self'",
-        ["script-src 'self'", ...scriptHashes].join(' '),
+        ["script-src 'self' 'wasm-unsafe-eval'", ...scriptHashes].join(' '),
         `style-src 'self' 'unsafe-inline' ${FONT_STYLES}`,
         `font-src 'self' ${FONT_FILES}`,
         "img-src 'self' data: blob: https:",

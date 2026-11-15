@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { ScanPage } from './scan.page';
 import { FakeStore, card, click, fakeStore, texts } from '../../../testing/fakes';
 import { ApiService } from '../../services/api.service';
+import { CardTextReader } from '../../services/card-text-reader';
 import { CollectionStore } from '../../services/collection.store';
 import { PhotoScaler } from '../../services/photo-scaler';
 import { ToastService } from '../../services/toast.service';
@@ -17,6 +18,8 @@ const scaler = {
     ),
     straighten: vi.fn((file: Blob, _corners: Array<{ x: number; y: number }>): Promise<{ photo: Blob; thumb: Blob }> => Promise.resolve({ photo: file, thumb: new Blob(['straight']) }))
 };
+
+const reader = { read: vi.fn(() => Promise.resolve({ name: 'Charizard', number: '4/102' })) };
 
 describe('ScanPage', () => {
     let fixture: ComponentFixture<ScanPage>;
@@ -47,6 +50,7 @@ describe('ScanPage', () => {
         scaler.fail = false;
         scaler.scale.mockClear();
         scaler.straighten.mockClear();
+        reader.read.mockClear();
         store = fakeStore();
         api.createCard.mockReset();
         URL.createObjectURL = vi.fn(() => 'blob:preview');
@@ -57,7 +61,8 @@ describe('ScanPage', () => {
                 provideRouter([]),
                 { provide: ApiService, useValue: api },
                 { provide: CollectionStore, useValue: store },
-                { provide: PhotoScaler, useValue: scaler }
+                { provide: PhotoScaler, useValue: scaler },
+                { provide: CardTextReader, useValue: reader }
             ]
         });
         fixture = TestBed.createComponent(ScanPage);
@@ -106,6 +111,42 @@ describe('ScanPage', () => {
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
     });
 
+    it('reads name and number from a straightened front and sends them with the scan', async () => {
+        api.createCard.mockReturnValue(of(card(7, { status: 'identified' })));
+        pick(0);
+        const image = page.querySelector('app-crop-editor img') as HTMLImageElement;
+        Object.defineProperties(image, { naturalWidth: { value: 3000 }, naturalHeight: { value: 4000 } });
+        image.dispatchEvent(new Event('load'));
+        fixture.detectChanges();
+        click(page, 'app-crop-editor .use');
+        await fixture.whenStable();
+        await Promise.resolve();
+        fixture.detectChanges();
+
+        expect(reader.read).toHaveBeenCalledTimes(1);
+        expect(texts(page, '.read-result')).toEqual(['text_fields scan.read.found']);
+
+        await photograph(1);
+        saveButton().click();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const form = api.createCard.mock.calls[0][0] as FormData;
+        expect([form.get('name'), form.get('number')]).toEqual(['Charizard', '4/102']);
+        expect(page.querySelector('.read-result')).toBeNull();
+    });
+
+    it('does not read a front that was kept whole, because the card can be anywhere on it', async () => {
+        api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
+        await photograph(0);
+        await photograph(1);
+        saveButton().click();
+        await fixture.whenStable();
+
+        expect(reader.read).not.toHaveBeenCalled();
+        expect((api.createCard.mock.calls[0][0] as FormData).has('name')).toBe(false);
+    });
+
     it('drops the chosen photo when cropping is cancelled', () => {
         pick(0);
         click(page, 'app-crop-editor .cancel');
@@ -133,6 +174,7 @@ describe('ScanPage', () => {
         await photograph(1);
 
         saveButton().click();
+        await fixture.whenStable();
         fixture.detectChanges();
 
         const form = api.createCard.mock.calls[0][0] as FormData;
@@ -149,6 +191,7 @@ describe('ScanPage', () => {
         await photograph(1);
 
         saveButton().click();
+        await fixture.whenStable();
         fixture.detectChanges();
 
         expect(toasts()).toEqual(['error: scan.failed']);

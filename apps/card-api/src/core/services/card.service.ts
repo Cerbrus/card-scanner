@@ -33,6 +33,11 @@ export interface PhotoUpload {
     thumb: Buffer;
 }
 
+export interface ScanText {
+    name?: string;
+    number?: string;
+}
+
 export interface CardChanges {
     language?: Language | null;
     variant?: Finish | null;
@@ -110,7 +115,7 @@ export class CardService implements OnApplicationBootstrap {
         }
     }
 
-    public async create(uploads: Array<PhotoUpload>): Promise<CardSummary> {
+    public async create(uploads: Array<PhotoUpload>, text: ScanText = {}): Promise<CardSummary> {
         const missing = SIDES.filter((side) => !uploads.some((upload) => upload.side === side));
         if (missing.length) {
             throw new BadRequestException(`Missing photo: ${missing.join(', ')}`);
@@ -133,6 +138,9 @@ export class CardService implements OnApplicationBootstrap {
 
         for (const upload of uploads) {
             await this.storePhoto(card.id, upload);
+        }
+        if (text.name?.trim() || text.number?.trim()) {
+            await this.applyScanText(card, text);
         }
 
         if (this.reader.enabled) {
@@ -393,6 +401,15 @@ export class CardService implements OnApplicationBootstrap {
         card.updatedAt = new Date();
         await this.cards.save(card);
         this.changes.notify();
+    }
+
+    private async applyScanText(card: OwnedCardEntity, text: ScanText): Promise<void> {
+        const name = text.name?.trim() || null;
+        const number = text.number?.trim() || null;
+        card.reading = { isPokemonCard: true, name, number, setName: null, language: null, firstEdition: false, finish: null, confidence: 'low', condition: null, conditionNotes: '' };
+        card.candidates = await this.catalog.search({ name, number, setName: null });
+        card.status = card.candidates.length ? 'identified' : 'new';
+        await this.cards.save(card);
     }
 
     private async applyReading(card: OwnedCardEntity, reading: CardReading): Promise<void> {

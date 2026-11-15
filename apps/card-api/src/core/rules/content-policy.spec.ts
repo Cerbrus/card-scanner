@@ -20,10 +20,10 @@ describe('content security policy', () => {
     it('allows own scripts and the hashed inline ones, and says where to report', () => {
         const policy = buildPolicy(["'sha256-abc'"], '/api/v1/csp-reports');
 
-        assert.match(policy, /script-src 'self' 'sha256-abc';/);
+        assert.match(policy, /script-src 'self' 'wasm-unsafe-eval' 'sha256-abc';/);
         assert.match(policy, /frame-ancestors 'none'/);
         assert.match(policy, /report-uri \/api\/v1\/csp-reports$/);
-        assert.doesNotMatch(policy, /unsafe-eval/);
+        assert.doesNotMatch(policy, /'unsafe-eval'/);
     });
 
     it('sends the policy as report-only, as enforced, or not at all', () => {

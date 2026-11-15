@@ -20,6 +20,7 @@ import { CardDetail, CardService, CardSummary, PhotoUpload } from '../../core/se
 import { PhotoSide } from '../../data/entities/types';
 import { CardChangesDto } from '../dto/card-changes.dto';
 import { ConfirmCardDto } from '../dto/confirm-card.dto';
+import { ScanTextDto } from '../dto/scan-text.dto';
 
 type UploadedPhotos = Partial<Record<string, Array<{ buffer: Buffer }>>>;
 
@@ -45,7 +46,7 @@ export class CardController {
 
     @Post()
     @UseInterceptors(FileFieldsInterceptor(UPLOAD_FIELDS, { limits: { fileSize: MAX_PHOTO_BYTES } }))
-    public create(@UploadedFiles() files: UploadedPhotos = {}): Promise<CardSummary> {
+    public create(@UploadedFiles() files: UploadedPhotos = {}, @Body() text: ScanTextDto = {}): Promise<CardSummary> {
         const uploads = SIDES.map((side): PhotoUpload => {
             const photo = files[side]?.[0]?.buffer;
             const thumb = files[`${side}Thumb`]?.[0]?.buffer;
@@ -56,7 +57,7 @@ export class CardController {
             return { side, photo, thumb };
         });
 
-        return this.cards.create(uploads);
+        return this.cards.create(uploads, text);
     }
 
     @Put(':id/photos/:side')

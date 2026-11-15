@@ -25,6 +25,19 @@
             }
         </div>
 
+        @if (textReading(); as reading) {
+            <p class="read-result muted mt-3 flex items-center gap-1 text-sm">
+                <i class="material-symbols-outlined text-base leading-none">{{ reading.done ? 'text_fields' : 'hourglass_top' }}</i>
+                @if (!reading.done) {
+                    {{ 'scan.read.busy' | translate }}
+                } @else if (reading.text?.name || reading.text?.number) {
+                    {{ 'scan.read.found' | translate: { name: reading.text?.name ?? '?', number: reading.text?.number ?? '?' } }}
+                } @else {
+                    {{ 'scan.read.nothing' | translate }}
+                }
+            </p>
+        }
+
         <div class="mt-4 flex gap-2">
             <button type="button" class="btn primary grow" [disabled]="!complete() || busy()" (click)="save()">
                 <i class="material-symbols-outlined">save</i>

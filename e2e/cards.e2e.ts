@@ -149,6 +149,63 @@ test('show the log from the settings page', async ({ page }) => {
     await expect(page.locator('.log .line').first()).toBeVisible();
 });
 
+test('read the name and number of a straightened card and offer the matching catalogue card', async ({ page, request }) => {
+    test.setTimeout(120_000);
+    await page.goto('/#/scan');
+    const card = { left: 150, top: 200, width: 1260, height: 1760 };
+    const url = await page.evaluate((box) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1560;
+        canvas.height = 2160;
+        const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+        context.fillStyle = '#1e1e1e';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#f4f1e8';
+        context.fillRect(box.left, box.top, box.width, box.height);
+        context.fillStyle = '#111';
+        context.font = 'bold 84px Arial';
+        context.fillText('Charizard', box.left + box.width * 0.1, box.top + box.height * 0.1);
+        context.font = 'bold 44px Arial';
+        context.fillText('4/102', box.left + box.width * 0.85, box.top + box.height * 0.975);
+
+        return canvas.toDataURL('image/jpeg', 0.95);
+    }, card);
+    await page.locator('input[type=file]').nth(0).setInputFiles({ name: 'front.jpg', mimeType: 'image/jpeg', buffer: Buffer.from(url.split(',')[1], 'base64') });
+
+    const shown = await page.locator('app-crop-editor img.photo').boundingBox();
+    if (!shown) {
+        throw new Error('no photo');
+    }
+    const corners = [
+        [card.left, card.top],
+        [card.left + card.width, card.top],
+        [card.left + card.width, card.top + card.height],
+        [card.left, card.top + card.height]
+    ];
+    for (const [index, [x, y]] of corners.entries()) {
+        const grip = await page.locator('app-crop-editor circle.grip').nth(index).boundingBox();
+        if (!grip) {
+            throw new Error('no corner to drag');
+        }
+        await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(shown.x + (x / 1560) * shown.width, shown.y + (y / 2160) * shown.height, { steps: 4 });
+        await page.mouse.up();
+    }
+    await page.locator('app-crop-editor button.use').click();
+    await expect(page.locator('.read-result')).toContainText('Gelezen: Charizard · 4/102', { timeout: 60_000 });
+
+    await page.locator('input[type=file]').nth(1).setInputFiles({ name: 'back.jpg', mimeType: 'image/jpeg', buffer: await photo(page, '#2f5fd0') });
+    await page.locator('app-crop-editor button.whole').click();
+    await page.getByRole('button', { name: 'Kaart opslaan' }).click();
+    await expect(page.getByText('Kaart opgeslagen')).toBeVisible();
+
+    const [newest] = await cards(request);
+    const detail = (await (await request.get(`/api/v1/cards/${newest.id}`)).json()) as { status: string; candidates: Array<{ catalogCardId: string }> };
+    expect(detail.status).toBe('identified');
+    expect(detail.candidates[0].catalogCardId).toBe('base1-4');
+});
+
 test('view the photos full screen, then crop the front again with the magnifier', async ({ page, request }) => {
     const [card] = await cards(request);
     await page.goto(`/#/cards/${card.id}`);

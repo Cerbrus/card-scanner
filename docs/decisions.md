@@ -48,6 +48,8 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **One reading per card for identity and condition together.** Both need the same two photos; one call is simpler and cheaper than two.
 
+**The phone reads name and number, without a key.** The owner will not use an Anthropic API key. After the front is straightened, the web app reads two fixed strips of the card with Tesseract.js: the name line at the top, and the number in the bottom corners (right on old cards, left on newer ones; only digits and the slash allowed, in black and white), plus the whole bottom band as a second opinion. A number two readings agree on wins. The name and number go with the scan; the server looks them up like a reading by the model, so the card arrives in the inbox with candidates. A photo kept whole is not read: the strips are only predictable on a straightened card. The engine, its WebAssembly core and the English language data are served by the app itself; the content policy allows WebAssembly for it.
+
 **Claude Opus 5.5 by default**, set with `VISION_MODEL`. At this size the cost is no concern: a few hundred calls in total.
 
 **Not local recognition.** Text recognition plus picture matching on the Pi was considered. The old sets carry no set code in text, only a small symbol, and the first set not even that. It would be much more work for a worse result, on a Pi with little memory.

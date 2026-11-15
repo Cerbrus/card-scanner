@@ -112,7 +112,7 @@ describe('the whole app', () => {
 
             assert.equal(headers.get('x-frame-options'), 'DENY', path);
             assert.equal(headers.get('x-content-type-options'), 'nosniff', path);
-            assert.match(headers.get('content-security-policy-report-only') ?? '', /script-src 'self' 'sha256-/, path);
+            assert.match(headers.get('content-security-policy-report-only') ?? '', /script-src 'self' 'wasm-unsafe-eval' 'sha256-/, path);
         }
     });
 
@@ -277,6 +277,21 @@ describe('the whole app', () => {
         assert.equal((await fetch(`${api}/cards/${card.id}/photos/side`, { method: 'PUT', body: replacement })).status, 400);
         assert.equal((await fetch(`${api}/cards/${card.id}/photos/back`, { method: 'PUT', body: photoForm(['photo'], JPEG) })).status, 400);
         assert.equal((await fetch(`${api}/cards/${card.id}/photos/back`, { method: 'PUT', body: photoForm(['photo', 'thumb'], Buffer.from('not a jpeg')) })).status, 400);
+    });
+
+    it('looks up the name and number the phone read on the card, and offers the catalogue cards that fit', async () => {
+        const form = photoForm();
+        form.append('name', 'Charizard');
+        form.append('number', '4/102');
+        const created = await json<Card>('/cards', { method: 'POST', body: form });
+        const card = await json<Card & { reading?: { name: string; number: string } }>(`/cards/${created.id}`);
+
+        assert.equal(card.status, 'identified');
+        assert.equal(card.candidates?.[0].catalogCardId, 'base1-4');
+        assert.deepEqual([card.reading?.name, card.reading?.number], ['Charizard', '4/102']);
+
+        const unread = await json<Card>('/cards', { method: 'POST', body: photoForm() });
+        assert.equal(unread.status, 'new');
     });
 
     it('removes a card with its photo files', async () => {

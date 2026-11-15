@@ -42,6 +42,11 @@
             "hint": "Sleep de vier hoeken naar de hoeken van de kaart. De kaart wordt rechtgezet en uitgesneden.",
             "use": "Rechtzetten",
             "whole": "Hele foto"
+        },
+        "read": {
+            "busy": "Naam en nummer lezen…",
+            "found": "Gelezen: {name} · {number}",
+            "nothing": "Naam en nummer niet gevonden; kies de kaart in de inbox."
         }
     },
     "state": {

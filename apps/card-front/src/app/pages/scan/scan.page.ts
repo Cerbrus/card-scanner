@@ -2,11 +2,13 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { catchError, finalize, of, tap } from 'rxjs';
+import { catchError, finalize, from, of, switchMap, tap } from 'rxjs';
 
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
 import { PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
+import { CardText } from '../../services/card-text';
+import { CardTextReader } from '../../services/card-text-reader';
 import { CollectionStore } from '../../services/collection.store';
 import { Corners } from '../../services/perspective';
 import { PhotoScaler, ScaledPhoto } from '../../services/photo-scaler';
@@ -16,6 +18,12 @@ interface Shot extends ScaledPhoto {
     preview: string;
 }
 
+interface TextReading {
+    done: boolean;
+    text?: CardText;
+    result: Promise<CardText | undefined>;
+}
+
 interface Cropping {
     side: PhotoSide;
     file: File;
@@ -23,6 +31,7 @@ interface Cropping {
 }
 
 const SIDES: Array<PhotoSide> = ['front', 'back'];
+const READ_WAIT_MILLISECONDS = 20_000;
 
 @Component({
     selector: 'app-scan-page',
@@ -38,11 +47,13 @@ export class ScanPage {
     protected readonly busy = signal<PhotoSide | 'saving' | undefined>(undefined);
     protected readonly saved = signal(0);
     protected readonly cropping = signal<Cropping | undefined>(undefined);
+    protected readonly textReading = signal<TextReading | undefined>(undefined);
     protected readonly complete = computed(() => SIDES.every((side) => this.shots()[side]));
     protected readonly store = inject(CollectionStore);
 
     private readonly api = inject(ApiService);
     private readonly scaler = inject(PhotoScaler);
+    private readonly reader = inject(CardTextReader);
     private readonly toasts = inject(ToastService);
     private readonly translate = inject(TranslateService);
     private readonly destroyRef = inject(DestroyRef);
@@ -85,6 +96,9 @@ export class ScanPage {
             const scaled = corners ? await this.scaler.straighten(file, corners) : await this.scaler.scale(file);
             this.release(this.shots()[side]);
             this.shots.update((shots) => ({ ...shots, [side]: { ...scaled, preview: URL.createObjectURL(scaled.thumb) } }));
+            if (side === 'front') {
+                this.readText(corners ? scaled.photo : undefined);
+            }
         } catch {
             this.toasts.show({ kind: 'error', text: this.translate.instant('scan.unreadable') });
         } finally {
@@ -105,9 +119,17 @@ export class ScanPage {
         }
 
         this.busy.set('saving');
-        this.api
-            .createCard(form)
+        from(this.textForSaving())
             .pipe(
+                switchMap((text) => {
+                    for (const [field, value] of Object.entries(text ?? {})) {
+                        if (value) {
+                            form.append(field, value);
+                        }
+                    }
+
+                    return this.api.createCard(form);
+                }),
                 tap((card) => {
                     this.store.put(card);
                     this.saved.update((count) => count + 1);
@@ -128,6 +150,32 @@ export class ScanPage {
     protected forget(): void {
         SIDES.forEach((side) => this.release(this.shots()[side]));
         this.shots.set({});
+        this.textReading.set(undefined);
+    }
+
+    private readText(cardPhoto?: Blob): void {
+        if (!cardPhoto) {
+            this.textReading.set(undefined);
+            return;
+        }
+
+        const result = this.reader.read(cardPhoto).catch(() => undefined);
+        const reading: TextReading = { done: false, result };
+        this.textReading.set(reading);
+        void result.then((text) => {
+            if (this.textReading() === reading) {
+                this.textReading.set({ ...reading, done: true, text });
+            }
+        });
+    }
+
+    private textForSaving(): Promise<CardText | undefined> {
+        const reading = this.textReading();
+        if (!reading) {
+            return Promise.resolve(undefined);
+        }
+
+        return Promise.race([reading.result, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), READ_WAIT_MILLISECONDS))]);
     }
 
     private release(shot?: Shot): void {
