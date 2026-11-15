@@ -15,7 +15,7 @@
     <rect width="512" height="512" fill="#101b33" />
     <rect x="146" y="102" width="220" height="308" rx="22" fill="#4f86e8" />
     <rect x="160" y="116" width="192" height="280" rx="14" fill="url(#face)" />
-    <g clip-path="url(#inner)" fill="none" stroke="#5d8ff0" stroke-width="10" stroke-linecap="round" opacity="0.55">
+    <g clip-path="url(#inner)" transform="translate(512 0) scale(-1 1)" fill="none" stroke="#5d8ff0" stroke-width="10" stroke-linecap="round" opacity="0.55">
         <path d="M150 170 C 210 120, 300 140, 330 200 S 300 330, 230 330" />
         <path d="M362 330 C 300 390, 200 380, 170 320 S 190 190, 270 180" />
         <path d="M150 260 C 180 220, 230 215, 256 256" />
