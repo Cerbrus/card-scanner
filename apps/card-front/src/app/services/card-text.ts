@@ -3,6 +3,13 @@ export interface CardText {
     number?: string;
 }
 
+export interface TextWord {
+    text: string;
+    left: number;
+    height: number;
+    confidence: number;
+}
+
 export interface Region {
     left: number;
     top: number;
@@ -10,7 +17,7 @@ export interface Region {
     height: number;
 }
 
-export const NAME_REGION: Region = { left: 0.05, top: 0.048, width: 0.62, height: 0.065 };
+export const NAME_REGION: Region = { left: 0.05, top: 0.062, width: 0.62, height: 0.058 };
 export const NUMBER_CORNERS: Array<Region> = [
     { left: 0.82, top: 0.946, width: 0.17, height: 0.04 },
     { left: 0.02, top: 0.944, width: 0.32, height: 0.048 }
@@ -23,6 +30,9 @@ const MAX_NUMBER_DIGITS = 3;
 const NAME_WORD = /^[A-ZÀ-Ý][A-Za-zÀ-ÿ.'’♀♂-]*$/;
 const NOT_NAME = new Set(['basic', 'stage', 'pokemon', 'pokémon', 'evolves', 'from', 'put', 'hp', 'lv', 'level', 'trainer', 'energy', 'item', 'supporter', 'ex', 'gx', 'v']);
 const MIN_NAME_LETTERS = 3;
+const NAME_SIZE_SHARE = 0.7;
+const MIN_WORD_CONFIDENCE = 50;
+const ALL_CAPITALS = /^[A-ZÀ-Ý]{2,}$/;
 
 export function readNumber(text: string): string | undefined {
     for (const [, prefix, digits, totalPrefix, total] of text.replace(/[Oo](?=\d)|(?<=\d)[Oo]/g, '0').matchAll(CARD_NUMBER)) {
@@ -33,29 +43,6 @@ export function readNumber(text: string): string | undefined {
     }
 
     return undefined;
-}
-
-export function darkThreshold(histogram: ArrayLike<number>): number {
-    const count = Array.from(histogram).reduce((total, value) => total + value, 0);
-    const sum = Array.from(histogram).reduce((total, value, level) => total + value * level, 0);
-    let below = 0;
-    let belowSum = 0;
-    let best = 0;
-    let threshold = 0;
-    for (let level = 0; level < histogram.length; level++) {
-        below += histogram[level];
-        belowSum += histogram[level] * level;
-        const above = count - below;
-        if (below && above) {
-            const spread = below * above * (belowSum / below - (sum - belowSum) / above) ** 2;
-            if (spread > best) {
-                best = spread;
-                threshold = level;
-            }
-        }
-    }
-
-    return threshold;
 }
 
 export function bestNumber(readings: Array<string | undefined>): string | undefined {
@@ -84,11 +71,25 @@ export function readName(text: string): string | undefined {
     return lines.sort((left, right) => letters(right) - letters(left))[0];
 }
 
+export function nameFromWords(words: Array<TextWord>): string | undefined {
+    const usable = words
+        .map((word) => ({ ...word, text: word.text.replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ.'’♀♂]+$/g, '') }))
+        .filter((word) => word.confidence >= MIN_WORD_CONFIDENCE && NAME_WORD.test(word.text) && !NOT_NAME.has(word.text.toLowerCase()) && !ALL_CAPITALS.test(word.text));
+    const tallest = Math.max(0, ...usable.map((word) => word.height));
+    const name = usable
+        .filter((word) => word.height >= tallest * NAME_SIZE_SHARE)
+        .sort((left, right) => left.left - right.left)
+        .map((word) => word.text)
+        .join(' ');
+
+    return readName(name);
+}
+
 function nameIn(line: string): string | undefined {
     const groups: Array<Array<string>> = [[]];
     for (const raw of line.split(/\s+/)) {
         const word = raw.replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ.'’♀♂]+$/g, '');
-        if (word && NAME_WORD.test(word) && !NOT_NAME.has(word.toLowerCase())) {
+        if (word && NAME_WORD.test(word) && !NOT_NAME.has(word.toLowerCase()) && !ALL_CAPITALS.test(word)) {
             groups[groups.length - 1].push(word);
         } else if (groups[groups.length - 1].length) {
             groups.push([]);

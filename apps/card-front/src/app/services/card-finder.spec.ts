@@ -1,0 +1,83 @@
+import { Pixels, findCard, otsuThreshold } from './card-finder';
+import { Corners, Point } from './perspective';
+
+type Colour = [number, number, number];
+
+const DARK_TABLE: Colour = [32, 30, 34];
+const YELLOW_BORDER: Colour = [236, 200, 40];
+const BLUE_BACK: Colour = [40, 80, 190];
+
+function inside(point: Point, polygon: Corners): boolean {
+    let crossings = 0;
+    polygon.forEach((corner, index) => {
+        const next = polygon[(index + 1) % polygon.length];
+        if (corner.y > point.y !== next.y > point.y && point.x < ((next.x - corner.x) * (point.y - corner.y)) / (next.y - corner.y) + corner.x) {
+            crossings++;
+        }
+    });
+
+    return crossings % 2 === 1;
+}
+
+function photo(width: number, height: number, card: Corners | undefined, colour: Colour, artwork?: Corners): Pixels {
+    const data = new Uint8ClampedArray(width * height * 4);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const point = { x: x + 0.5, y: y + 0.5 };
+            const shade = artwork && inside(point, artwork) ? DARK_TABLE : card && inside(point, card) ? colour : DARK_TABLE;
+            data.set([...shade, 255], (y * width + x) * 4);
+        }
+    }
+
+    return { data, width, height };
+}
+
+function turned(centre: Point, width: number, height: number, degrees: number): Corners {
+    const angle = (degrees * Math.PI) / 180;
+    const corner = (dx: number, dy: number): Point => ({
+        x: centre.x + dx * Math.cos(angle) - dy * Math.sin(angle),
+        y: centre.y + dx * Math.sin(angle) + dy * Math.cos(angle)
+    });
+
+    return [corner(-width / 2, -height / 2), corner(width / 2, -height / 2), corner(width / 2, height / 2), corner(-width / 2, height / 2)];
+}
+
+const distance = (left: Point, right: Point): number => Math.hypot(left.x - right.x, left.y - right.y);
+
+describe('finding the card in a photo', () => {
+    const card = turned({ x: 160, y: 210 }, 180, 252, 8);
+
+    it('puts the corners on a yellow card that lies a little turned on a dark table', () => {
+        const found = findCard(photo(320, 427, card, YELLOW_BORDER)) as Corners;
+
+        found.forEach((corner, index) => expect(distance(corner, card[index])).toBeLessThan(4));
+    });
+
+    it('finds the blue back just as well, also with dark artwork inside the border', () => {
+        const artwork = turned({ x: 160, y: 190 }, 140, 110, 8);
+        const found = findCard(photo(320, 427, card, BLUE_BACK, artwork)) as Corners;
+
+        found.forEach((corner, index) => expect(distance(corner, card[index])).toBeLessThan(4));
+    });
+
+    it('turns a card lying on its side so the result stays upright in shape', () => {
+        const sideways = turned({ x: 213, y: 160 }, 252, 180, 3);
+        const [topLeft, topRight, , bottomLeft] = findCard(photo(427, 320, sideways, YELLOW_BORDER)) as Corners;
+
+        expect(distance(topLeft, topRight)).toBeLessThan(distance(topLeft, bottomLeft));
+    });
+
+    it('finds nothing in a photo without a card, or with a card too small to be the subject', () => {
+        expect(findCard(photo(320, 427, undefined, YELLOW_BORDER))).toBeUndefined();
+        expect(findCard(photo(320, 427, turned({ x: 160, y: 210 }, 30, 42, 0), YELLOW_BORDER))).toBeUndefined();
+    });
+
+    it('cuts between two groups of shades', () => {
+        const histogram = new Array<number>(256).fill(0);
+        histogram[30] = 100;
+        histogram[200] = 900;
+
+        expect(otsuThreshold(histogram)).toBeGreaterThanOrEqual(30);
+        expect(otsuThreshold(histogram)).toBeLessThan(200);
+    });
+});

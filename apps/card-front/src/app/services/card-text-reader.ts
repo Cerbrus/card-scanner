@@ -2,7 +2,8 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 import type { Worker as TextWorker } from 'tesseract.js';
 
-import { CardText, NAME_REGION, NUMBER_CORNERS, NUMBER_REGION, Region, bestNumber, darkThreshold, readName, readNumber } from './card-text';
+import { otsuThreshold } from './card-finder';
+import { CardText, NAME_REGION, NUMBER_CORNERS, NUMBER_REGION, Region, TextWord, bestNumber, nameFromWords, readName, readNumber } from './card-text';
 
 const LINE_HEIGHT = 140;
 const IDLE_MILLISECONDS = 180_000;
@@ -30,16 +31,25 @@ export class CardTextReader {
             const worker = await this.start();
             const card = await createImageBitmap(cardPhoto);
             try {
-                await worker.setParameters({ tessedit_pageseg_mode: SINGLE_LINE as never, tessedit_char_whitelist: '' });
-                const name = readName((await worker.recognize(this.strip(card, NAME_REGION))).data.text);
-
-                return { name, number: await this.readNumber(worker, card) };
+                return { name: await this.readName(worker, card), number: await this.readNumber(worker, card) };
             } finally {
                 card.close();
             }
         } finally {
             this.idleTimer = setTimeout(() => void this.stop(), IDLE_MILLISECONDS);
         }
+    }
+
+    private async readName(worker: TextWorker, card: ImageBitmap): Promise<string | undefined> {
+        await worker.setParameters({ tessedit_pageseg_mode: SINGLE_LINE as never, tessedit_char_whitelist: '' });
+        const { data } = await worker.recognize(this.strip(card, NAME_REGION), {}, { text: true, blocks: true });
+        const words = (data.blocks ?? []).flatMap((block) =>
+            block.paragraphs.flatMap((paragraph) =>
+                paragraph.lines.flatMap((line) => line.words.map((word): TextWord => ({ text: word.text, left: word.bbox.x0, height: word.bbox.y1 - word.bbox.y0, confidence: word.confidence })))
+            )
+        );
+
+        return nameFromWords(words) ?? readName(data.text);
     }
 
     private async readNumber(worker: TextWorker, card: ImageBitmap): Promise<string | undefined> {
@@ -62,7 +72,7 @@ export class CardTextReader {
         for (let index = 0; index < image.data.length; index += 4) {
             histogram[image.data[index]]++;
         }
-        const threshold = darkThreshold(histogram);
+        const threshold = otsuThreshold(histogram);
         for (let index = 0; index < image.data.length; index += 4) {
             const shade = image.data[index] <= threshold ? 0 : 255;
             image.data[index] = image.data[index + 1] = image.data[index + 2] = shade;

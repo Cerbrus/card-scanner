@@ -1,4 +1,4 @@
-import { bestNumber, darkThreshold, readName, readNumber } from './card-text';
+import { TextWord, bestNumber, nameFromWords, readName, readNumber } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -24,23 +24,23 @@ describe('reading name and number from the text on a card', () => {
         expect(readName('Basic Pokémon Pikachu 40 HP')).toBe('Pikachu');
         expect(readName('Dark Charizard 60 HP')).toBe('Dark Charizard');
         expect(readName('80 HP\n')).toBeUndefined();
+        expect(readName('ENGI')).toBeUndefined();
         expect(readName('')).toBeUndefined();
+    });
+
+    it('takes the name from the tallest sure words on the name line, leaving out the small print around it', () => {
+        const word = (text: string, left: number, height: number, confidence = 90): TextWord => ({ text, left, height, confidence });
+
+        expect(nameFromWords([word('Evolves', 200, 20), word('STAGE', 10, 22), word('2', 70, 22), word('Dragonite', 260, 60), word('100', 600, 58), word('HP', 680, 50)])).toBe('Dragonite');
+        expect(nameFromWords([word('Mime', 140, 50), word('Mr.', 60, 48)])).toBe('Mr. Mime');
+        expect(nameFromWords([word('Fal', 20, 62, 30), word('Dragonite', 260, 60)])).toBe('Dragonite');
+        expect(nameFromWords([word('ENGI', 40, 60)])).toBeUndefined();
+        expect(nameFromWords([])).toBeUndefined();
     });
 
     it('prefers a number that two readings agree on, otherwise the first one found', () => {
         expect(bestNumber(['4/64', undefined, '54/64', '54/64'])).toBe('54/64');
         expect(bestNumber([undefined, '12/102'])).toBe('12/102');
         expect(bestNumber([undefined, undefined])).toBeUndefined();
-    });
-
-    it('puts the black and white cut between dark text and a light background', () => {
-        const histogram = new Array<number>(256).fill(0);
-        histogram[30] = 100;
-        histogram[200] = 900;
-
-        const threshold = darkThreshold(histogram);
-
-        expect(threshold).toBeGreaterThanOrEqual(30);
-        expect(threshold).toBeLessThan(200);
     });
 });

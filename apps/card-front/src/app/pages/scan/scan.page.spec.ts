@@ -48,6 +48,7 @@ describe('ScanPage', () => {
 
     beforeEach(() => {
         scaler.fail = false;
+        localStorage.clear();
         scaler.scale.mockClear();
         scaler.straighten.mockClear();
         reader.read.mockClear();

@@ -22,7 +22,6 @@
     },
     "scan": {
         "title": "Kaart scannen",
-        "intro": "Fotografeer de voorkant en de achterkant van één kaart en sla op.",
         "front": "Voorkant",
         "back": "Achterkant",
         "tap": "Tik om een foto te maken",
@@ -34,12 +33,8 @@
         "unreadable": "Die foto kon niet worden gebruikt. Maak hem opnieuw.",
         "count": "Zojuist {count, plural, one {# kaart} other {# kaarten}} gescand.",
         "toInbox": "{count, plural, one {# kaart wacht} other {# kaarten wachten}} in de inbox",
-        "tipLight": "Gebruik gelijkmatig licht zonder schittering; folie spiegelt.",
-        "tipFill": "Laat de kaart het beeld vullen, op een effen donkere ondergrond.",
-        "tipBack": "De achterkant toont de meeste slijtage: houd randen en hoeken scherp.",
         "crop": {
             "title": "{side} bijsnijden",
-            "hint": "Sleep de vier hoeken naar de hoeken van de kaart. De kaart wordt rechtgezet en uitgesneden.",
             "use": "Rechtzetten",
             "whole": "Hele foto"
         },

@@ -22,7 +22,6 @@
     },
     "scan": {
         "title": "Scan a card",
-        "intro": "Photograph the front and the back of one card, then save.",
         "front": "Front",
         "back": "Back",
         "tap": "Tap to take a photo",
@@ -34,12 +33,8 @@
         "unreadable": "That photo could not be used. Take it again.",
         "count": "{count, plural, one {# card} other {# cards}} scanned just now.",
         "toInbox": "{count, plural, one {# card waits} other {# cards wait}} in the inbox",
-        "tipLight": "Use even light without glare; foil reflects.",
-        "tipFill": "Let the card fill the picture, on a plain dark surface.",
-        "tipBack": "The back shows most wear: keep edges and corners sharp.",
         "crop": {
             "title": "Crop the {side}",
-            "hint": "Drag the four corners onto the corners of the card. The card is straightened and cut out.",
             "use": "Straighten",
             "whole": "Whole photo"
         },

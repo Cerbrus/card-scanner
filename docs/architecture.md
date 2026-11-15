@@ -71,7 +71,7 @@ Schema changes go through migrations; `synchronize` is off.
 ## The scan flow
 
 1. The user opens the Scan page and takes the front photo, then the back photo, with the phone's camera app.
-2. After each photo the page shows four corners to drag onto the corners of the card. The web app cuts the card out and straightens it to 63 by 88 (`services/perspective.ts`), or keeps the whole photo. A straightened front is read at once in the background (`services/card-text-reader.ts`, rules in `card-text.ts`): name and number, shown under the photos.
+2. After each photo the page shows four corners to drag onto the corners of the card, already placed on the card when it was found (`services/crop-start.ts`). The web app cuts the card out and straightens it to 63 by 88 (`services/perspective.ts`), or keeps the whole photo. A straightened front is read at once in the background (`services/card-text-reader.ts`, rules in `card-text.ts`): name and number, shown under the photos.
 3. The web app scales each photo to 2400 pixels, makes a 480-pixel thumbnail, and uploads the four files. The server checks that they are JPEGs, stores them as `<id>-front.jpg`, `<id>-front-thumb.jpg` and so on, and creates an `owned_card` with status `new`.
 4. With reading switched on, the card is queued for the model. The upload answers at once; the next card can be scanned.
 5. The reading fills in language, finish, 1st edition and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.

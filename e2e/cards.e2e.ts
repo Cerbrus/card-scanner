@@ -62,6 +62,14 @@ test('photograph both sides, straighten the front and save the card', async ({ p
     await page.locator('input[type=file]').nth(0).setInputFiles({ name: 'front.jpg', mimeType: 'image/jpeg', buffer: front });
     const editor = page.locator('app-crop-editor');
     await expect(editor.locator('circle.grip')).toHaveCount(4);
+    await expect(editor.locator('.stage')).toHaveAttribute('data-start', 'found');
+    const corner = await editor.locator('circle.handle').first().boundingBox();
+    const shown = await editor.locator('img.photo').boundingBox();
+    if (!corner || !shown) {
+        throw new Error('no corner');
+    }
+    const turnedCornerX = 600 + -400 * Math.cos(0.1) - -560 * Math.sin(0.1);
+    expect(Math.abs((corner.x + corner.width / 2 - shown.x) / shown.width - turnedCornerX / 1200)).toBeLessThan(0.02);
 
     const grip = await editor.locator('circle.grip').first().boundingBox();
     if (!grip) {
@@ -76,6 +84,7 @@ test('photograph both sides, straighten the front and save the card', async ({ p
     await expect(page.locator('.side.filled')).toHaveCount(1);
 
     await page.locator('input[type=file]').nth(1).setInputFiles({ name: 'back.jpg', mimeType: 'image/jpeg', buffer: back });
+    await expect(editor.locator('.stage')).toHaveAttribute('data-start', 'found');
     await editor.locator('button.whole').click();
     await expect(page.locator('.side.filled')).toHaveCount(2);
 

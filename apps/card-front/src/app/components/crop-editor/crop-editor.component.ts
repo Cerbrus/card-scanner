@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { CropSource, CropStart } from '../../services/crop-start';
 import { Corners, Point, startCorners } from '../../services/perspective';
 
 const HANDLE_SHARE = 0.018;
@@ -22,8 +23,7 @@ let nextEditor = 0;
     imports: [TranslateModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <p class="muted mb-2 text-sm">{{ 'scan.crop.hint' | translate }}</p>
-        <div class="stage">
+        <div class="stage" [attr.data-start]="source()">
             <div class="frame">
                 <img class="photo" [src]="src()" alt="" draggable="false" (load)="measure($any($event.target))" />
                 @if (size(); as size) {
@@ -69,7 +69,7 @@ let nextEditor = 0;
             </div>
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
-            <button type="button" class="use btn primary grow" [disabled]="!size()" (click)="done.emit(corners())">
+            <button type="button" class="use btn primary grow" [disabled]="!size()" (click)="use()">
                 <i class="material-symbols-outlined">crop</i>
                 {{ 'scan.crop.use' | translate }}
             </button>
@@ -102,6 +102,7 @@ export class CropEditorComponent {
     protected readonly size = signal<{ width: number; height: number } | undefined>(undefined);
     protected readonly corners = signal<Corners>(startCorners(1, 1));
     protected readonly dragging = signal<number | undefined>(undefined);
+    protected readonly source = signal<CropSource | undefined>(undefined);
     protected readonly handle = computed(() => this.longest() * HANDLE_SHARE);
     protected readonly grip = computed(() => this.longest() * TOUCH_SHARE);
     protected readonly line = computed(() => this.longest() * LINE_SHARE);
@@ -141,11 +142,22 @@ export class CropEditorComponent {
         return `M0 0H${size.width}V${size.height}H0Z M${first.x} ${first.y}${rest.map(({ x, y }) => `L${x} ${y}`).join('')}Z`;
     });
 
+    private readonly cropStart = inject(CropStart);
     private readonly longest = computed(() => Math.max(this.size()?.width ?? 1, this.size()?.height ?? 1));
 
     protected measure(image: HTMLImageElement): void {
+        const start = this.cropStart.corners(image);
         this.size.set({ width: image.naturalWidth, height: image.naturalHeight });
-        this.corners.set(startCorners(image.naturalWidth, image.naturalHeight));
+        this.corners.set(start.corners);
+        this.source.set(start.source);
+    }
+
+    protected use(): void {
+        const size = this.size();
+        if (size) {
+            this.cropStart.remember(this.corners(), size.width, size.height);
+        }
+        this.done.emit(this.corners());
     }
 
     protected magnify(point: Point): string {
