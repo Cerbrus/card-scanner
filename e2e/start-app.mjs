@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -21,6 +21,7 @@ const site = join(folder, 'public');
 
 cpSync(WEB_APP, site, { recursive: true });
 writeFileSync(join(site, 'assets', 'appsettings.json'), JSON.stringify({ api: { core: '/api' } }));
+writeFileSync(join(site, 'app-files.json'), JSON.stringify(readdirSync(site).filter((file) => /\.(js|css)$/.test(file))));
 
 const catalog = await startCatalog();
 const server = spawn(process.execPath, [API_BUNDLE], {

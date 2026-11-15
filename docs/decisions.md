@@ -60,6 +60,8 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **The phone straightens the card, the owner sets the corners.** After a photo is taken, the scan page shows it with four corners to drag onto the card; the web app then cuts the card out and straightens it to the card's shape (63 by 88) with a perspective transform on a canvas. "Whole photo" skips this. Finding the corners automatically needs edge detection that is unreliable on cards with a white border on a light table; a few seconds of dragging is reliable. The server still gets plain JPEGs and needs no image library.
 
+**The app reloads itself after a release.** The image build writes `app-files.json`, the list of the web app's script and style files. The open app fetches it when it comes back to the screen and every minute; when the files it loaded are no longer in the list, it reloads, but not on the scan page, while a photo is cropped or viewed, or while a field has focus; then it waits for the next page change. Taken from the barcode scanner, which checks when its event stream reconnects; this app has no event stream.
+
 **Photos as files, not in the database.** Stored under `data/photos/`, with the file name in the database. The database stays small and easy to copy.
 
 **Photo from the phone's own camera app.** The scan page uses a file input that opens the camera. That gives a sharp, full photo with the phone's own focus and flash, and it works without HTTPS. A live camera view inside the page is not needed.

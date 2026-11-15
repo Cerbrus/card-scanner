@@ -6,6 +6,7 @@ import { startWith, switchMap, tap } from 'rxjs';
 
 import { LanguageService } from './services/language.service';
 import { ThemeService } from './services/theme.service';
+import { UpdateService } from './services/update.service';
 
 @Component({
     standalone: true,
@@ -18,6 +19,7 @@ export class AppComponent {
         const translate = inject(TranslateService);
         inject(ThemeService);
         inject(LanguageService).start();
+        inject(UpdateService).start();
 
         translate.onLangChange
             .pipe(

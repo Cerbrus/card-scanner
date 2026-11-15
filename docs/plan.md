@@ -47,6 +47,7 @@ Also open for the owner to decide:
 - [x] Crop and straighten each photo on the phone: four corners dragged onto the card, or the whole photo kept (done 2026-11-15 17:20)
 - [x] Corner dragging after the owner's first try on a phone: no text selection while dragging, a magnifier in the opposite corner shows what is under the finger, thin dashed lines and small open corners (done 2026-11-15 19:05)
 - [x] Crop a stored photo again, or take a new one, from the card page (done 2026-11-15 19:05)
+- [x] Magnifier as a large rounded square in the top left, in the top right while the top-left corner is dragged (done 2026-11-15 19:45)
 - [x] Collection page: grid of the cards with their front photo (done 2026-11-14 15:55)
 - [x] Card page: both photos, details editable, delete (done 2026-11-14 15:55)
 - [x] Photos open full screen, with previous and next (buttons, swipe, arrow keys) and a close button, instead of opening the file (done 2026-11-15 19:05)
@@ -90,6 +91,7 @@ Also open for the owner to decide:
 - [x] A mark on copies that may be worth grading: worth €50 or more and Near Mint or better; also a column in the sheet and the CSV (done 2026-11-15 17:20)
 - [x] Export as CSV (done 2026-11-14 15:55)
 - [x] Dutch and English, light and dark theme, installable on the home screen (done 2026-11-14 15:55)
+- [x] The open app reloads itself when a new version is published, as the barcode scanner does: checked when it comes back to the screen and every minute, never while cropping, scanning or typing (done 2026-11-15 19:45)
 
 ### Milestone 8: upkeep
 

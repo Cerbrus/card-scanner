@@ -132,6 +132,15 @@ test('count copies, filter the collection and find the cards worth grading', asy
     await expect(page.locator('.tile-name')).toHaveText(['Charizard']);
 });
 
+test('publishes the list of its script files, matching what the page loaded', async ({ page, request }) => {
+    await page.goto('/#/collection');
+    const loaded = await page.evaluate(() => Array.from(document.querySelectorAll('script[src]'), (script) => new URL((script as HTMLScriptElement).src).pathname.slice(1)));
+    const published = (await (await request.get('/app-files.json')).json()) as Array<string>;
+
+    expect(loaded.length).toBeGreaterThan(0);
+    expect(loaded.every((file) => published.includes(file))).toBe(true);
+});
+
 test('show the log from the settings page', async ({ page }) => {
     await page.goto('/#/settings');
     await page.locator('a[href="/log"], a[href="#/log"]').click();

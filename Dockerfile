@@ -8,6 +8,7 @@ RUN yarn install --immutable
 COPY . .
 RUN yarn card-api:build && yarn card-front:build
 RUN printf '{"api":{"core":"/api"}}' > dist/apps/card-front/browser/assets/appsettings.json
+RUN node -e "const fs = require('fs'); const folder = 'dist/apps/card-front/browser'; fs.writeFileSync(folder + '/app-files.json', JSON.stringify(fs.readdirSync(folder).filter((file) => /\\.(js|css)$/.test(file))))"
 
 
 FROM node:25-slim
