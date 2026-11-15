@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, exhaustMap, filter, of, tap, timer } from 'rxjs';
 
 import { LogLine } from '../../models';
@@ -13,7 +13,7 @@ const POLL_MILLISECONDS = 5000;
 @Component({
     selector: 'app-log-page',
     standalone: true,
-    imports: [DatePipe, RouterLink, TranslateModule],
+    imports: [DatePipe, RouterLink, TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="page">

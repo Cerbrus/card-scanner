@@ -8,11 +8,11 @@ import { after, before, describe, it } from 'node:test';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-import { photoForm, testFolder } from './test-env';
 import { configureApi } from '../api/configure-api';
 import { AppModule } from '../app.module';
 import { SESSION_COOKIE, newSession, signSession } from '../core/rules/session';
 import { SessionService } from '../core/services/session.service';
+import { photoForm, testFolder } from './test-env';
 
 const SITE = 'https://cards.example.com';
 const OWNER = 'owner@example.com';

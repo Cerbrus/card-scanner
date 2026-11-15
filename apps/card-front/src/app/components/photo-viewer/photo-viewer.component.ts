@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, output } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface ViewedPhoto {
     src: string;
@@ -11,7 +11,7 @@ const SWIPE_PIXELS = 50;
 @Component({
     selector: 'app-photo-viewer',
     standalone: true,
-    imports: [TranslateModule],
+    imports: [TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         role: 'dialog',

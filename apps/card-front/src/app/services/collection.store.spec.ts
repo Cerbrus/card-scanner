@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 
+import { card } from '../../testing/fakes';
 import { ApiService } from './api.service';
 import { CollectionStore } from './collection.store';
 import { fitWithin } from './photo-scaler';
-import { card } from '../../testing/fakes';
 
 describe('the collection in the web app', () => {
     const api = { getCards: vi.fn() };

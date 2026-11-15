@@ -50,7 +50,7 @@ yarn card-front:test               # Vitest without a browser
 yarn e2e                           # builds both apps and drives them in headless Chrome
 ```
 
-Don't start the serve commands from a session; ask the user to run them. The build workflow runs lint, all three test commands and `yarn e2e` first, so keep them green. Web app tests sit next to the file they test as `*.spec.ts`; shared stand-ins are in `src/testing/fakes.ts`. `vi.mock` of a relative import does not work in the Angular test runner: make the dependency injectable and provide a fake. A change comes with its test.
+Don't start the serve commands from a session; ask the user to run them. The build workflow runs lint, all three test commands and `yarn e2e` first, so keep them green. Web app tests sit next to the file they test as `*.spec.ts`; shared stand-ins are in `src/testing/fakes.ts`, and `src/testing/translate.ts` provides translations to a test. `vi.mock` of a relative import does not work in the Angular test runner: make the dependency injectable and provide a fake. A change comes with its test.
 
 ## Code style
 

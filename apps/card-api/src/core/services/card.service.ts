@@ -5,9 +5,6 @@ import { BadRequestException, Injectable, Logger, NotFoundException, OnApplicati
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 
-import { CatalogService } from './catalog.service';
-import { ChangesService } from './changes.service';
-import { PriceService } from './price.service';
 import { AppConfig } from '../../config/app.config';
 import {
     Candidate,
@@ -26,6 +23,9 @@ import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
 import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, PhotoVersion, isJpeg, photoFileName } from '../rules/photo-file';
 import { PriceBasis, ValueSource, cardmarketUrl, ownedValue, pickPrice, worthGrading } from '../rules/pricing';
+import { CatalogService } from './catalog.service';
+import { ChangesService } from './changes.service';
+import { PriceService } from './price.service';
 
 export interface PhotoUpload {
     side: PhotoSide;

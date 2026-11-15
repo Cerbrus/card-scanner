@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { DataModule } from '../data/data.module';
 import { CardReader } from './connectors/card.reader';
 import { CatalogSource } from './connectors/catalog.source';
 import { GoogleClient } from './connectors/google.client';
@@ -13,7 +14,6 @@ import { PriceService } from './services/price.service';
 import { SessionService } from './services/session.service';
 import { SettingService } from './services/setting.service';
 import { SyncService } from './services/sync.service';
-import { DataModule } from '../data/data.module';
 
 const services = [
     CardService,

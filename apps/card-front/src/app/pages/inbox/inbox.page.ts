@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { cardState } from '../../components/card-tile/card-tile.component';
 import { ApiService } from '../../services/api.service';
@@ -10,7 +10,7 @@ import { CollectionStore } from '../../services/collection.store';
 @Component({
     selector: 'app-inbox-page',
     standalone: true,
-    imports: [DatePipe, RouterLink, TranslateModule],
+    imports: [DatePipe, RouterLink, TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="page">

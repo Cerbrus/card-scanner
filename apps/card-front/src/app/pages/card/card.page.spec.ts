@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
-import { CardPage } from './card.page';
 import { FakeStore, choose, click, detail, fakeStore, system, texts } from '../../../testing/fakes';
+import { TranslateTesting } from '../../../testing/translate';
 import { Candidate, CardDetail } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { CollectionStore } from '../../services/collection.store';
 import { PhotoScaler } from '../../services/photo-scaler';
 import { ToastService } from '../../services/toast.service';
+import { CardPage } from './card.page';
 
 const charizard: Candidate = { catalogCardId: 'base1-4', name: 'Charizard', localId: '4', setId: 'base1', setName: 'Base Set', image: 'https://assets.example/base1/4', score: 13 };
 const reprint: Candidate = { ...charizard, catalogCardId: 'base4-4', setId: 'base4', setName: 'Base Set 2', image: undefined };
@@ -57,7 +57,7 @@ describe('CardPage', () => {
         URL.revokeObjectURL = vi.fn();
         store = fakeStore();
         TestBed.configureTestingModule({
-            imports: [TranslateModule.forRoot()],
+            imports: [TranslateTesting],
             providers: [
                 provideRouter([]),
                 { provide: ApiService, useValue: api },

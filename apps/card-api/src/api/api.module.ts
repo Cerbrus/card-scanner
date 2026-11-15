@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 
+import { CoreModule } from '../core/core.module';
 import { AuthController } from './controllers/auth.controller';
 import { CardController } from './controllers/card.controller';
 import { CatalogController } from './controllers/catalog.controller';
@@ -12,7 +13,6 @@ import { LogController } from './controllers/log.controller';
 import { PhotoController } from './controllers/photo.controller';
 import { SystemController } from './controllers/system.controller';
 import { AuthGuard } from './guards/auth.guard';
-import { CoreModule } from '../core/core.module';
 
 @Module({
     imports: [CoreModule],

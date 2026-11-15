@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, from, of, switchMap, tap } from 'rxjs';
 
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
@@ -36,7 +36,7 @@ const READ_WAIT_MILLISECONDS = 20_000;
 @Component({
     selector: 'app-scan-page',
     standalone: true,
-    imports: [RouterLink, TranslateModule, CropEditorComponent],
+    imports: [RouterLink, TranslatePipe, CropEditorComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './scan.page.html',
     styleUrl: './scan.page.scss'

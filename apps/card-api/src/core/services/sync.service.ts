@@ -4,13 +4,13 @@ import { join } from 'path';
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-import { CardService } from './card.service';
-import { PriceService } from './price.service';
-import { SettingService } from './setting.service';
 import { AppConfig } from '../../config/app.config';
 import { PhotoEntity } from '../../data/entities';
 import { GoogleClient } from '../connectors/google.client';
 import { Cell, collectionTable } from '../rules/collection-table';
+import { CardService } from './card.service';
+import { PriceService } from './price.service';
+import { SettingService } from './setting.service';
 
 export interface SyncState {
     configured: boolean;

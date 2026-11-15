@@ -1,15 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
-import { ScanPage } from './scan.page';
 import { FakeStore, card, click, fakeStore, texts } from '../../../testing/fakes';
+import { TranslateTesting } from '../../../testing/translate';
 import { ApiService } from '../../services/api.service';
 import { CardTextReader } from '../../services/card-text-reader';
 import { CollectionStore } from '../../services/collection.store';
 import { PhotoScaler } from '../../services/photo-scaler';
 import { ToastService } from '../../services/toast.service';
+import { ScanPage } from './scan.page';
 
 const scaler = {
     fail: false,
@@ -59,7 +59,7 @@ describe('ScanPage', () => {
         URL.createObjectURL = vi.fn(() => 'blob:preview');
         URL.revokeObjectURL = vi.fn();
         TestBed.configureTestingModule({
-            imports: [TranslateModule.forRoot()],
+            imports: [TranslateTesting],
             providers: [
                 provideRouter([]),
                 { provide: ApiService, useValue: api },

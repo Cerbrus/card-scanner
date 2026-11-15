@@ -4,8 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { Observable } from 'rxjs';
 
-import { AuthService, redirectOnUnauthorized, requireLogin } from './auth.service';
 import { AuthState } from '../models';
+import { AuthService, redirectOnUnauthorized, requireLogin } from './auth.service';
 import { SettingsService } from './settings/settings.service';
 
 type GuardResult = boolean | { redirect: string };

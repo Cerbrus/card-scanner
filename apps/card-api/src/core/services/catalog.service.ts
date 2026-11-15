@@ -2,11 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Like, Repository } from 'typeorm';
 
-import { SettingService } from './setting.service';
 import { Candidate, CatalogCardEntity, CatalogSetEntity } from '../../data/entities';
 import { CatalogSource } from '../connectors/catalog.source';
 import { MatchQuery, MatchSet, localIdForms, rankMatches, setIdOf } from '../rules/matching';
 import { readPricing } from '../rules/pricing';
+import { SettingService } from './setting.service';
 
 export interface CatalogState {
     sets: number;

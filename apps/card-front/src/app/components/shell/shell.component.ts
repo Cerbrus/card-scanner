@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { concat } from 'rxjs';
 
 import { CollectionStore } from '../../services/collection.store';
@@ -16,7 +16,7 @@ interface NavLink {
 @Component({
     selector: 'app-shell',
     standalone: true,
-    imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslateModule],
+    imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './shell.component.html',
     styleUrl: './shell.component.scss'

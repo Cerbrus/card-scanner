@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
-import { CollectionPage, NO_FILTER, filterOptions, visibleCards } from './collection/collection.page';
-import { InboxPage } from './inbox/inbox.page';
-import { LogPage } from './log/log.page';
-import { LoginPage } from './login/login.page';
-import { SettingsPage } from './settings/settings.page';
 import { FakeStore, card, choose, click, fakeStore, system, texts, type } from '../../testing/fakes';
+import { TranslateTesting } from '../../testing/translate';
 import { cardState, languageFlag } from '../components/card-tile/card-tile.component';
 import { SystemState } from '../models';
 import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { CollectionStore } from '../services/collection.store';
 import { ToastService } from '../services/toast.service';
+import { CollectionPage, NO_FILTER, filterOptions, visibleCards } from './collection/collection.page';
+import { InboxPage } from './inbox/inbox.page';
+import { LogPage } from './log/log.page';
+import { LoginPage } from './login/login.page';
+import { SettingsPage } from './settings/settings.page';
 
 describe('the pages around the collection', () => {
     let store: FakeStore;
@@ -60,7 +60,7 @@ describe('the pages around the collection', () => {
         ]);
         vi.clearAllMocks();
         TestBed.configureTestingModule({
-            imports: [TranslateModule.forRoot()],
+            imports: [TranslateTesting],
             providers: [
                 provideRouter([]),
                 { provide: CollectionStore, useValue: store },

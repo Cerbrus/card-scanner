@@ -12,7 +12,7 @@ Everything below is built. Each item is switched off, or not reachable, until th
 
 Also open for the owner to decide:
 
-- Dependabot is set up as in the barcode scanner. It opened its first nine pull requests right after the first push, several of them major versions; none is merged. The Claude review helper of that project is not copied: it needs the secret `CLAUDE_CODE_OAUTH_TOKEN` in this repository.
+- Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15). The reviewer needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN` and the Claude GitHub App on this repository; until then its review job fails.
 - The branch ruleset `protect-master` of the barcode scanner (no force-push, no deletion) is not set here.
 
 ## Never tested
@@ -109,6 +109,11 @@ Also open for the owner to decide:
 
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - Finding the corners of the card in the photo by itself, instead of dragging them.
+
+## Package upgrades
+
+- Done 2026-11-15 21:45, in place of Dependabot #2, #3, #5, #6, #8 and #9 and as in the barcode scanner: class-validator 0.15, tslib 2.9, ESLint 10 with `eslint-plugin-import-x` in place of `eslint-plugin-import`, jsonc-eslint-parser 3, eslint-import-resolver-typescript 4, ngx-translate 18 (`TranslatePipe`, `provideTranslateService`, specs through `TranslateTesting`), NestJS 12 and TypeORM 1 with an own snake case naming strategy in place of `typeorm-naming-strategies`.
+- Blocked as in the barcode scanner: TypeScript 7 (#7; Angular 22's compiler and typescript-eslint accept TypeScript below 6.1 only), better-sqlite3 13 (#4; TypeORM 1 accepts up to 12).
 
 ## Checked before building
 

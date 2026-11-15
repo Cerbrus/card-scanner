@@ -3,9 +3,9 @@ import { join } from 'path';
 
 import { Injectable } from '@nestjs/common';
 
-import { LogService } from './log.service';
 import { AppConfig } from '../../config/app.config';
 import { buildPolicy, contentPolicyMode, inlineScriptHashes, policyHeaders, readReports } from '../rules/content-policy';
+import { LogService } from './log.service';
 
 export const POLICY_REPORT_PATH = '/api/v1/csp-reports';
 

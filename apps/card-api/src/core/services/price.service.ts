@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CatalogService } from './catalog.service';
 import { PriceFigures, PriceSnapshotEntity } from '../../data/entities';
 import { PriceBasis, PrintChoice, dayOf, hasPrice, pickPrice } from '../rules/pricing';
+import { CatalogService } from './catalog.service';
 
 export interface Quote {
     price?: PriceFigures;

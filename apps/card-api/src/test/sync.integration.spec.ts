@@ -9,14 +9,14 @@ import { after, before, describe, it } from 'node:test';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-import { FakeGoogle } from './fake-google';
-import { JPEG, photoForm, startCatalogue, testFolder } from './test-env';
 import { configureApi } from '../api/configure-api';
 import { AppModule } from '../app.module';
 import { SESSION_COOKIE } from '../core/rules/session';
 import { CatalogService } from '../core/services/catalog.service';
 import { SessionService } from '../core/services/session.service';
 import { SyncService, SyncState } from '../core/services/sync.service';
+import { FakeGoogle } from './fake-google';
+import { JPEG, photoForm, startCatalogue, testFolder } from './test-env';
 
 const SITE = 'https://cards.example.com';
 const OWNER = 'owner@example.com';

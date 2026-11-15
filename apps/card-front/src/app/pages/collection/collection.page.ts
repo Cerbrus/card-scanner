@@ -1,7 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CardTileComponent } from '../../components/card-tile/card-tile.component';
 import { CONDITIONS, CardSummary, LANGUAGES } from '../../models';
@@ -73,7 +73,7 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
 @Component({
     selector: 'app-collection-page',
     standalone: true,
-    imports: [CurrencyPipe, RouterLink, TranslateModule, CardTileComponent],
+    imports: [CurrencyPipe, RouterLink, TranslatePipe, CardTileComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="page">

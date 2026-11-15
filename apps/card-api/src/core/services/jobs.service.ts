@@ -1,11 +1,11 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { Subscription, debounceTime, tap } from 'rxjs';
 
+import { AppConfig } from '../../config/app.config';
 import { CardService } from './card.service';
 import { CatalogService } from './catalog.service';
 import { ChangesService } from './changes.service';
 import { SyncService } from './sync.service';
-import { AppConfig } from '../../config/app.config';
 
 const HOUR = 60 * 60 * 1000;
 const CATALOG_MAX_AGE_MILLISECONDS = 7 * 24 * HOUR;

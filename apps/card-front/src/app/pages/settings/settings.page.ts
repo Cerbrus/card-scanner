@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, catchError, of, switchMap, tap } from 'rxjs';
 
 import { SystemState } from '../../models';
@@ -18,7 +18,7 @@ const GOOGLE_OUTCOMES = ['connected', 'failed', 'not_configured'];
 @Component({
     selector: 'app-settings-page',
     standalone: true,
-    imports: [DatePipe, RouterLink, TranslateModule],
+    imports: [DatePipe, RouterLink, TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './settings.page.html'
 })

@@ -2,7 +2,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Observable, Subject, catchError, exhaustMap, finalize, from, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
 
 import { CandidateListComponent } from '../../components/candidate-list/candidate-list.component';
@@ -37,7 +37,7 @@ const GRADING_MIN_VALUE = 50;
 @Component({
     selector: 'app-card-page',
     standalone: true,
-    imports: [CurrencyPipe, DatePipe, RouterLink, TranslateModule, CandidateListComponent, CropEditorComponent, PhotoViewerComponent],
+    imports: [CurrencyPipe, DatePipe, RouterLink, TranslatePipe, CandidateListComponent, CropEditorComponent, PhotoViewerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './card.page.html',
     styleUrl: './card.page.scss'

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CropSource, CropStart } from '../../services/crop-start';
 import { Corners, Point, startCorners } from '../../services/perspective';
@@ -20,7 +20,7 @@ let nextEditor = 0;
 @Component({
     selector: 'app-crop-editor',
     standalone: true,
-    imports: [TranslateModule],
+    imports: [TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="stage" [attr.data-start]="source()">

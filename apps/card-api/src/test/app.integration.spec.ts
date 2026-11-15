@@ -10,12 +10,12 @@ import { after, before, describe, it } from 'node:test';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-import { JPEG, photoForm, startCatalogue, testFolder } from './test-env';
 import { configureApi } from '../api/configure-api';
 import { AppModule } from '../app.module';
 import { CardReader } from '../core/connectors/card.reader';
 import { CatalogService } from '../core/services/catalog.service';
 import { CardReading } from '../data/entities/types';
+import { JPEG, photoForm, startCatalogue, testFolder } from './test-env';
 
 interface Card {
     id: number;
