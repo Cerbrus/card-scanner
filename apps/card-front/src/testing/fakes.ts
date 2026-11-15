@@ -40,7 +40,7 @@ export interface FakeStore {
     loaded: WritableSignal<boolean>;
     failed: WritableSignal<boolean>;
     confirmed: Signal<Array<CardSummary>>;
-    inbox: Signal<Array<CardSummary>>;
+    unconfirmed: Signal<Array<CardSummary>>;
     reading: Signal<boolean>;
     totalValue: Signal<number>;
     ownPricedCount: Signal<number>;
@@ -61,7 +61,7 @@ export function fakeStore(cards: Array<CardSummary> = []): FakeStore {
         loaded: signal(true),
         failed: signal(false),
         confirmed,
-        inbox: computed(() => list().filter((known) => known.status !== 'confirmed')),
+        unconfirmed: computed(() => list().filter((known) => known.status !== 'confirmed')),
         reading: computed(() => list().some((known) => known.readingState === 'pending')),
         totalValue: computed(() => confirmed().reduce((total, known) => total + (known.value ?? 0), 0)),
         ownPricedCount: computed(() => confirmed().filter((known) => known.valueSource === 'own').length),

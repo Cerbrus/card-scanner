@@ -5,9 +5,9 @@ Photograph a Pokémon card, front and back, with a phone. The app keeps the phot
 ## What it does
 
 - **Scan**: two photos per card, taken with the phone's own camera app. Drag four corners onto the card and the phone cuts it out and straightens it, then makes the photos smaller before upload.
-- **Identify**: the phone reads the name and the number of a straightened card (Tesseract.js, on the phone, no key) and the scan arrives in the inbox with the catalogue cards that fit; the user confirms with a tap. The catalogue is a local copy of TCGdex (about 24,000 cards), searched by name and number. With an Anthropic API key, Claude can read the photos as well.
+- **Identify**: the phone reads the name, the number and the language of a straightened card (Tesseract.js, on the phone, no key). Right after saving, the scan page asks which card it is (the best fit is already chosen), its condition, holo or not, and its language; one tap saves it all and goes on to the next card. The catalogue is a local copy of TCGdex (about 24,000 cards), searched by name and number. With an Anthropic API key, Claude can read the photos as well.
 - **Price**: the Cardmarket price in EUR per card, with its own figure for a 1st edition or a reverse holo where the source has one. Refreshed daily, with a history per card. For the real price of a copy in its condition and language, the card page links to the filtered offers on Cardmarket and takes the price you find there.
-- **Collection**: grid with search, sort and filters on set, condition and language; markers for language, condition, holo, copies and cards that may be worth grading; total value, a page per card, an inbox for cards that are not confirmed yet, export as CSV, a log page for the owner.
+- **Collection**: grid with search, sort and filters on set, condition and language; markers for language, condition, holo, copies and cards that may be worth grading; total value, a page per card, a filter for cards that are not confirmed yet, export as CSV, a log page for the owner.
 - **Google**: once connected, photos go to a Drive folder, the collection to a sheet, and a copy of the database follows nightly. Photos of a deleted card go to the Drive trash. One way: the app writes, Google receives.
 - **Phone**: installable on the home screen, light and dark theme, Dutch and English.
 

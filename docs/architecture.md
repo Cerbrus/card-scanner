@@ -71,11 +71,11 @@ Schema changes go through migrations; `synchronize` is off.
 ## The scan flow
 
 1. The user opens the Scan page and takes the front photo, then the back photo, with the phone's camera app.
-2. After each photo the page shows four corners to drag onto the corners of the card, already placed on the card when it was found (`services/crop-start.ts`). The web app cuts the card out and straightens it to 63 by 88 (`services/perspective.ts`), or keeps the whole photo. A straightened front is read at once in the background (`services/card-text-reader.ts`, rules in `card-text.ts`): name and number, shown under the photos.
+2. After each photo the page shows four corners to drag onto the corners of the card, already placed on the card when it was found (`services/crop-start.ts`). The web app cuts the card out and straightens it to 63 by 88 (`services/perspective.ts`), or keeps the whole photo. A straightened front is read at once in the background (`services/card-text-reader.ts`, rules in `card-text.ts`): name, number and language, shown under the photos.
 3. The web app scales each photo to 2400 pixels, makes a 480-pixel thumbnail, and uploads the four files. The server checks that they are JPEGs, stores them as `<id>-front.jpg`, `<id>-front-thumb.jpg` and so on, and creates an `owned_card` with status `new`.
 4. With reading switched on, the card is queued for the model. The upload answers at once; the next card can be scanned.
 5. The reading fills in language, finish, 1st edition and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.
-6. The card waits in the Inbox. On its page the user taps the right candidate, or searches the catalogue by name and number and taps a result: status `confirmed`.
+6. Right after the upload the scan page shows the details step (`components/card-details`): the candidates with the best one chosen, a catalogue search, condition, finish and language (the language read, otherwise the one of the previous card). "Save and next card" stores the details and confirms the chosen card: status `confirmed`. "Later" leaves the card unconfirmed; the collection has a filter for those, and the card page finishes them.
 7. Confirming fetches the card's details and sets the price.
 8. Twenty seconds after the last change the sync copies what is new to Google, when connected.
 
@@ -160,8 +160,7 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 | Page | Content |
 |---|---|
 | Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort, filters on set, condition and language and on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies |
-| Scan | Two photos, each cropped and straightened by dragging four corners, save, straight on to the next card |
-| Inbox | Cards that are not confirmed, with their state |
+| Scan | Two photos, each cropped and straightened by dragging four corners, save, then the details step: which card, condition, finish, language; then the next card |
 | Card | Photos and catalogue picture, opened full screen with previous and next; crop a photo again or take a new one; candidates, catalogue search, the other copies, value, the grading mark, the field for the owner's own price, the source's price with history, the print and condition, delete |
 | Settings | What is on and off and why, Google connection, catalogue and prices, the log, export, theme, language, log out |
 | Log | The latest lines of the app's log, newest first, refreshed every 5 seconds (owner) |

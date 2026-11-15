@@ -1,6 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CardTileComponent } from '../../components/card-tile/card-tile.component';
@@ -18,6 +17,7 @@ export interface CardFilter {
     condition: string;
     language: string;
     grading: boolean;
+    unconfirmed: boolean;
 }
 
 export interface FilterOptions {
@@ -26,7 +26,7 @@ export interface FilterOptions {
     languages: Array<string>;
 }
 
-export const NO_FILTER: CardFilter = { search: '', set: '', condition: '', language: '', grading: false };
+export const NO_FILTER: CardFilter = { search: '', set: '', condition: '', language: '', grading: false, unconfirmed: false };
 
 const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> = {
     newest: (left, right) => right.createdAt.localeCompare(left.createdAt) || right.id - left.id,
@@ -46,7 +46,8 @@ function fits(card: CardSummary, filter: CardFilter): boolean {
         sameAs(filter.set, card.setName) &&
         sameAs(filter.condition, card.condition) &&
         sameAs(filter.language, card.language) &&
-        (!filter.grading || card.worthGrading)
+        (!filter.grading || card.worthGrading) &&
+        (!filter.unconfirmed || card.status !== 'confirmed')
     );
 }
 
@@ -73,7 +74,7 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
 @Component({
     selector: 'app-collection-page',
     standalone: true,
-    imports: [CurrencyPipe, RouterLink, TranslatePipe, CardTileComponent],
+    imports: [CurrencyPipe, TranslatePipe, CardTileComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="page">
@@ -84,8 +85,10 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
                     <div class="text-2xl font-bold">{{ store.totalValue() | currency: 'EUR' }}</div>
                     <div class="muted text-xs">{{ 'collection.valueOf' | translate: { own: store.ownPricedCount(), count: store.confirmed().length } }}</div>
                 </div>
-                @if (store.inbox().length; as waiting) {
-                    <a class="badge" routerLink="/inbox">{{ 'collection.waiting' | translate: { count: waiting } }}</a>
+                @if (store.unconfirmed().length; as waiting) {
+                    <button type="button" class="unconfirmed-filter badge" [class.on]="filter().unconfirmed" (click)="narrow('unconfirmed', !filter().unconfirmed)">
+                        {{ 'collection.waiting' | translate: { count: waiting } }}
+                    </button>
                 }
             </div>
 
@@ -177,6 +180,7 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
         .filters .field.active { border-color: var(--accent); }
         .filter-actions { display: flex; flex-wrap: wrap; gap: 6px; }
         .filter-actions .btn { font-size: 0.8rem; }
+        .unconfirmed-filter.on { background: var(--accent); color: var(--accent-text); }
     `
 })
 export class CollectionPage {
@@ -190,9 +194,9 @@ export class CollectionPage {
     protected readonly options = computed(() => filterOptions(this.store.cards()));
     protected readonly gradingCount = computed(() => this.store.cards().filter((card) => card.worthGrading).length);
     protected readonly filtered = computed(() => {
-        const { set, condition, language, grading } = this.filter();
+        const { set, condition, language, grading, unconfirmed } = this.filter();
 
-        return set || condition || language || grading;
+        return set || condition || language || grading || unconfirmed;
     });
 
     protected copiesOf(card: CardSummary): number {

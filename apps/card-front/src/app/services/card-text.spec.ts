@@ -1,4 +1,4 @@
-import { TextWord, bestNumber, nameFromWords, readName, readNumber } from './card-text';
+import { TextWord, bestNumber, nameFromWords, readLanguage, readName, readNumber } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -36,6 +36,16 @@ describe('reading name and number from the text on a card', () => {
         expect(nameFromWords([word('Fal', 20, 62, 30), word('Dragonite', 260, 60)])).toBe('Dragonite');
         expect(nameFromWords([word('ENGI', 40, 60)])).toBeUndefined();
         expect(nameFromWords([])).toBeUndefined();
+    });
+
+    it('tells the language from the weakness line, also with a misread letter', () => {
+        expect(readLanguage('weakness resistance retreat cost')).toBe('en');
+        expect(readLanguage('wcakness   resistanee\n retreat cost')).toBe('en');
+        expect(readLanguage('zwakheid resistentie terugtrekkosten')).toBe('nl');
+        expect(readLanguage('Schwache Resistenz Ruckzugskosten')).toBe('de');
+        expect(readLanguage('faiblesse résistance coût de retraite')).toBe('fr');
+        expect(readLanguage('-30')).toBeUndefined();
+        expect(readLanguage('')).toBeUndefined();
     });
 
     it('prefers a number that two readings agree on, otherwise the first one found', () => {

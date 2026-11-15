@@ -11,7 +11,6 @@ import { AuthService } from '../services/auth.service';
 import { CollectionStore } from '../services/collection.store';
 import { ToastService } from '../services/toast.service';
 import { CollectionPage, NO_FILTER, filterOptions, visibleCards } from './collection/collection.page';
-import { InboxPage } from './inbox/inbox.page';
 import { LogPage } from './log/log.page';
 import { LoginPage } from './login/login.page';
 import { SettingsPage } from './settings/settings.page';
@@ -142,12 +141,18 @@ describe('the pages around the collection', () => {
         ]);
     });
 
-    it('shows the total value, every card as a tile and a way to the inbox', () => {
-        open(CollectionPage);
+    it('shows the total value, every card as a tile, and the cards still to confirm on request', () => {
+        const fixture = open(CollectionPage);
 
         expect(page.querySelector('.text-2xl')?.textContent).toContain('388.33');
         expect(page.querySelectorAll('app-card-tile').length).toBe(5);
-        expect(page.querySelector('a.badge')?.getAttribute('href')).toBe('/inbox');
+        expect(texts(page, '.unconfirmed-filter')).toEqual(['collection.waiting']);
+
+        click(page, '.unconfirmed-filter');
+        fixture.detectChanges();
+        expect(Array.from(page.querySelectorAll('app-card-tile a'), (link) => link.getAttribute('href'))).toEqual(['/cards/5', '/cards/4']);
+        click(page, '.unconfirmed-filter');
+        fixture.detectChanges();
         expect(texts(page, '.tile-price')).toEqual(['≈ €385.83', '€2.50']);
         expect(page.querySelectorAll('.tile-price.rough').length).toBe(1);
     });
@@ -228,21 +233,6 @@ describe('the pages around the collection', () => {
         expect(store.cards().map(cardState)).toEqual(['confirmed', 'confirmed', 'confirmed', 'identified', 'reading']);
         expect(cardState(card(9, { status: 'new', readingState: 'failed' }))).toBe('failed');
         expect(cardState(card(9, { status: 'new', readingState: 'none' }))).toBe('unknown');
-    });
-
-    it('lists only the unconfirmed cards in the inbox, each linking to its page', () => {
-        open(InboxPage);
-
-        expect(texts(page, 'a.card .font-semibold')).toEqual(['Mystery', 'card.unknown']);
-        expect(texts(page, '.badge')).toEqual(['state.identified', 'state.reading']);
-        expect(Array.from(page.querySelectorAll('a.card'), (link) => link.getAttribute('href'))).toEqual(['/cards/4', '/cards/5']);
-    });
-
-    it('says the inbox is empty when every card is confirmed', () => {
-        store.cards.set([card(1)]);
-        open(InboxPage);
-
-        expect(texts(page, '.empty')).toEqual(['inbox.empty']);
     });
 
     it('offers the Google login and explains a refused account', () => {

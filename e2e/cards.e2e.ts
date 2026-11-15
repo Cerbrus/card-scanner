@@ -89,7 +89,22 @@ test('photograph both sides, straighten the front and save the card', async ({ p
     await expect(page.locator('.side.filled')).toHaveCount(2);
 
     await page.getByRole('button', { name: 'Kaart opslaan' }).click();
+    const details = page.locator('app-card-details');
+    await expect(details).toBeVisible();
+
+    await details.locator('input[type=search]').first().fill('Charizard');
+    await details.locator('input[type=search]').nth(1).fill('4');
+    await details.locator('button.search').click();
+    await details.locator('app-candidate-list button').first().click();
+    await expect(details.locator('.chosen')).toContainText('Charizard');
+    await details.locator('.choice.condition', { hasText: 'NM' }).click();
+    await details.locator('.choice.finish', { hasText: /^\s*Holo\s*$/ }).click();
+    await details.locator('.choice.language', { hasText: 'Nederlands' }).click();
+    await details.getByRole('button', { name: 'Opslaan en volgende kaart' }).click();
+
     await expect(page.getByText('Kaart opgeslagen')).toBeVisible();
+    await expect(details).toHaveCount(0);
+    await expect(page.locator('.sides')).toBeVisible();
     await expect(page.locator('.side.filled')).toHaveCount(0);
 });
 
@@ -108,17 +123,13 @@ test('stores the straightened front as a card shaped photo', async ({ request })
     expect([original.width, original.height]).toEqual([1200, 1600]);
 });
 
-test('confirm the scanned card from the inbox, and mark it worth grading', async ({ page }) => {
-    await page.goto('/#/inbox');
-    await page.locator('a.card').first().click();
+test('stores what was entered right after the scan, and marks the card worth grading', async ({ page, request }) => {
+    const [card] = await cards(request);
+    const detail = (await (await request.get(`/api/v1/cards/${card.id}`)).json()) as { status: string; name: string; condition: string; variant: string; language: string };
+    expect([detail.status, detail.name, detail.condition, detail.variant, detail.language]).toEqual(['confirmed', 'Charizard', 'near_mint', 'holo', 'nl']);
 
-    await page.locator('input[type=search]').first().fill('Charizard');
-    await page.locator('input[type=search]').nth(1).fill('4');
-    await page.getByRole('button', { name: 'Zoeken' }).click();
-    await page.locator('app-candidate-list button').first().click();
+    await page.goto(`/#/cards/${card.id}`);
     await expect(page.locator('h1')).toHaveText('Charizard');
-
-    await page.locator('select').first().selectOption('near_mint');
     await expect(page.locator('.grading-note')).toBeVisible();
 });
 
@@ -210,7 +221,9 @@ test('read the name and number of a straightened card and offer the matching cat
     await page.locator('input[type=file]').nth(1).setInputFiles({ name: 'back.jpg', mimeType: 'image/jpeg', buffer: await photo(page, '#2f5fd0') });
     await page.locator('app-crop-editor button.whole').click();
     await page.getByRole('button', { name: 'Kaart opslaan' }).click();
-    await expect(page.getByText('Kaart opgeslagen')).toBeVisible();
+    await expect(page.locator('app-card-details .chosen')).toContainText('Charizard');
+    await page.locator('app-card-details').getByRole('button', { name: 'Later' }).click();
+    await expect(page.locator('app-card-details')).toHaveCount(0);
 
     const [newest] = await cards(request);
     const detail = (await (await request.get(`/api/v1/cards/${newest.id}`)).json()) as { status: string; candidates: Array<{ catalogCardId: string }> };

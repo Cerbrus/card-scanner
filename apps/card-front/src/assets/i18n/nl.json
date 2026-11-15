@@ -9,7 +9,6 @@
     "nav": {
         "collection": "Collectie",
         "scan": "Scannen",
-        "inbox": "Inbox",
         "settings": "Instellingen"
     },
     "login": {
@@ -32,7 +31,6 @@
         "failed": "De kaart kon niet worden opgeslagen. Probeer het opnieuw.",
         "unreadable": "Die foto kon niet worden gebruikt. Maak hem opnieuw.",
         "count": "Zojuist {count, plural, one {# kaart} other {# kaarten}} gescand.",
-        "toInbox": "{count, plural, one {# kaart wacht} other {# kaarten wachten}} in de inbox",
         "crop": {
             "title": "{side} bijsnijden",
             "use": "Rechtzetten",
@@ -41,7 +39,7 @@
         "read": {
             "busy": "Naam en nummer lezen…",
             "found": "Gelezen: {name} · {number}",
-            "nothing": "Naam en nummer niet gevonden; kies de kaart in de inbox."
+            "nothing": "Naam en nummer niet gevonden; je kiest de kaart na het opslaan."
         }
     },
     "state": {
@@ -134,7 +132,7 @@
     "collection": {
         "title": "Collectie",
         "valueOf": "{own} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} door jou geprijsd, de rest tegen de algemene prijstrend (≈)",
-        "waiting": "{count} in de inbox",
+        "waiting": "{count} nog te bevestigen",
         "search": "Zoek op naam, set of nummer",
         "sort": "Sorteren",
         "sortBy": {
@@ -156,11 +154,6 @@
             "grading": "{count} het graderen waard",
             "clear": "Filters weg ({shown} van {count})"
         }
-    },
-    "inbox": {
-        "title": "Inbox",
-        "intro": "Kaarten die nog niet bevestigd zijn. Open er een om te zeggen welke kaart het is.",
-        "empty": "Niets te doen. Elke kaart is bevestigd."
     },
     "settings": {
         "title": "Instellingen",
@@ -250,5 +243,12 @@
         "close": "Sluiten",
         "previous": "Vorige foto",
         "next": "Volgende foto"
+    },
+    "details": {
+        "which": "Welke kaart is het",
+        "noCandidates": "Nog geen kaart gevonden; zoek op naam en nummer.",
+        "saveNext": "Opslaan en volgende kaart",
+        "saveUnknown": "Opslaan zonder kaart",
+        "later": "Later"
     }
 }

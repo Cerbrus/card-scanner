@@ -23,10 +23,6 @@ export const appRoutes: Array<Route> = [
                 loadComponent: () => import('../pages/scan/scan.page').then((m) => m.ScanPage)
             },
             {
-                path: 'inbox',
-                loadComponent: () => import('../pages/inbox/inbox.page').then((m) => m.InboxPage)
-            },
-            {
                 path: 'cards/:id',
                 loadComponent: () => import('../pages/card/card.page').then((m) => m.CardPage)
             },

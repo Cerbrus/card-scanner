@@ -283,12 +283,15 @@ describe('the whole app', () => {
         const form = photoForm();
         form.append('name', 'Charizard');
         form.append('number', '4/102');
+        form.append('language', 'nl');
         const created = await json<Card>('/cards', { method: 'POST', body: form });
         const card = await json<Card & { reading?: { name: string; number: string } }>(`/cards/${created.id}`);
 
         assert.equal(card.status, 'identified');
         assert.equal(card.candidates?.[0].catalogCardId, 'base1-4');
         assert.deepEqual([card.reading?.name, card.reading?.number], ['Charizard', '4/102']);
+        assert.equal((created as Card & { language?: string }).language, 'nl');
+        assert.equal((await fetch(`${api}/cards`, { method: 'POST', body: photoForm(undefined, undefined, {}, { language: 'xx' }) })).status, 400);
 
         const unread = await json<Card>('/cards', { method: 'POST', body: photoForm() });
         assert.equal(unread.status, 'new');

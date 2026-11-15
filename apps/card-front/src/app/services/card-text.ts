@@ -1,6 +1,9 @@
+import { Language } from '../models';
+
 export interface CardText {
     name?: string;
     number?: string;
+    language?: Language;
 }
 
 export interface TextWord {
@@ -23,6 +26,15 @@ export const NUMBER_CORNERS: Array<Region> = [
     { left: 0.02, top: 0.944, width: 0.32, height: 0.048 }
 ];
 export const NUMBER_REGION: Region = { left: 0.03, top: 0.885, width: 0.94, height: 0.1 };
+export const LANGUAGE_REGION: Region = { left: 0.04, top: 0.805, width: 0.92, height: 0.045 };
+
+const LANGUAGE_WORDS: Record<Language, Array<string>> = {
+    en: ['weakness', 'resistance', 'retreat', 'cost'],
+    nl: ['zwakheid', 'zwakte', 'resistentie', 'terugtrekkosten', 'terugtrekken', 'kosten'],
+    de: ['schwäche', 'schwache', 'resistenz', 'rückzugskosten', 'ruckzugskosten', 'rückzug'],
+    fr: ['faiblesse', 'résistance', 'retraite', 'coût']
+};
+const MIN_WORD_MATCH = 0.75;
 
 const CARD_NUMBER = /([A-Z]{0,3})(\d+)\s*[/|]\s*([A-Z]{0,3})(\d{2,3})(?!\d)/g;
 const SECRET_RARE_ROOM = 1.3;
@@ -43,6 +55,35 @@ export function readNumber(text: string): string | undefined {
     }
 
     return undefined;
+}
+
+export function readLanguage(text: string): Language | undefined {
+    const words = text
+        .toLowerCase()
+        .split(/[^a-zà-ÿ]+/)
+        .filter((word) => word.length >= 4);
+    const scores = (Object.keys(LANGUAGE_WORDS) as Array<Language>).map((language) => ({
+        language,
+        score: LANGUAGE_WORDS[language].filter((known) => words.some((word) => likeness(word, known) >= MIN_WORD_MATCH)).length
+    }));
+    const [best, second] = scores.sort((left, right) => right.score - left.score);
+
+    return best.score && best.score > (second?.score ?? 0) ? best.language : undefined;
+}
+
+function likeness(word: string, known: string): number {
+    const previous = Array.from({ length: known.length + 1 }, (_, index) => index);
+    for (let row = 1; row <= word.length; row++) {
+        let diagonal = previous[0];
+        previous[0] = row;
+        for (let column = 1; column <= known.length; column++) {
+            const above = previous[column];
+            previous[column] = Math.min(previous[column] + 1, previous[column - 1] + 1, diagonal + (word[row - 1] === known[column - 1] ? 0 : 1));
+            diagonal = above;
+        }
+    }
+
+    return 1 - previous[known.length] / Math.max(word.length, known.length);
 }
 
 export function bestNumber(readings: Array<string | undefined>): string | undefined {

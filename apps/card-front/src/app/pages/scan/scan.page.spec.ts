@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { FakeStore, card, click, fakeStore, texts } from '../../../testing/fakes';
+import { FakeStore, card, click, detail, fakeStore, texts } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
 import { ApiService } from '../../services/api.service';
 import { CardTextReader } from '../../services/card-text-reader';
@@ -27,7 +27,8 @@ describe('ScanPage', () => {
     let fixture: ComponentFixture<ScanPage>;
     let page: HTMLElement;
     let store: FakeStore;
-    const api = { createCard: vi.fn() };
+    const charizard = { catalogCardId: 'base1-4', name: 'Charizard', localId: '4', setId: 'base1', setName: 'Base Set', score: 13 };
+    const api = { createCard: vi.fn(), getCard: vi.fn(), updateCard: vi.fn(), confirmCard: vi.fn(), searchCatalog: vi.fn() };
 
     const pick = (index: number): void => {
         const input = page.querySelectorAll('input[type=file]')[index] as HTMLInputElement;
@@ -56,6 +57,9 @@ describe('ScanPage', () => {
         reader.read.mockClear();
         store = fakeStore();
         api.createCard.mockReset();
+        api.getCard.mockReset().mockImplementation((id: number) => of(detail(id, { status: 'identified', candidates: [charizard] })));
+        api.updateCard.mockReset().mockImplementation((id: number) => of(detail(id, { status: 'identified' })));
+        api.confirmCard.mockReset().mockImplementation((id: number) => of(detail(id, { name: 'Charizard' })));
         URL.createObjectURL = vi.fn(() => 'blob:preview');
         URL.revokeObjectURL = vi.fn();
         TestBed.configureTestingModule({
@@ -172,7 +176,7 @@ describe('ScanPage', () => {
         expect(saveButton().disabled).toBe(false);
     });
 
-    it('sends both photos with their small versions, then is ready for the next card', async () => {
+    it('sends both photos, then asks right away which card it is with its condition, finish and language', async () => {
         api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
         await photograph(0);
         await photograph(1);
@@ -184,9 +188,43 @@ describe('ScanPage', () => {
         const form = api.createCard.mock.calls[0][0] as FormData;
         expect(Array.from(form.keys())).toEqual(['front', 'frontThumb', 'back', 'backThumb']);
         expect(store.put).toHaveBeenCalledWith(card(7, { status: 'new' }));
+        expect(page.querySelector('.sides')).toBeNull();
+        expect(texts(page, 'app-card-details .chosen .font-semibold')).toEqual(['Charizard']);
+
+        click(page, 'app-card-details .choice.condition', 1);
+        click(page, 'app-card-details .choice.finish', 1);
+        click(page, 'app-card-details .choice.language', 1);
+        fixture.detectChanges();
+        click(page, 'app-card-details .save');
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(api.updateCard).toHaveBeenCalledWith(7, { condition: 'near_mint', variant: 'holo', language: 'nl' });
+        expect(api.confirmCard).toHaveBeenCalledWith(7, 'base1-4');
         expect(toasts()).toEqual(['ok: scan.saved']);
+        expect(page.querySelector('app-card-details')).toBeNull();
         expect(page.querySelectorAll('.side.filled').length).toBe(0);
-        expect(texts(page, 'p.card')[0]).toContain('scan.count');
+        expect(texts(page, 'p.muted.mt-4')[0]).toContain('scan.count');
+        expect(localStorage.getItem('last-card-language')).toBe('nl');
+    });
+
+    it('lets the details wait, keeping the card unconfirmed, and remembers the last language for the next card', async () => {
+        localStorage.setItem('last-card-language', 'de');
+        api.createCard.mockReturnValue(of(card(8, { status: 'new' })));
+        api.getCard.mockReturnValue(of(detail(8, { status: 'new', candidates: [] })));
+        await photograph(0);
+        await photograph(1);
+        saveButton().click();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(page.querySelector('app-card-details .choice.language.on')?.textContent).toContain('language.de');
+        expect(texts(page, 'app-card-details .save')).toEqual(['check details.saveUnknown']);
+
+        click(page, 'app-card-details .later');
+        fixture.detectChanges();
+        expect(page.querySelector('app-card-details')).toBeNull();
+        expect(api.updateCard).not.toHaveBeenCalled();
     });
 
     it('keeps the photos when saving fails, so the user can try again', async () => {

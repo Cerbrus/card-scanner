@@ -1,7 +1,9 @@
 <div class="page">
     <h1 class="page-title">{{ 'scan.title' | translate }}</h1>
 
-    @if (cropping(); as cropping) {
+    @if (details(); as card) {
+        <app-card-details [card]="card" (saved)="detailsSaved($event)" (later)="finishDetails()" (failed)="detailsFailed()" />
+    } @else if (cropping(); as cropping) {
         <h2 class="section-title !mt-0">{{ 'scan.crop.title' | translate: { side: ('scan.' + cropping.side | translate) } }}</h2>
         <app-crop-editor [src]="cropping.url" (done)="cropped($event)" (cancelled)="stopCropping()" />
     } @else {
@@ -29,8 +31,11 @@
                 <i class="material-symbols-outlined text-base leading-none">{{ reading.done ? 'text_fields' : 'hourglass_top' }}</i>
                 @if (!reading.done) {
                     {{ 'scan.read.busy' | translate }}
-                } @else if (reading.text?.name || reading.text?.number) {
+                } @else if (reading.text?.name || reading.text?.number || reading.text?.language) {
                     {{ 'scan.read.found' | translate: { name: reading.text?.name ?? '?', number: reading.text?.number ?? '?' } }}
+                    @if (reading.text?.language; as language) {
+                        · {{ 'language.' + language | translate }}
+                    }
                 } @else {
                     {{ 'scan.read.nothing' | translate }}
                 }
@@ -50,11 +55,6 @@
     }
 
     @if (saved(); as count) {
-        <p class="card mt-4 text-sm">
-            {{ 'scan.count' | translate: { count } }}
-            @if (store.inbox().length; as waiting) {
-                <a class="font-semibold underline" routerLink="/inbox">{{ 'scan.toInbox' | translate: { count: waiting } }}</a>
-            }
-        </p>
+        <p class="muted mt-4 text-sm">{{ 'scan.count' | translate: { count } }}</p>
     }
 </div>

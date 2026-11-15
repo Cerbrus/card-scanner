@@ -27,9 +27,6 @@
         <a class="tab" [routerLink]="link.route" routerLinkActive="active">
             <span class="tab-icon">
                 <i class="material-symbols-outlined">{{ link.icon }}</i>
-                @if (link.route === '/inbox' && inboxCount()) {
-                    <span class="tab-badge">{{ inboxCount() }}</span>
-                }
             </span>
             <span>{{ link.label | translate }}</span>
         </a>

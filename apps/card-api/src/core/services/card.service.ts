@@ -38,6 +38,7 @@ export interface PhotoUpload {
 export interface ScanText {
     name?: string;
     number?: string;
+    language?: Language;
 }
 
 export interface CardChanges {
@@ -132,6 +133,7 @@ export class CardService implements OnApplicationBootstrap {
                 status: 'new',
                 readingState: this.reader.enabled ? 'pending' : 'none',
                 firstEdition: false,
+                language: text.language ?? null,
                 notes: '',
                 createdAt: now,
                 updatedAt: now

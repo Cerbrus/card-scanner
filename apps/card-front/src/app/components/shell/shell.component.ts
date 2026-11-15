@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -24,12 +24,10 @@ interface NavLink {
 export class ShellComponent {
     protected readonly store = inject(CollectionStore);
     protected readonly toasts = inject(ToastService);
-    protected readonly inboxCount = computed(() => this.store.inbox().length);
 
     protected readonly links: Array<NavLink> = [
         { route: '/collection', label: 'nav.collection', icon: 'style' },
         { route: '/scan', label: 'nav.scan', icon: 'photo_camera' },
-        { route: '/inbox', label: 'nav.inbox', icon: 'inbox' },
         { route: '/settings', label: 'nav.settings', icon: 'settings' }
     ];
 

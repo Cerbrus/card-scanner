@@ -9,7 +9,6 @@
     "nav": {
         "collection": "Collection",
         "scan": "Scan",
-        "inbox": "Inbox",
         "settings": "Settings"
     },
     "login": {
@@ -32,7 +31,6 @@
         "failed": "The card could not be saved. Try again.",
         "unreadable": "That photo could not be used. Take it again.",
         "count": "{count, plural, one {# card} other {# cards}} scanned just now.",
-        "toInbox": "{count, plural, one {# card waits} other {# cards wait}} in the inbox",
         "crop": {
             "title": "Crop the {side}",
             "use": "Straighten",
@@ -41,7 +39,7 @@
         "read": {
             "busy": "Reading the name and number…",
             "found": "Read: {name} · {number}",
-            "nothing": "Name and number not found; pick the card in the inbox."
+            "nothing": "Name and number not found; you pick the card after saving."
         }
     },
     "state": {
@@ -134,7 +132,7 @@
     "collection": {
         "title": "Collection",
         "valueOf": "{own} of {count, plural, one {# confirmed card} other {# confirmed cards}} priced by you, the rest at the general price trend (≈)",
-        "waiting": "{count} in the inbox",
+        "waiting": "{count} still to confirm",
         "search": "Search name, set or number",
         "sort": "Sort",
         "sortBy": {
@@ -156,11 +154,6 @@
             "grading": "{count} worth grading",
             "clear": "Clear filters ({shown} of {count})"
         }
-    },
-    "inbox": {
-        "title": "Inbox",
-        "intro": "Cards that are not confirmed yet. Open one to say which card it is.",
-        "empty": "Nothing waiting. Every card is confirmed."
     },
     "settings": {
         "title": "Settings",
@@ -250,5 +243,12 @@
         "close": "Close",
         "previous": "Previous photo",
         "next": "Next photo"
+    },
+    "details": {
+        "which": "Which card is it",
+        "noCandidates": "No card found yet; search by name and number.",
+        "saveNext": "Save and next card",
+        "saveUnknown": "Save without card",
+        "later": "Later"
     }
 }

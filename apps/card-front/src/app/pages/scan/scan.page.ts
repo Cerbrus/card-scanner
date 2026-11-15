@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, from, of, switchMap, tap } from 'rxjs';
 
+import { CardDetailsComponent } from '../../components/card-details/card-details.component';
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
-import { PhotoSide } from '../../models';
+import { CardDetail, PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { CardText } from '../../services/card-text';
 import { CardTextReader } from '../../services/card-text-reader';
@@ -36,7 +36,7 @@ const READ_WAIT_MILLISECONDS = 20_000;
 @Component({
     selector: 'app-scan-page',
     standalone: true,
-    imports: [RouterLink, TranslatePipe, CropEditorComponent],
+    imports: [TranslatePipe, CropEditorComponent, CardDetailsComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './scan.page.html',
     styleUrl: './scan.page.scss'
@@ -48,6 +48,7 @@ export class ScanPage {
     protected readonly saved = signal(0);
     protected readonly cropping = signal<Cropping | undefined>(undefined);
     protected readonly textReading = signal<TextReading | undefined>(undefined);
+    protected readonly details = signal<CardDetail | undefined>(undefined);
     protected readonly complete = computed(() => SIDES.every((side) => this.shots()[side]));
     protected readonly store = inject(CollectionStore);
 
@@ -133,11 +134,11 @@ export class ScanPage {
 
                     return this.api.createCard(form);
                 }),
+                tap((card) => this.store.put(card)),
+                switchMap((card) => this.api.getCard(card.id)),
                 tap((card) => {
-                    this.store.put(card);
-                    this.saved.update((count) => count + 1);
                     this.forget();
-                    this.toasts.show({ kind: 'ok', text: this.translate.instant('scan.saved') });
+                    this.details.set(card);
                 }),
                 catchError(() => {
                     this.toasts.show({ kind: 'error', text: this.translate.instant('scan.failed') });
@@ -148,6 +149,21 @@ export class ScanPage {
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe();
+    }
+
+    protected detailsSaved(card: CardDetail): void {
+        this.store.put(card);
+        this.finishDetails();
+        this.toasts.show({ kind: 'ok', text: this.translate.instant('scan.saved') });
+    }
+
+    protected detailsFailed(): void {
+        this.toasts.show({ kind: 'error', text: this.translate.instant('common.failed') });
+    }
+
+    protected finishDetails(): void {
+        this.details.set(undefined);
+        this.saved.update((count) => count + 1);
     }
 
     protected forget(): void {

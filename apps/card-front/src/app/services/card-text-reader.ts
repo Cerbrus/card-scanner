@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import type { Worker as TextWorker } from 'tesseract.js';
 
 import { otsuThreshold } from './card-finder';
-import { CardText, NAME_REGION, NUMBER_CORNERS, NUMBER_REGION, Region, TextWord, bestNumber, nameFromWords, readName, readNumber } from './card-text';
+import { CardText, LANGUAGE_REGION, NAME_REGION, NUMBER_CORNERS, NUMBER_REGION, Region, TextWord, bestNumber, nameFromWords, readLanguage, readName, readNumber } from './card-text';
 
 const LINE_HEIGHT = 140;
 const IDLE_MILLISECONDS = 180_000;
@@ -31,7 +31,12 @@ export class CardTextReader {
             const worker = await this.start();
             const card = await createImageBitmap(cardPhoto);
             try {
-                return { name: await this.readName(worker, card), number: await this.readNumber(worker, card) };
+                const name = await this.readName(worker, card);
+                const number = await this.readNumber(worker, card);
+                await worker.setParameters({ tessedit_pageseg_mode: SPARSE_TEXT as never, tessedit_char_whitelist: '' });
+                const language = readLanguage((await worker.recognize(this.strip(card, LANGUAGE_REGION))).data.text);
+
+                return { name, number, language };
             } finally {
                 card.close();
             }

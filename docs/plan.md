@@ -62,9 +62,11 @@ Also open for the owner to decide:
 
 - [x] Local copy of the TCGdex catalogue, fetched at first start and weekly (done 2026-11-14 15:55)
 - [x] Search by name and number, best fit first; tap to confirm (done 2026-11-14 15:55)
-- [x] Inbox with the cards that are not confirmed (done 2026-11-14 15:55)
+- [x] Inbox with the cards that are not confirmed (done 2026-11-14 15:55); replaced by the details step on the scan page and a filter in the collection (done 2026-11-15 23:10)
+- [x] Details step right after the scan: which card (best fit chosen), condition, finish, language; one tap to save and go to the next card (done 2026-11-15 23:10)
+- [x] The language read from the weakness line of the straightened front (done 2026-11-15 23:10)
 - [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set; the owner will not set one (done 2026-11-14 15:55)
-- [x] Reading name and number on the phone with Tesseract.js from fixed strips of the straightened front; the scan arrives in the inbox with the catalogue cards that fit, and the search fields filled in (done 2026-11-15 20:40)
+- [x] Reading name and number on the phone with Tesseract.js from fixed strips of the straightened front; the details step after the scan starts with the catalogue cards that fit, and the search fields filled in (done 2026-11-15 20:40)
 
 ### Milestone 4: prices
 
