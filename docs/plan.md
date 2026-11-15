@@ -25,7 +25,7 @@ Also open for the owner to decide:
 - **Login with Google** in this app. The code is the barcode scanner's, where it works; the routes are tested with signed sessions.
 - **The scan page on a real phone**: opening the camera, the size and quality of the scaled photos, rotation of portrait photos.
 - **Condition estimates**: whether the model's judgement from phone photos is useful at all.
-- **The filtered Cardmarket link.** It is built from the product id (`Products?idProduct=...&language=...&minCondition=...`). Whether Cardmarket keeps the filter when it forwards to the product page, and whether the language and condition numbers are right for every language, has only been checked against one example link (Dutch, Excellent).
+- **The filtered Cardmarket link for other languages than Dutch.** The owner checked on 2026-11-15 that Cardmarket keeps the filter when it forwards from the product id to the product page (Dutch, Excellent). The language numbers for the other languages come from memory and are not checked.
 - **Dutch and other non-English prints**: found through number and set total in tests with made-up readings; not tried with real cards.
 - **`install.sh` on a fresh Pi.** On the server Pi it ran fine, but Docker and the memory settings were already there.
 - **A restore** from the Drive copy.
