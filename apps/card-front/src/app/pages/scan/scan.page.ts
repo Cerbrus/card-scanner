@@ -4,9 +4,11 @@ import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, of, tap } from 'rxjs';
 
+import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
 import { PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { CollectionStore } from '../../services/collection.store';
+import { Corners } from '../../services/perspective';
 import { PhotoScaler, ScaledPhoto } from '../../services/photo-scaler';
 import { ToastService } from '../../services/toast.service';
 
@@ -14,12 +16,18 @@ interface Shot extends ScaledPhoto {
     preview: string;
 }
 
+interface Cropping {
+    side: PhotoSide;
+    file: File;
+    url: string;
+}
+
 const SIDES: Array<PhotoSide> = ['front', 'back'];
 
 @Component({
     selector: 'app-scan-page',
     standalone: true,
-    imports: [RouterLink, TranslateModule],
+    imports: [RouterLink, TranslateModule, CropEditorComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './scan.page.html',
     styleUrl: './scan.page.scss'
@@ -29,6 +37,7 @@ export class ScanPage {
     protected readonly shots = signal<Partial<Record<PhotoSide, Shot>>>({});
     protected readonly busy = signal<PhotoSide | 'saving' | undefined>(undefined);
     protected readonly saved = signal(0);
+    protected readonly cropping = signal<Cropping | undefined>(undefined);
     protected readonly complete = computed(() => SIDES.every((side) => this.shots()[side]));
     protected readonly store = inject(CollectionStore);
 
@@ -39,20 +48,41 @@ export class ScanPage {
     private readonly destroyRef = inject(DestroyRef);
 
     constructor() {
-        this.destroyRef.onDestroy(() => this.forget());
+        this.destroyRef.onDestroy(() => {
+            this.forget();
+            this.stopCropping();
+        });
     }
 
-    protected async choose(side: PhotoSide, event: Event): Promise<void> {
+    protected choose(side: PhotoSide, event: Event): void {
         const input = event.target as HTMLInputElement;
         const file = input.files?.[0];
         input.value = '';
-        if (!file) {
+        if (file) {
+            this.stopCropping();
+            this.cropping.set({ side, file, url: URL.createObjectURL(file) });
+        }
+    }
+
+    protected stopCropping(): void {
+        const cropping = this.cropping();
+        if (cropping) {
+            URL.revokeObjectURL(cropping.url);
+            this.cropping.set(undefined);
+        }
+    }
+
+    protected async cropped(corners: Corners | undefined): Promise<void> {
+        const cropping = this.cropping();
+        if (!cropping) {
             return;
         }
+        const { side, file } = cropping;
+        this.stopCropping();
 
         this.busy.set(side);
         try {
-            const scaled = await this.scaler.scale(file);
+            const scaled = corners ? await this.scaler.straighten(file, corners) : await this.scaler.scale(file);
             this.release(this.shots()[side]);
             this.shots.update((shots) => ({ ...shots, [side]: { ...scaled, preview: URL.createObjectURL(scaled.thumb) } }));
         } catch {

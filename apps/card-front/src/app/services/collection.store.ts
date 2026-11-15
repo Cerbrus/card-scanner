@@ -17,6 +17,7 @@ export class CollectionStore {
     public readonly reading = computed(() => this.cards().some((card) => card.readingState === 'pending'));
     public readonly totalValue = computed(() => this.confirmed().reduce((total, card) => total + (card.value ?? 0), 0));
     public readonly ownPricedCount = computed(() => this.confirmed().filter((card) => card.valueSource === 'own').length);
+    public readonly copies = computed(() => countCopies(this.confirmed()));
 
     private readonly api = inject(ApiService);
 
@@ -49,4 +50,19 @@ export class CollectionStore {
     public drop(id: number): void {
         this.cards.update((cards) => cards.filter((card) => card.id !== id));
     }
+
+    public copiesOf(card: CardSummary): Array<CardSummary> {
+        return card.catalogCardId ? this.confirmed().filter((known) => known.catalogCardId === card.catalogCardId) : [];
+    }
+}
+
+export function countCopies(cards: Array<CardSummary>): Map<string, number> {
+    const counts = new Map<string, number>();
+    for (const card of cards) {
+        if (card.catalogCardId) {
+            counts.set(card.catalogCardId, (counts.get(card.catalogCardId) ?? 0) + 1);
+        }
+    }
+
+    return counts;
 }

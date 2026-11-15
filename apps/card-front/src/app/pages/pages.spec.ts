@@ -3,8 +3,9 @@ import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
-import { CollectionPage, visibleCards } from './collection/collection.page';
+import { CollectionPage, NO_FILTER, filterOptions, visibleCards } from './collection/collection.page';
 import { InboxPage } from './inbox/inbox.page';
+import { LogPage } from './log/log.page';
 import { LoginPage } from './login/login.page';
 import { SettingsPage } from './settings/settings.page';
 import { FakeStore, card, choose, click, fakeStore, system, texts, type } from '../../testing/fakes';
@@ -24,6 +25,7 @@ describe('the pages around the collection', () => {
         googleConnectUrl: '/api/v1/google/connect',
         photoUrl: (id: number, thumb = false): string => `/photos/${id}${thumb ? '?thumb' : ''}`,
         getSystem: vi.fn(),
+        getLogs: vi.fn(),
         refreshCatalog: vi.fn(() => of({})),
         refreshPrices: vi.fn(() => of({ priced: 1 })),
         runSync: vi.fn(() => of({})),
@@ -72,12 +74,72 @@ describe('the pages around the collection', () => {
         const cards = store.cards().slice(0, 3);
         const ids = (sorted: ReturnType<typeof visibleCards>): Array<number> => sorted.map((known) => known.id);
 
-        expect(ids(visibleCards(cards, '', 'newest'))).toEqual([3, 2, 1]);
-        expect(ids(visibleCards(cards, '', 'name'))).toEqual([3, 2, 1]);
-        expect(ids(visibleCards(cards, '', 'value'))).toEqual([2, 1, 3]);
-        expect(ids(visibleCards(cards, '', 'set'))).toEqual([1, 3, 2]);
-        expect(ids(visibleCards(cards, ' jungle ', 'newest'))).toEqual([2]);
-        expect(ids(visibleCards(cards, 'PIKA', 'newest'))).toEqual([1]);
+        const searching = (search: string): typeof NO_FILTER => ({ ...NO_FILTER, search });
+
+        expect(ids(visibleCards(cards, NO_FILTER, 'newest'))).toEqual([3, 2, 1]);
+        expect(ids(visibleCards(cards, NO_FILTER, 'name'))).toEqual([3, 2, 1]);
+        expect(ids(visibleCards(cards, NO_FILTER, 'value'))).toEqual([2, 1, 3]);
+        expect(ids(visibleCards(cards, NO_FILTER, 'set'))).toEqual([1, 3, 2]);
+        expect(ids(visibleCards(cards, searching(' jungle '), 'newest'))).toEqual([2]);
+        expect(ids(visibleCards(cards, searching('PIKA'), 'newest'))).toEqual([1]);
+    });
+
+    it('filters on set, condition and language, also on those that are not known, and on cards worth grading', () => {
+        const cards = [
+            card(1, { setName: 'Jungle', condition: 'near_mint', language: 'nl', worthGrading: true }),
+            card(2, { setName: 'Base Set', condition: 'poor', language: 'en' }),
+            card(3, { setName: undefined, condition: undefined, language: 'nl' })
+        ];
+        const ids = (filter: Partial<typeof NO_FILTER>): Array<number> => visibleCards(cards, { ...NO_FILTER, ...filter }, 'newest').map((known) => known.id);
+
+        expect(ids({ set: 'Jungle' })).toEqual([1]);
+        expect(ids({ set: 'unknown' })).toEqual([3]);
+        expect(ids({ condition: 'unknown' })).toEqual([3]);
+        expect(ids({ language: 'nl' })).toEqual([3, 1]);
+        expect(ids({ language: 'nl', condition: 'near_mint' })).toEqual([1]);
+        expect(ids({ grading: true })).toEqual([1]);
+        expect(filterOptions(cards)).toEqual({
+            sets: ['Base Set', 'Jungle', 'unknown'],
+            conditions: ['near_mint', 'poor', 'unknown'],
+            languages: ['en', 'nl']
+        });
+    });
+
+    it('narrows the grid with the filter fields and clears them in one tap', () => {
+        store.cards.set([card(1, { condition: 'mint', worthGrading: true }), card(2, { condition: 'poor' }), card(3)]);
+        const fixture = open(CollectionPage);
+
+        choose(page, 'select.filter-condition', 'poor');
+        fixture.detectChanges();
+        expect(texts(page, '.tile-name')).toEqual(['Card 2']);
+        expect(texts(page, '.clear-filters')).toEqual(['filter_alt_off collection.filter.clear']);
+
+        click(page, '.clear-filters');
+        fixture.detectChanges();
+        expect(page.querySelectorAll('app-card-tile').length).toBe(3);
+
+        click(page, '.grading-filter');
+        fixture.detectChanges();
+        expect(texts(page, '.tile-name')).toEqual(['Card 1']);
+    });
+
+    it('marks cards worth grading and counts the copies of the same catalogue card', () => {
+        store.cards.set([
+            card(1, { catalogCardId: 'base1-4', worthGrading: true }),
+            card(2, { catalogCardId: 'base1-4' }),
+            card(3, { catalogCardId: 'base1-58' }),
+            card(4, { catalogCardId: 'base1-4', status: 'identified' })
+        ]);
+        open(CollectionPage);
+
+        const marks = Array.from(page.querySelectorAll('app-card-tile'), (tile) => [tile.querySelector('.grading') !== null, tile.querySelector('.copies')?.textContent ?? '']);
+
+        expect(marks).toEqual([
+            [false, ''],
+            [false, ''],
+            [false, '×2'],
+            [true, '×2']
+        ]);
     });
 
     it('shows the total value, every card as a tile and a way to the inbox', () => {
@@ -131,6 +193,28 @@ describe('the pages around the collection', () => {
         choose(page, 'select', 'value');
         fixture.detectChanges();
         expect(texts(page, '.tile-name').slice(0, 2)).toEqual(['Charizard', 'Pikachu']);
+    });
+
+    it('shows the log with the newest line on top and says so when it cannot be read', async () => {
+        api.getLogs.mockReturnValue(
+            of([
+                { id: 1, time: '2026-11-15T10:00:00.000Z', source: 'app', level: 'info', message: 'started' },
+                { id: 2, time: '2026-11-15T10:01:00.000Z', source: 'app', level: 'warning', message: 'sync failed' }
+            ])
+        );
+        const fixture = open(LogPage);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        fixture.detectChanges();
+
+        expect(texts(page, '.message')).toEqual(['started', 'sync failed']);
+        expect(page.querySelector('.line.warning')).not.toBeNull();
+
+        api.getLogs.mockReturnValue(throwError(() => new Error('forbidden')));
+        const refused = open(LogPage);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        refused.detectChanges();
+
+        expect(texts(page, '.empty')).toEqual(['log.failed']);
     });
 
     it('invites to scan when there are no cards at all', () => {

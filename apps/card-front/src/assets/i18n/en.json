@@ -36,7 +36,13 @@
         "toInbox": "{count, plural, one {# card waits} other {# cards wait}} in the inbox",
         "tipLight": "Use even light without glare; foil reflects.",
         "tipFill": "Let the card fill the picture, on a plain dark surface.",
-        "tipBack": "The back shows most wear: keep edges and corners sharp."
+        "tipBack": "The back shows most wear: keep edges and corners sharp.",
+        "crop": {
+            "title": "Crop the {side}",
+            "hint": "Drag the four corners onto the corners of the card. The card is straightened and cut out.",
+            "use": "Straighten",
+            "whole": "Whole photo"
+        }
     },
     "state": {
         "unknown": "Not identified",
@@ -95,7 +101,9 @@
             "trend": "General price trend, not for this condition or language"
         },
         "ownPrice": "Price for this copy (EUR)",
-        "ownPriceHint": "Open Cardmarket below: the offers are filtered on the language and condition of this copy. Type the price you find here. Empty the field to go back to the price trend."
+        "ownPriceHint": "Open Cardmarket below: the offers are filtered on the language and condition of this copy. Type the price you find here. Empty the field to go back to the price trend.",
+        "copies": "{count} copies of this card. The others:",
+        "worthGrading": "Maybe worth grading: this copy is worth {minimum} or more and is near mint or better."
     },
     "condition": {
         "mint": "Mint",
@@ -137,7 +145,18 @@
             "set": "Set"
         },
         "noMatch": "No card matches that search.",
-        "empty": "No cards yet. Scan the first one."
+        "empty": "No cards yet. Scan the first one.",
+        "filter": {
+            "set": "Set",
+            "condition": "Condition",
+            "language": "Language",
+            "allSets": "All sets",
+            "allConditions": "All conditions",
+            "allLanguages": "All languages",
+            "unknown": "Not known",
+            "grading": "{count} worth grading",
+            "clear": "Clear filters ({shown} of {count})"
+        }
     },
     "inbox": {
         "title": "Inbox",
@@ -201,7 +220,8 @@
                 "light": "Light",
                 "dark": "Dark"
             }
-        }
+        },
+        "log": "Log"
     },
     "conditionShort": {
         "mint": "MT",
@@ -218,6 +238,13 @@
         "value": {
             "own": "Your price for this copy",
             "trend": "General price trend, not priced for this copy"
-        }
+        },
+        "grading": "Maybe worth grading",
+        "copies": "{count} copies of this card"
+    },
+    "log": {
+        "title": "Log",
+        "empty": "Nothing logged yet.",
+        "failed": "The log could not be loaded. Only the owner may see it."
     }
 }

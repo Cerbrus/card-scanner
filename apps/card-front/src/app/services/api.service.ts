@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Candidate, CardChanges, CardDetail, CardSummary, CatalogState, Health, SyncState, SystemState } from '../models';
+import { Candidate, CardChanges, CardDetail, CardSummary, CatalogState, Health, LogLine, SyncState, SystemState } from '../models';
 import { SettingsService } from './settings/settings.service';
 
 @Injectable({ providedIn: 'root' })
@@ -32,6 +32,10 @@ export class ApiService {
 
     public getSystem(): Observable<SystemState> {
         return this.http.get<SystemState>(`${this.baseUrl}/system`);
+    }
+
+    public getLogs(): Observable<Array<LogLine>> {
+        return this.http.get<Array<LogLine>>(`${this.baseUrl}/logs`, { params: { limit: 500 } });
     }
 
     public getCards(): Observable<Array<CardSummary>> {

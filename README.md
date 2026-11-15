@@ -4,11 +4,11 @@ Photograph a Pokémon card, front and back, with a phone. The app keeps the phot
 
 ## What it does
 
-- **Scan**: two photos per card, taken with the phone's own camera app. The phone makes them smaller before upload.
+- **Scan**: two photos per card, taken with the phone's own camera app. Drag four corners onto the card and the phone cuts it out and straightens it, then makes the photos smaller before upload.
 - **Identify**: a local copy of the TCGdex catalogue (about 24,000 cards) is searched by name and number. With an Anthropic API key, Claude reads the photos and proposes the card, the print and the condition; the user confirms with a tap. Without a key, the user searches and picks the card.
 - **Price**: the Cardmarket price in EUR per card, with its own figure for a 1st edition or a reverse holo where the source has one. Refreshed daily, with a history per card. For the real price of a copy in its condition and language, the card page links to the filtered offers on Cardmarket and takes the price you find there.
-- **Collection**: grid with search and sort, markers for language and condition on each card, total value, a page per card, an inbox for cards that are not confirmed yet, export as CSV.
-- **Google**: once connected, photos go to a Drive folder, the collection to a sheet, and a copy of the database follows nightly. One way: the app writes, Google receives.
+- **Collection**: grid with search, sort and filters on set, condition and language; markers for language, condition, holo, copies and cards that may be worth grading; total value, a page per card, an inbox for cards that are not confirmed yet, export as CSV, a log page for the owner.
+- **Google**: once connected, photos go to a Drive folder, the collection to a sheet, and a copy of the database follows nightly. Photos of a deleted card go to the Drive trash. One way: the app writes, Google receives.
 - **Phone**: installable on the home screen, light and dark theme, Dutch and English.
 
 Three things are built but switched off until their settings exist on the server: login with Google, reading photos with Claude, and the Google Drive copy. The Settings page shows which are on. What is still needed for each is in [docs/plan.md](docs/plan.md).
@@ -46,6 +46,7 @@ yarn lint:all
 yarn card-api:test                 # matching, prices, the collection table, session signing
 yarn card-api:test:integration     # the whole app over HTTP against a temporary SQLite file, a fake catalogue and a fake Google
 yarn card-front:test               # the web app's logic and pages, without a browser
+yarn e2e                           # builds both apps, starts them with an empty database and a fake catalogue, drives them in headless Chrome
 ```
 
 The API keeps its data in `data/` by default: `app.db`, `photos/`, and later the session secret and the Google token. `DATABASE_PATH` moves all of it. At first start the API fetches the catalogue from TCGdex, which takes a few seconds. `GET /api/v1/health` reports the status and the running version (`dev` locally).

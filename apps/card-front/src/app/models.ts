@@ -64,6 +64,7 @@ export interface CardSummary {
     ownPrice?: number;
     value?: number;
     valueSource?: 'own' | 'trend';
+    worthGrading: boolean;
     priceCheckedAt?: string;
     createdAt: string;
     photos: Partial<Record<PhotoSide, number>>;
@@ -122,4 +123,12 @@ export interface SystemState {
     vision: { enabled: boolean; model: string };
     catalog: CatalogState;
     sync: SyncState;
+}
+
+export interface LogLine {
+    id: number;
+    time: string;
+    source: 'app' | 'phone';
+    level: 'debug' | 'info' | 'warning' | 'error';
+    message: string;
 }

@@ -24,6 +24,10 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 A factor per condition was tried for one evening (2026-11-14) and dropped: rules of thumb are not prices.
 
+**Worth grading: €50 or more, Near Mint or better.** Grading a card costs some tens of euros with shipping, and only cards in top condition get a grade that adds value. The mark is a pointer to look closer, not advice; the threshold is fixed in the code (`GRADING_MIN_VALUE`) until the owner wants it different.
+
+**Copies are counted, not merged.** Two copies of the same card stay two rows (see above); the collection shows how many copies of a catalogue card there are, and the card page links to the others.
+
 **The source's figures are stored with the owned card, with a snapshot per day**, next to the owner's own price. The history shows how the source's price moved.
 
 ## Sources
@@ -52,6 +56,8 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **The phone makes the photo smaller, and makes the thumbnail.** A phone photo is 12 megapixels or more. The web app scales it to 2400 pixels on the long side and makes a 480-pixel thumbnail, both as JPEG, before upload. The server stores what it receives and checks only that it is a JPEG of a sane size. So the server needs no image library, which saves memory and a native dependency on a Pi that has little to spare.
 
+**The phone straightens the card, the owner sets the corners.** After a photo is taken, the scan page shows it with four corners to drag onto the card; the web app then cuts the card out and straightens it to the card's shape (63 by 88) with a perspective transform on a canvas. "Whole photo" skips this. Finding the corners automatically needs edge detection that is unreliable on cards with a white border on a light table; a few seconds of dragging is reliable. The server still gets plain JPEGs and needs no image library.
+
 **Photos as files, not in the database.** Stored under `data/photos/`, with the file name in the database. The database stays small and easy to copy.
 
 **Photo from the phone's own camera app.** The scan page uses a file input that opens the camera. That gives a sharp, full photo with the phone's own focus and flash, and it works without HTTPS. A live camera view inside the page is not needed.
@@ -71,6 +77,10 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 **One way: the app writes, Google receives.** The SQLite database is the truth. The sheet and the Drive folder are a readable copy. Changes made in the sheet are overwritten at the next sync.
 
 **The sheet is rewritten whole.** At this size, writing all rows again is simpler than tracking which row changed, and it cannot drift. Values are written as plain text and numbers, never as formulas.
+
+**The sheet's layout belongs to the owner.** The app writes values only; formatting, filters, filter views and tables that the owner adds stay. A table on a tab is resized after each write to the rows and columns written, so new cards and new columns fall inside it. A sort applied to the table is undone by the next write, which puts the rows back in id order; a filter view keeps a sort.
+
+**A deleted card's photos go to the Drive trash, not away.** When a card is deleted, the Drive ids of its photos are kept in `drive_trash`; the next sync moves those files to the Drive trash. From there they can be restored for 30 days. This is the only change the app makes to files it wrote earlier, apart from replacing the database copy.
 
 **No job table.** What still has to be copied is known from the data itself: a photo without a Drive file id is waiting. A run uploads those, rewrites the sheet, and once a night copies the database. A failed run is simply repeated; nothing can get stuck in a queue.
 

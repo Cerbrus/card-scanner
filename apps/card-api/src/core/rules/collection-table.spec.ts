@@ -26,7 +26,8 @@ const row: CollectionRow = {
     createdAt: new Date('2026-11-13T10:00:00Z'),
     frontPhoto: 'https://drive.example/front',
     backPhoto: '',
-    cardmarket: 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699'
+    cardmarket: 'https://www.cardmarket.com/en/Pokemon/Products?idProduct=273699',
+    worthGrading: true
 };
 
 describe('the collection as a table', () => {
@@ -43,6 +44,7 @@ describe('the collection as a table', () => {
 
         assert.deepEqual(cells.slice(7, 16), ['yes', 'good', 'user', 385.83, '', 90, 231.5, 'own', '2026-11-14']);
         assert.equal(cells[18], '2026-11-13');
+        assert.equal(cells.at(-1), 'yes');
     });
 
     it('quotes cells with commas or quotes in the CSV', () => {

@@ -15,6 +15,7 @@ import { ToastService } from '../../services/toast.service';
 
 const POLL_MILLISECONDS = 2500;
 const HISTORY_LENGTH = 8;
+const GRADING_MIN_VALUE = 50;
 
 @Component({
     selector: 'app-card-page',
@@ -43,6 +44,13 @@ export class CardPage {
         return card ? cardState(card) : 'unknown';
     });
 
+    protected readonly otherCopies = computed(() => {
+        const card = this.card();
+
+        return card ? this.store.copiesOf(card).filter((copy) => copy.id !== card.id) : [];
+    });
+
+    protected readonly gradingMinimum = GRADING_MIN_VALUE;
     protected readonly history = computed(() => (this.card()?.priceHistory ?? []).slice(-HISTORY_LENGTH).reverse());
     protected readonly api = inject(ApiService);
     protected readonly auth = inject(AuthService);

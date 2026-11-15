@@ -31,6 +31,11 @@ interface SheetProperties {
     title: string;
 }
 
+interface SheetTables {
+    properties: SheetProperties;
+    tables?: Array<{ tableId: string }>;
+}
+
 export class GoogleError extends Error {
     constructor(
         message: string,
@@ -50,6 +55,7 @@ const FOLDER_TYPE = 'application/vnd.google-apps.folder';
 const SHEET_TYPE = 'application/vnd.google-apps.spreadsheet';
 const EXPIRY_MARGIN_MILLISECONDS = 60000;
 const NOT_FOUND = 404;
+const MIN_TABLE_ROWS = 2;
 
 export const DRIVE_ROOT = 'root';
 
@@ -109,6 +115,16 @@ export class GoogleClient {
                 return false;
             }
             throw error;
+        }
+    }
+
+    public async trash(fileId: string): Promise<void> {
+        try {
+            await this.json(`${DRIVE_URL}/${fileId}?fields=id`, { method: 'PATCH', body: JSON.stringify({ trashed: true }) });
+        } catch (error) {
+            if (!(error instanceof GoogleError && error.status === NOT_FOUND)) {
+                throw error;
+            }
         }
     }
 
@@ -192,6 +208,25 @@ export class GoogleClient {
             method: 'PUT',
             body: JSON.stringify({ values: table })
         });
+        await this.fitTables(spreadsheetId, title, table);
+    }
+
+    private async fitTables(spreadsheetId: string, title: string, table: Array<Array<Cell>>): Promise<void> {
+        const fields = encodeURIComponent('sheets(properties(sheetId,title),tables(tableId))');
+        const answer = await this.json<{ sheets: Array<SheetTables> }>(`${SHEETS_URL}/${spreadsheetId}?fields=${fields}`);
+        const sheet = answer.sheets.find((candidate) => candidate.properties.title === title);
+        const range = {
+            sheetId: sheet?.properties.sheetId,
+            startRowIndex: 0,
+            endRowIndex: Math.max(MIN_TABLE_ROWS, table.length),
+            startColumnIndex: 0,
+            endColumnIndex: Math.max(1, ...table.map((row) => row.length))
+        };
+        const requests = (sheet?.tables ?? []).map(({ tableId }) => ({ updateTable: { table: { tableId, range }, fields: 'range' } }));
+
+        if (requests.length) {
+            await this.json(`${SHEETS_URL}/${spreadsheetId}:batchUpdate`, { method: 'POST', body: JSON.stringify({ requests }) });
+        }
     }
 
     private async create(name: string, parent: string, mimeType: string): Promise<string> {

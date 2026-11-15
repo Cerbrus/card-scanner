@@ -40,6 +40,14 @@ const FLAGS: Record<Language, string> = {
                         <i class="material-symbols-outlined">star</i>
                     </span>
                 }
+                @if (card().worthGrading) {
+                    <span class="grading" [title]="'mark.grading' | translate">
+                        <i class="material-symbols-outlined">workspace_premium</i>
+                    </span>
+                }
+                @if (copies() > 1) {
+                    <span class="copies" [title]="'mark.copies' | translate: { count: copies() }">×{{ copies() }}</span>
+                }
             </span>
             <span class="tile-row">
                 <span class="tile-name">{{ card().name ?? ('card.unknown' | translate) }}</span>
@@ -83,6 +91,15 @@ const FLAGS: Record<Language, string> = {
             background: var(--finish-back); color: var(--finish-star);
         }
         .finish i { font-size: 15px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20; }
+        .grading {
+            position: absolute; top: 4px; left: 4px; display: flex; padding: 2px; border-radius: 50%;
+            background: var(--finish-back); color: var(--grading-mark);
+        }
+        .grading i { font-size: 15px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20; }
+        .copies {
+            position: absolute; bottom: 4px; left: 4px; padding: 0 5px; border-radius: 4px;
+            background: var(--finish-back); color: var(--mark-text); font-size: 0.72rem; font-weight: 700; line-height: 17px;
+        }
         .finish.reverse i { font-variation-settings: 'FILL' 0, 'wght' 600, 'GRAD' 0, 'opsz' 20; }
         .tile-row { display: flex; align-items: center; gap: 4px; min-width: 0; height: 18px; }
         .tile-name { flex: 1 1 auto; min-width: 0; overflow: hidden; font-size: 0.82rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
@@ -107,6 +124,7 @@ const FLAGS: Record<Language, string> = {
 })
 export class CardTileComponent {
     public readonly card = input.required<CardSummary>();
+    public readonly copies = input(1);
 
     protected readonly unknown = UNKNOWN_MARK;
 

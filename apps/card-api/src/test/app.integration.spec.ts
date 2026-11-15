@@ -32,6 +32,7 @@ interface Card {
     ownPrice?: number;
     value?: number;
     valueSource?: string;
+    worthGrading?: boolean;
     priceBasis?: string;
     cardmarketUrl?: string;
     candidates?: Array<{ catalogCardId: string }>;
@@ -175,6 +176,15 @@ describe('the whole app', () => {
         assert.equal((await fetch(`${api}/cards/${card.id}`, send('PATCH', { condition: 'shiny' }))).status, 400);
     });
 
+    it('marks a valuable copy in near mint or better condition as worth grading', async () => {
+        const card = await upload();
+        const unsure = await json<Card>(`/cards/${card.id}/confirm`, send('POST', { catalogCardId: 'base1-4' }));
+        const nearMint = await json<Card>(`/cards/${card.id}`, send('PATCH', { condition: 'near_mint' }));
+        const cheap = await json<Card>(`/cards/${card.id}`, send('PATCH', { ownPrice: 20 }));
+
+        assert.deepEqual([unsure.worthGrading, nearMint.worthGrading, cheap.worthGrading], [false, true, false]);
+    });
+
     it('values a card at the price the user entered for this copy, until that is cleared again', async () => {
         const card = await upload();
         await json(`/cards/${card.id}/confirm`, send('POST', { catalogCardId: 'base1-4' }));
@@ -241,6 +251,13 @@ describe('the whole app', () => {
         assert.ok(lines.some((line) => /played,user,3489\.25,2445\.05,979,3489\.25,trend/.test(line)));
         assert.ok(lines.some((line) => /385\.83,407\.53,90,120\.5,own/.test(line)));
         assert.equal(lines.length, (await json<Array<Card>>('/cards')).length + 1);
+    });
+
+    it('shows the owner the latest lines of its log', async () => {
+        const lines = await json<Array<{ source: string; level: string; message: string }>>('/logs?limit=5');
+
+        assert.ok(Array.isArray(lines));
+        assert.ok(lines.length <= 5);
     });
 
     it('removes a card with its photo files', async () => {

@@ -57,6 +57,11 @@ jobs:
             -   run: yarn card-api:test
             -   run: yarn card-api:test:integration
             -   run: yarn card-front:test
+            -   name: Run the built app in a browser
+                run: yarn e2e
+            -   name: Show the page of a failed browser test
+                if: failure()
+                run: cat /tmp/cardscanner-e2e-results/*/error-context.md | head -200
             -   name: Check the shell scripts
                 run: shellcheck deployment/*.sh .github/scripts/*.sh
 

@@ -5,15 +5,26 @@ interface FakeFile {
     mimeType: string;
     data?: Buffer;
     uploads: number;
+    trashed?: boolean;
+}
+
+interface FakeRange {
+    sheetId?: number;
+    startRowIndex: number;
+    endRowIndex: number;
+    startColumnIndex: number;
+    endColumnIndex: number;
 }
 
 interface FakeTab {
     sheetId: number;
     title: string;
     values: Array<Array<string | number>>;
+    tables?: Array<{ tableId: string; range: FakeRange }>;
 }
 
-type Body = { requests?: Array<Record<string, { properties: { sheetId?: number; title: string } }>>; values?: Array<Array<string | number>>; name?: string; mimeType?: string; parents?: Array<string> };
+type Request = { properties?: { sheetId?: number; title: string }; table?: { tableId: string; range: FakeRange } };
+type Body = { trashed?: boolean; requests?: Array<Record<string, Request>>; values?: Array<Array<string | number>>; name?: string; mimeType?: string; parents?: Array<string> };
 
 const GOOGLE_HOSTS = ['oauth2.googleapis.com', 'www.googleapis.com', 'sheets.googleapis.com'];
 const SHEET_TYPE = 'application/vnd.google-apps.spreadsheet';
@@ -50,7 +61,11 @@ export class FakeGoogle {
     }
 
     public table(title: string): Array<Array<string | number>> {
-        return Array.from(this.tabs.values()).flat().find((tab) => tab.title === title)?.values ?? [];
+        return this.tab(title)?.values ?? [];
+    }
+
+    public tab(title: string): FakeTab | undefined {
+        return Array.from(this.tabs.values()).flat().find((tab) => tab.title === title);
     }
 
     private async answer(url: URL, init: RequestInit): Promise<Response> {
@@ -77,7 +92,12 @@ export class FakeGoogle {
     private drive(method: string, path: string, url: URL, init: RequestInit): Response {
         const id = path.replace('/drive/v3/files', '').replace('/', '');
         if (id) {
-            return this.files.some((file) => file.id === id) ? this.json({ id, trashed: false }) : this.json({ error: 'not found' }, 404);
+            const file = this.files.find((candidate) => candidate.id === id);
+            if (file && method === 'PATCH') {
+                file.trashed = (JSON.parse(String(init.body)) as Body).trashed;
+            }
+
+            return file ? this.json({ id, trashed: file.trashed ?? false }) : this.json({ error: 'not found' }, 404);
         }
         if (method === 'POST') {
             const body = JSON.parse(String(init.body)) as Body;
@@ -93,7 +113,7 @@ export class FakeGoogle {
         const name = /name = '((?:[^'\\]|\\.)*)'/.exec(query)?.[1].replace(/\\(.)/g, '$1');
         const parent = /'([^']+)' in parents/.exec(query)?.[1];
         const mimeType = /mimeType = '([^']+)'/.exec(query)?.[1];
-        const found = this.files.filter((file) => file.name === name && file.parent === parent && (!mimeType || file.mimeType === mimeType));
+        const found = this.files.filter((file) => !file.trashed && file.name === name && file.parent === parent && (!mimeType || file.mimeType === mimeType));
 
         return this.json({ files: found.map((file) => ({ id: file.id, name: file.name })) });
     }
@@ -125,7 +145,7 @@ export class FakeGoogle {
             return this.json({ error: 'not found' }, 404);
         }
         if (!rest) {
-            return this.json({ sheets: tabs.map(({ sheetId, title }) => ({ properties: { sheetId, title } })) });
+            return this.json({ sheets: tabs.map(({ sheetId, title, tables }) => ({ properties: { sheetId, title }, tables })) });
         }
 
         const body = JSON.parse(String(init.body)) as Body;
@@ -133,6 +153,14 @@ export class FakeGoogle {
             for (const request of body.requests ?? []) {
                 const renamed = request['updateSheetProperties']?.properties;
                 const added = request['addSheet']?.properties;
+                const resized = request['updateTable']?.table;
+                if (resized) {
+                    const known = tabs.flatMap((tab) => tab.tables ?? []).find((table) => table.tableId === resized.tableId);
+                    if (!known) {
+                        return this.json({ error: `no table ${resized.tableId}` }, 400);
+                    }
+                    known.range = resized.range;
+                }
                 if (renamed) {
                     (tabs.find((tab) => tab.sheetId === renamed.sheetId) as FakeTab).title = renamed.title;
                 }

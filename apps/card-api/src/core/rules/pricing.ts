@@ -55,7 +55,10 @@ const CARDMARKET_SEARCH_URL = 'https://www.cardmarket.com/en/Pokemon/Products/Se
 const CARDMARKET_LANGUAGES: Partial<Record<Language, number>> = { en: 1, fr: 2, de: 3, es: 4, it: 5, zh: 6, ja: 7, pt: 8, ko: 10, nl: 12 };
 const CARDMARKET_CONDITIONS: Record<Condition, number> = { mint: 1, near_mint: 2, excellent: 3, good: 4, light_played: 5, played: 6, poor: 7 };
 
-const amount = (value?: number | null): number | undefined => (typeof value === 'number' && value > 0 ? value : undefined);
+export const GRADING_MIN_VALUE = 50;
+const GRADABLE_CONDITIONS: Array<Condition> = ['mint', 'near_mint'];
+
+const amount =(value?: number | null): number | undefined => (typeof value === 'number' && value > 0 ? value : undefined);
 
 function figures(price: SourcePrice): PriceFigures {
     return {
@@ -133,6 +136,10 @@ export function ownedValue(ownPrice: number | null | undefined, trend: number | 
     }
 
     return typeof trend === 'number' ? { value: trend, source: 'trend' } : undefined;
+}
+
+export function worthGrading(value: number | null | undefined, condition: Condition | null | undefined): boolean {
+    return typeof value === 'number' && value >= GRADING_MIN_VALUE && GRADABLE_CONDITIONS.includes(condition as Condition);
 }
 
 export function cardmarketUrl(productId: number | null | undefined, name: string, copy: CopyFilter = {}): string {

@@ -19,6 +19,27 @@ describe('the collection in the web app', () => {
 
     afterEach(() => vi.useRealTimers());
 
+    it('counts the confirmed copies of each catalogue card and finds the copies of a card', () => {
+        api.getCards.mockReturnValue(
+            of([
+                card(1, { catalogCardId: 'base1-4' }),
+                card(2, { catalogCardId: 'base1-4' }),
+                card(3, { catalogCardId: 'base1-58' }),
+                card(4, { catalogCardId: 'base1-4', status: 'identified' }),
+                card(5, { status: 'new' })
+            ])
+        );
+
+        store.refresh().subscribe();
+
+        expect(Array.from(store.copies().entries())).toEqual([
+            ['base1-4', 2],
+            ['base1-58', 1]
+        ]);
+        expect(store.copiesOf(card(1, { catalogCardId: 'base1-4' })).map((known) => known.id)).toEqual([1, 2]);
+        expect(store.copiesOf(card(5))).toEqual([]);
+    });
+
     it('splits the cards in confirmed ones and the inbox, and adds up the value of the confirmed ones', () => {
         api.getCards.mockReturnValue(of([card(1, { value: 10.5, valueSource: 'own' }), card(2, { value: 2, valueSource: 'trend' }), card(3), card(4, { status: 'identified', value: 99 })]));
 

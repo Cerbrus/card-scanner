@@ -33,6 +33,19 @@
                     </span>
                     <button type="button" class="btn" (click)="searchOpen.set(!searchOpen())">{{ 'card.change' | translate }}</button>
                 </div>
+                @if (otherCopies().length) {
+                    <div class="copies mt-3 text-sm">
+                        <span class="muted">{{ 'card.copies' | translate: { count: otherCopies().length + 1 } }}</span>
+                        @for (copy of otherCopies(); track copy.id) {
+                            <a class="copy-link" [routerLink]="['/cards', copy.id]">
+                                {{ copy.condition ? ('condition.' + copy.condition | translate) : ('card.notSet' | translate) }}
+                                @if (copy.value !== undefined) {
+                                    · {{ copy.value | currency: 'EUR' }}
+                                }
+                            </a>
+                        }
+                    </div>
+                }
             } @else {
                 <p class="mb-2 flex items-center gap-2 text-sm">
                     <span class="badge" [class.off]="state() === 'unknown'">{{ 'state.' + state() | translate }}</span>
@@ -108,6 +121,12 @@
             @if (card.priceBasis; as basis) {
                 <p class="basis mt-2 text-xs" [class.muted]="basis === 'print'">
                     {{ (basis === 'general' && !card.variant ? 'card.basis.finishUnknown' : 'card.basis.' + basis) | translate }}
+                </p>
+            }
+            @if (card.worthGrading) {
+                <p class="grading-note mt-2 flex items-start gap-1 text-xs">
+                    <i class="material-symbols-outlined text-base leading-none">workspace_premium</i>
+                    <span>{{ 'card.worthGrading' | translate: { minimum: gradingMinimum | currency: 'EUR' : 'symbol' : '1.0-0' } }}</span>
                 </p>
             }
             @if (card.priceCheckedAt; as checkedAt) {

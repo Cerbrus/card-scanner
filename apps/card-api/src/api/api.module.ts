@@ -8,6 +8,7 @@ import { ContentPolicyController } from './controllers/content-policy.controller
 import { ExportController } from './controllers/export.controller';
 import { GoogleController } from './controllers/google.controller';
 import { HealthController } from './controllers/health.controller';
+import { LogController } from './controllers/log.controller';
 import { PhotoController } from './controllers/photo.controller';
 import { SystemController } from './controllers/system.controller';
 import { AuthGuard } from './guards/auth.guard';
@@ -23,6 +24,7 @@ import { CoreModule } from '../core/core.module';
         ExportController,
         GoogleController,
         HealthController,
+        LogController,
         PhotoController,
         SystemController
     ],

@@ -2,6 +2,7 @@ import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { of } from 'rxjs';
 
 import { CardDetail, CardSummary, SystemState } from '../app/models';
+import { countCopies } from '../app/services/collection.store';
 
 export function card(id: number, changes: Partial<CardSummary> = {}): CardSummary {
     return {
@@ -12,6 +13,7 @@ export function card(id: number, changes: Partial<CardSummary> = {}): CardSummar
         setName: 'Base Set',
         number: String(id),
         firstEdition: false,
+        worthGrading: false,
         createdAt: `2026-11-${String(id).padStart(2, '0')}T10:00:00.000Z`,
         photos: { front: id * 10, back: id * 10 + 1 },
         ...changes
@@ -42,6 +44,8 @@ export interface FakeStore {
     reading: Signal<boolean>;
     totalValue: Signal<number>;
     ownPricedCount: Signal<number>;
+    copies: Signal<Map<string, number>>;
+    copiesOf: (card: CardSummary) => Array<CardSummary>;
     refresh: ReturnType<typeof vi.fn>;
     followReadings: ReturnType<typeof vi.fn>;
     put: ReturnType<typeof vi.fn>;
@@ -61,6 +65,8 @@ export function fakeStore(cards: Array<CardSummary> = []): FakeStore {
         reading: computed(() => list().some((known) => known.readingState === 'pending')),
         totalValue: computed(() => confirmed().reduce((total, known) => total + (known.value ?? 0), 0)),
         ownPricedCount: computed(() => confirmed().filter((known) => known.valueSource === 'own').length),
+        copies: computed(() => countCopies(confirmed())),
+        copiesOf: (wanted: CardSummary) => (wanted.catalogCardId ? confirmed().filter((known) => known.catalogCardId === wanted.catalogCardId) : []),
         refresh: vi.fn(() => of(list())),
         followReadings: vi.fn(() => of(list())),
         put: vi.fn(),

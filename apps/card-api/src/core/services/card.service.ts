@@ -14,6 +14,7 @@ import {
     CardReading,
     CatalogCardEntity,
     Condition,
+    DriveTrashEntity,
     Finish,
     Language,
     OwnedCardEntity,
@@ -24,7 +25,7 @@ import {
 import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
 import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, isJpeg, photoFileName } from '../rules/photo-file';
-import { PriceBasis, ValueSource, cardmarketUrl, ownedValue, pickPrice } from '../rules/pricing';
+import { PriceBasis, ValueSource, cardmarketUrl, ownedValue, pickPrice, worthGrading } from '../rules/pricing';
 
 export interface PhotoUpload {
     side: PhotoSide;
@@ -62,6 +63,7 @@ export interface CardSummary {
     ownPrice?: number;
     value?: number;
     valueSource?: ValueSource;
+    worthGrading: boolean;
     priceCheckedAt?: Date;
     createdAt: Date;
     photos: Partial<Record<PhotoSide, number>>;
@@ -88,6 +90,7 @@ export class CardService implements OnApplicationBootstrap {
     constructor(
         @InjectRepository(OwnedCardEntity) private readonly cards: Repository<OwnedCardEntity>,
         @InjectRepository(PhotoEntity) private readonly photos: Repository<PhotoEntity>,
+        @InjectRepository(DriveTrashEntity) private readonly driveTrash: Repository<DriveTrashEntity>,
         private readonly config: AppConfig,
         private readonly catalog: CatalogService,
         private readonly prices: PriceService,
@@ -229,6 +232,9 @@ export class CardService implements OnApplicationBootstrap {
         for (const photo of await this.photos.findBy({ ownedCardId: id })) {
             rmSync(join(this.config.photosPath, photo.file), { force: true });
             rmSync(join(this.config.photosPath, photo.thumbFile), { force: true });
+            if (photo.driveFileId) {
+                await this.driveTrash.save(this.driveTrash.create({ driveFileId: photo.driveFileId, createdAt: new Date() }));
+            }
         }
         await this.photos.delete({ ownedCardId: id });
         await this.cards.remove(card);
@@ -250,6 +256,14 @@ export class CardService implements OnApplicationBootstrap {
 
     public async markPhotoSynced(photoId: number, driveFileId: string): Promise<void> {
         await this.photos.update(photoId, { driveFileId, syncedAt: new Date() });
+    }
+
+    public drivePhotosToRemove(): Promise<Array<DriveTrashEntity>> {
+        return this.driveTrash.find({ order: { id: 'ASC' } });
+    }
+
+    public async markDrivePhotoRemoved(id: number): Promise<void> {
+        await this.driveTrash.delete(id);
     }
 
     public async forgetDriveFiles(): Promise<void> {
@@ -291,7 +305,8 @@ export class CardService implements OnApplicationBootstrap {
                 createdAt: card.createdAt,
                 frontPhoto: link(card.id, 'front'),
                 backPhoto: link(card.id, 'back'),
-                cardmarket: summary.name && card.status === 'confirmed' ? cardmarketUrl(card.priceProductId, summary.name, card) : ''
+                cardmarket: summary.name && card.status === 'confirmed' ? cardmarketUrl(card.priceProductId, summary.name, card) : '',
+                worthGrading: summary.worthGrading
             };
         });
     }
@@ -421,6 +436,7 @@ export class CardService implements OnApplicationBootstrap {
             ownPrice: card.ownPrice ?? undefined,
             value: worth?.value,
             valueSource: worth?.source,
+            worthGrading: card.status === 'confirmed' && worthGrading(worth?.value, card.condition),
             priceCheckedAt: card.priceCheckedAt ?? undefined,
             createdAt: card.createdAt,
             photos: Object.fromEntries(photos.filter((photo) => photo.ownedCardId === card.id).map((photo) => [photo.side, photo.id]))

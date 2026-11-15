@@ -77,6 +77,26 @@ describe('CardPage', () => {
         expect(page.querySelector('app-candidate-list')).toBeNull();
     });
 
+    it('lists the other copies of the same card and says when this copy may be worth grading', async () => {
+        store.cards.set([
+            detail(7, { catalogCardId: 'base1-4' }),
+            detail(8, { catalogCardId: 'base1-4', condition: 'poor', value: 40 }),
+            detail(9, { catalogCardId: 'base1-58' })
+        ]);
+        await open({ ...confirmed, condition: 'near_mint', worthGrading: true });
+
+        expect(texts(page, '.copy-link')).toEqual(['condition.poor · €40.00']);
+        expect(page.querySelector('.copy-link')?.getAttribute('href')).toBe('/cards/8');
+        expect(texts(page, '.grading-note')).toEqual(['workspace_premiumcard.worthGrading']);
+    });
+
+    it('shows no copies or grading note for a single copy in played condition', async () => {
+        await open(confirmed);
+
+        expect(page.querySelector('.copies')).toBeNull();
+        expect(page.querySelector('.grading-note')).toBeNull();
+    });
+
     it('takes the price the user types for this copy, with a comma or a point, and clears it when emptied', async () => {
         api.updateCard.mockReturnValue(of({ ...confirmed, ownPrice: 120.5, value: 120.5, valueSource: 'own' }));
         await open(confirmed);

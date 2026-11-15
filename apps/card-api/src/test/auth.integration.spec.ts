@@ -74,6 +74,8 @@ describe('login guard over HTTP', () => {
     it('keeps the system actions for the owner', async () => {
         assert.equal(await status('/system/catalog/refresh', { method: 'POST', headers: { cookie: cookieFor(GUEST) } }), 403);
         assert.equal(await status('/google/sync', { method: 'POST', headers: { cookie: cookieFor(GUEST) } }), 403);
+        assert.equal(await status('/logs', { headers: { cookie: cookieFor(GUEST) } }), 403);
+        assert.equal(await status('/logs', { headers: { cookie: cookieFor(OWNER) } }), 200);
         assert.equal(await status('/system/catalog/refresh', { method: 'POST', headers: { cookie: cookieFor(OWNER) } }), 202);
     });
 

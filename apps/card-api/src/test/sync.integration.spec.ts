@@ -148,6 +148,33 @@ describe('copying the collection to Google Drive', () => {
         assert.deepEqual([(await state()).waitingPhotos, (await state()).lastError], [0, undefined]);
     });
 
+    it('keeps a table the owner made of the cards tab fitted to the rows and columns it writes', async () => {
+        const cards = google.tab('Cards');
+        assert.ok(cards);
+        cards.tables = [{ tableId: 'table-1', range: { sheetId: cards.sheetId, startRowIndex: 0, endRowIndex: 2, startColumnIndex: 0, endColumnIndex: 5 } }];
+        await upload();
+        await sync.run();
+
+        const written = google.table('Cards');
+
+        assert.deepEqual(cards.tables[0].range, { sheetId: cards.sheetId, startRowIndex: 0, endRowIndex: written.length, startColumnIndex: 0, endColumnIndex: written[0].length });
+        assert.equal(written.length, 5);
+        assert.equal((await state()).lastError, undefined);
+    });
+
+    it('moves the photos of a deleted card to the Drive trash on the next run', async () => {
+        const doomed = await upload();
+        await sync.run();
+        await call(`/cards/${doomed.id}`, OWNER, { method: 'DELETE' });
+        await sync.run();
+
+        const photos = google.files.filter((file) => file.name.startsWith(`${doomed.id}-`));
+
+        assert.deepEqual(photos.map((file) => [file.name, file.trashed]), [[`${doomed.id}-front.jpg`, true], [`${doomed.id}-back.jpg`, true]]);
+        assert.equal(google.table('Cards').some((row) => row[0] === doomed.id), false);
+        assert.equal((await state()).lastError, undefined);
+    });
+
     it('stops copying after the owner disconnects', async () => {
         const answer = await call('/google/disconnect', OWNER, { method: 'POST' });
         const filesBefore = google.files.length;

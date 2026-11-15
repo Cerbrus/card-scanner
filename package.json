@@ -13,6 +13,7 @@
         "card-front:test": "nx run card-front:test",
         "card-front:serve": "nx run card-front:serve",
         "card-front:lint": "nx run card-front:lint",
+        "e2e": "yarn card-api:build && yarn card-front:build && playwright test -c e2e/playwright.config.ts",
         "lint:all": "nx run-many --target=lint",
         "prettier:autofix": "yarn prettier \"./apps/**/*.{js,ts,scss,html}\" -w"
     },
@@ -58,6 +59,7 @@
         "@nx/js": "24.0.6",
         "@nx/web": "24.0.6",
         "@nx/webpack": "24.0.6",
+        "@playwright/test": "^1.65.1",
         "@schematics/angular": "~22.2.0",
         "@swc-node/register": "^1.12.1",
         "@swc/core": "^1.16.22",

@@ -29,6 +29,7 @@ When a decision changes, update `docs/decisions.md` first, then the affected doc
 |---|---|---|
 | API | `apps/card-api/` | Layers under `src/`: `api` (controllers, dto, guards), `core` (services, rules, connectors), `data` (entities, migrations), `config`. Integration tests in `src/test/` |
 | Web app | `apps/card-front/` | Pages in `src/app/pages/`, shared pieces in `components/`, state in `services/collection.store.ts`, texts in `src/assets/i18n/` |
+| End-to-end tests | `e2e/` | Playwright with the installed Chrome; `start-app.mjs` starts the built app with a fake catalogue (`fake-catalog.mjs`) |
 | Deployment | `deployment/` | Compose file and the scripts the Pi fetches from `master`: `install.sh`, `update.sh`, `firewall.sh` |
 
 Nx project names: `card-api`, `card-front`.
@@ -45,9 +46,10 @@ yarn lint:all
 yarn card-api:test                 # rules: matching, prices, collection table, session, content policy
 yarn card-api:test:integration     # the whole app over HTTP; a fake catalogue server and a fake Google
 yarn card-front:test               # Vitest without a browser
+yarn e2e                           # builds both apps and drives them in headless Chrome
 ```
 
-Don't start the serve commands from a session; ask the user to run them. The build workflow runs lint and all three test commands first, so keep them green. Web app tests sit next to the file they test as `*.spec.ts`; shared stand-ins are in `src/testing/fakes.ts`. `vi.mock` of a relative import does not work in the Angular test runner: make the dependency injectable and provide a fake. A change comes with its test.
+Don't start the serve commands from a session; ask the user to run them. The build workflow runs lint, all three test commands and `yarn e2e` first, so keep them green. Web app tests sit next to the file they test as `*.spec.ts`; shared stand-ins are in `src/testing/fakes.ts`. `vi.mock` of a relative import does not work in the Angular test runner: make the dependency injectable and provide a fake. A change comes with its test.
 
 ## Code style
 

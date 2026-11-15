@@ -21,6 +21,7 @@ export interface CollectionRow {
     frontPhoto: string;
     backPhoto: string;
     cardmarket: string;
+    worthGrading: boolean;
 }
 
 export type Cell = string | number;
@@ -47,7 +48,8 @@ export const COLLECTION_HEADER: Array<string> = [
     'Added',
     'Front photo',
     'Back photo',
-    'Cardmarket'
+    'Cardmarket',
+    'Worth grading'
 ];
 
 const NEEDS_QUOTES = /[",\r\n]/;
@@ -79,7 +81,8 @@ export function collectionCells(row: CollectionRow): Array<Cell> {
         day(row.createdAt),
         row.frontPhoto,
         row.backPhoto,
-        row.cardmarket
+        row.cardmarket,
+        row.worthGrading ? 'yes' : 'no'
     ];
 }
 

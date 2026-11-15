@@ -104,6 +104,7 @@ export class SyncService {
 
     private async sync(withBackup: boolean): Promise<void> {
         const places = await this.places();
+        const removed = await this.removeDeletedPhotos();
         const waiting = await this.cards.unsyncedPhotos();
         for (const photo of waiting) {
             const data = readFileSync(join(this.config.photosPath, photo.file));
@@ -120,7 +121,17 @@ export class SyncService {
             await this.backup(places);
         }
         await this.settings.set(LAST_RUN, new Date().toISOString());
-        this.logger.log(`synced: ${waiting.length} photo(s) uploaded, ${rows.length} row(s) written${withBackup ? ', database copied' : ''}`);
+        this.logger.log(`synced: ${waiting.length} photo(s) uploaded, ${removed} moved to the Drive trash, ${rows.length} row(s) written${withBackup ? ', database copied' : ''}`);
+    }
+
+    private async removeDeletedPhotos(): Promise<number> {
+        const deleted = await this.cards.drivePhotosToRemove();
+        for (const photo of deleted) {
+            await this.google.trash(photo.driveFileId);
+            await this.cards.markDrivePhotoRemoved(photo.id);
+        }
+
+        return deleted.length;
     }
 
     private async backup(places: Places): Promise<void> {

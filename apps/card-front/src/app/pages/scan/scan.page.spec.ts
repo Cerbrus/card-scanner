@@ -12,8 +12,10 @@ import { ToastService } from '../../services/toast.service';
 
 const scaler = {
     fail: false,
-    scale: (file: Blob): Promise<{ photo: Blob; thumb: Blob }> =>
+    scale: vi.fn((file: Blob): Promise<{ photo: Blob; thumb: Blob }> =>
         scaler.fail ? Promise.reject(new Error('not a picture')) : Promise.resolve({ photo: file, thumb: new Blob(['thumb']) })
+    ),
+    straighten: vi.fn((file: Blob, _corners: Array<{ x: number; y: number }>): Promise<{ photo: Blob; thumb: Blob }> => Promise.resolve({ photo: file, thumb: new Blob(['straight']) }))
 };
 
 describe('ScanPage', () => {
@@ -22,10 +24,15 @@ describe('ScanPage', () => {
     let store: FakeStore;
     const api = { createCard: vi.fn() };
 
-    const photograph = async (index: number): Promise<void> => {
+    const pick = (index: number): void => {
         const input = page.querySelectorAll('input[type=file]')[index] as HTMLInputElement;
         Object.defineProperty(input, 'files', { configurable: true, value: [new File([`side ${index}`], 'photo.jpg', { type: 'image/jpeg' })] });
         input.dispatchEvent(new Event('change'));
+        fixture.detectChanges();
+    };
+    const photograph = async (index: number, button = '.whole'): Promise<void> => {
+        pick(index);
+        click(page, `app-crop-editor ${button}`);
         await fixture.whenStable();
         await Promise.resolve();
         fixture.detectChanges();
@@ -38,6 +45,8 @@ describe('ScanPage', () => {
 
     beforeEach(() => {
         scaler.fail = false;
+        scaler.scale.mockClear();
+        scaler.straighten.mockClear();
         store = fakeStore();
         api.createCard.mockReset();
         URL.createObjectURL = vi.fn(() => 'blob:preview');
@@ -60,6 +69,42 @@ describe('ScanPage', () => {
         const inputs = Array.from(page.querySelectorAll('input[type=file]'));
 
         expect(inputs.map((input) => [input.getAttribute('accept'), input.getAttribute('capture')])).toEqual([['image/*', 'environment'], ['image/*', 'environment']]);
+    });
+
+    it('asks for the corners of the card after a photo is taken, and can straighten it or keep it whole', async () => {
+        pick(0);
+
+        expect(page.querySelector('app-crop-editor')).not.toBeNull();
+        expect(page.querySelector('.sides')).toBeNull();
+
+        const image = page.querySelector('app-crop-editor img') as HTMLImageElement;
+        Object.defineProperties(image, { naturalWidth: { value: 3000 }, naturalHeight: { value: 4000 } });
+        image.dispatchEvent(new Event('load'));
+        fixture.detectChanges();
+        expect(page.querySelectorAll('app-crop-editor circle.grip').length).toBe(4);
+
+        click(page, 'app-crop-editor .use');
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const corners = scaler.straighten.mock.calls[0][1];
+        expect(corners.map(({ x, y }) => [Math.round(x), Math.round(y)])).toEqual([[355, 400], [2645, 400], [2645, 3600], [355, 3600]]);
+        expect(page.querySelector('app-crop-editor')).toBeNull();
+        expect(page.querySelectorAll('.side.filled').length).toBe(1);
+
+        await photograph(1);
+        expect(scaler.scale).toHaveBeenCalledTimes(1);
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
+    });
+
+    it('drops the chosen photo when cropping is cancelled', () => {
+        pick(0);
+        click(page, 'app-crop-editor .cancel');
+        fixture.detectChanges();
+
+        expect(page.querySelector('app-crop-editor')).toBeNull();
+        expect(page.querySelectorAll('.side.filled').length).toBe(0);
+        expect(scaler.scale).not.toHaveBeenCalled();
     });
 
     it('only lets the card be saved once both sides are photographed', async () => {

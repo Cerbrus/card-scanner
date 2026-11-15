@@ -60,6 +60,8 @@ Imports point inward: `api` to `core` to `data`. Lint enforces it.
 
 **`photo`**: a file belonging to an owned card. Side (`front` or `back`), file name, thumbnail file name, size, `drive_file_id` and `synced_at`.
 
+**`drive_trash`**: the Drive file ids of photos of deleted cards, waiting for the next sync to move them to the Drive trash.
+
 **`price_snapshot`**: owned card, day, trend, 30-day average, lowest. One row per card per day.
 
 **`setting`**: key and value. Holds when the catalogue was fetched, and for the sync: the ids of the Drive folders and the sheet, the last run and the last error.
@@ -69,12 +71,13 @@ Schema changes go through migrations; `synchronize` is off.
 ## The scan flow
 
 1. The user opens the Scan page and takes the front photo, then the back photo, with the phone's camera app.
-2. The web app scales each photo to 2400 pixels, makes a 480-pixel thumbnail, and uploads the four files. The server checks that they are JPEGs, stores them as `<id>-front.jpg`, `<id>-front-thumb.jpg` and so on, and creates an `owned_card` with status `new`.
-3. With reading switched on, the card is queued for the model. The upload answers at once; the next card can be scanned.
-4. The reading fills in language, finish, 1st edition and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.
-5. The card waits in the Inbox. On its page the user taps the right candidate, or searches the catalogue by name and number and taps a result: status `confirmed`.
-6. Confirming fetches the card's details and sets the price.
-7. Twenty seconds after the last change the sync copies what is new to Google, when connected.
+2. After each photo the page shows four corners to drag onto the corners of the card. The web app cuts the card out and straightens it to 63 by 88 (`services/perspective.ts`), or keeps the whole photo.
+3. The web app scales each photo to 2400 pixels, makes a 480-pixel thumbnail, and uploads the four files. The server checks that they are JPEGs, stores them as `<id>-front.jpg`, `<id>-front-thumb.jpg` and so on, and creates an `owned_card` with status `new`.
+4. With reading switched on, the card is queued for the model. The upload answers at once; the next card can be scanned.
+5. The reading fills in language, finish, 1st edition and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.
+6. The card waits in the Inbox. On its page the user taps the right candidate, or searches the catalogue by name and number and taps a result: status `confirmed`.
+7. Confirming fetches the card's details and sets the price.
+8. Twenty seconds after the last change the sync copies what is new to Google, when connected.
 
 A failed reading or a failed lookup leaves the card as it is, with its photos.
 
@@ -111,9 +114,11 @@ A daily job asks the price of every confirmed card again and writes a snapshot. 
 `SyncService.run()`:
 
 1. Find or create the folder path from `DRIVE_FOLDER`, with `photos/` and `backup/` below it and the spreadsheet next to them. The ids are remembered and checked at the start of each run; when a folder was deleted, everything is created again and all photos are uploaded again.
-2. Upload every photo without a Drive file id.
-3. Rewrite the tab `Cards` (one row per owned card, with links to its photos and to Cardmarket) and the tab `Prices` (the snapshots).
-4. Once a night, and on "Copy now": write a consistent copy of the database with `VACUUM INTO` and upload it as `backup/app.db`, replacing the previous one.
+2. Move the photos of deleted cards (`drive_trash`) to the Drive trash; a file that is gone already counts as done.
+3. Upload every photo without a Drive file id.
+4. Rewrite the values of the tab `Cards` (one row per owned card, with links to its photos and to Cardmarket) and the tab `Prices` (the snapshots).
+   Tables the owner made on these tabs are resized to the rows and columns written.
+5. Once a night, and on "Copy now": write a consistent copy of the database with `VACUUM INTO` and upload it as `backup/app.db`, replacing the previous one.
 
 A failed run stores its error for the Settings page; the next run starts over and catches up.
 
@@ -145,6 +150,7 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 | `GET /photos/:id`, `GET /photos/:id?thumb` | A photo or its thumbnail |
 | `GET /catalog/search?name=&number=` | Catalogue cards that fit |
 | `GET /export/cards.csv` | The collection as CSV |
+| `GET /logs?limit=` (owner) | The latest lines of the app's log |
 | `GET /google/connect`, `GET /google/callback`, `POST /google/disconnect`, `POST /google/sync` (owner) | The Google Drive copy |
 | `POST /csp-reports` (public) | Content policy reports from the browser |
 
@@ -152,11 +158,12 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 
 | Page | Content |
 |---|---|
-| Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards |
-| Scan | Two photos, save, straight on to the next card |
+| Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort, filters on set, condition and language and on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies |
+| Scan | Two photos, each cropped and straightened by dragging four corners, save, straight on to the next card |
 | Inbox | Cards that are not confirmed, with their state |
-| Card | Photos, catalogue picture, candidates, catalogue search, value, the field for the owner's own price, the source's price with history, the print and condition, delete |
-| Settings | What is on and off and why, Google connection, catalogue and prices, export, theme, language, log out |
+| Card | Photos, catalogue picture, candidates, catalogue search, the other copies, value, the grading mark, the field for the owner's own price, the source's price with history, the print and condition, delete |
+| Settings | What is on and off and why, Google connection, catalogue and prices, the log, export, theme, language, log out |
+| Log | The latest lines of the app's log, newest first, refreshed every 5 seconds (owner) |
 | Login | The Google button |
 
 State lives in `CollectionStore` (signals). Pages use signals; services return observables. Texts are in `src/assets/i18n/en.json` and `nl.json`.

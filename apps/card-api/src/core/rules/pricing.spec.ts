@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { SourceCard, cardmarketUrl, dayOf, ownedValue, pickPrice, readPricing } from './pricing';
+import { SourceCard, cardmarketUrl, dayOf, ownedValue, pickPrice, readPricing, worthGrading } from './pricing';
 
 const charizard: SourceCard = {
     rarity: 'Rare',
@@ -63,6 +63,15 @@ describe('prices of a card', () => {
         assert.deepEqual(ownedValue(null, 385.83), { value: 385.83, source: 'trend' });
         assert.deepEqual(ownedValue(12.5, null), { value: 12.5, source: 'own' });
         assert.equal(ownedValue(undefined, undefined), undefined);
+    });
+
+    it('marks a copy as worth grading only when it is valuable and near mint or better', () => {
+        assert.equal(worthGrading(50, 'near_mint'), true);
+        assert.equal(worthGrading(385.83, 'mint'), true);
+        assert.equal(worthGrading(49.99, 'mint'), false);
+        assert.equal(worthGrading(385.83, 'excellent'), false);
+        assert.equal(worthGrading(385.83, null), false);
+        assert.equal(worthGrading(undefined, 'mint'), false);
     });
 
     it('opens Cardmarket with the language and condition of the copy in the filter', () => {
