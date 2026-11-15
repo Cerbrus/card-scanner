@@ -86,7 +86,6 @@ Also open for the owner to decide:
 
 ## Open
 
-- A bookmarklet that reads the price from the Cardmarket page the owner has open and saves it to the card, instead of typing. Needs the site on HTTPS and a saved copy of a product page to build against.
 - A mark on cards that may be worth grading (high value, good condition).
 - Count of duplicates of the same catalogue card.
 - Filter the collection by set, condition or language.
