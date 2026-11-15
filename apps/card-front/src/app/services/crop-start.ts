@@ -41,6 +41,21 @@ export class CropStart {
         }
     }
 
+    public async findIn(file: Blob): Promise<Corners | undefined> {
+        const url = URL.createObjectURL(file);
+        try {
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+
+            return this.find(image);
+        } catch {
+            return undefined;
+        } finally {
+            URL.revokeObjectURL(url);
+        }
+    }
+
     private find(image: HTMLImageElement): Corners | undefined {
         try {
             const scale = Math.min(1, SEARCH_SIDE / Math.max(image.naturalWidth, image.naturalHeight));

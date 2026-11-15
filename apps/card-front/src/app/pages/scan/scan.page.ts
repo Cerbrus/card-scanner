@@ -5,8 +5,10 @@ import { catchError, finalize, from, of, switchMap, tap } from 'rxjs';
 
 import { CardDetailsComponent } from '../../components/card-details/card-details.component';
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
+import { CameraShot, LiveCameraComponent } from '../../components/live-camera/live-camera.component';
 import { CardDetail, PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
+import { Camera } from '../../services/camera';
 import { CardText } from '../../services/card-text';
 import { CardTextReader } from '../../services/card-text-reader';
 import { CollectionStore } from '../../services/collection.store';
@@ -16,6 +18,7 @@ import { ToastService } from '../../services/toast.service';
 
 interface Shot extends ScaledPhoto {
     preview: string;
+    file: Blob;
 }
 
 interface TextReading {
@@ -26,17 +29,26 @@ interface TextReading {
 
 interface Cropping {
     side: PhotoSide;
-    file: File;
+    file: Blob;
     url: string;
 }
 
 const SIDES: Array<PhotoSide> = ['front', 'back'];
 const READ_WAIT_MILLISECONDS = 20_000;
+const CAMERA_CHOICE_KEY = 'scan-camera';
+
+function phoneCameraChosen(): boolean {
+    try {
+        return localStorage.getItem(CAMERA_CHOICE_KEY) === 'phone';
+    } catch {
+        return false;
+    }
+}
 
 @Component({
     selector: 'app-scan-page',
     standalone: true,
-    imports: [TranslatePipe, CropEditorComponent, CardDetailsComponent],
+    imports: [TranslatePipe, CropEditorComponent, CardDetailsComponent, LiveCameraComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './scan.page.html',
     styleUrl: './scan.page.scss'
@@ -50,7 +62,13 @@ export class ScanPage {
     protected readonly textReading = signal<TextReading | undefined>(undefined);
     protected readonly details = signal<CardDetail | undefined>(undefined);
     protected readonly complete = computed(() => SIDES.every((side) => this.shots()[side]));
+    protected readonly nextSide = computed(() => SIDES.find((side) => !this.shots()[side]) ?? 'back');
+    protected readonly cameraPaused = computed(() => this.details() !== undefined || this.cropping() !== undefined || this.busy() !== undefined || this.complete());
     protected readonly store = inject(CollectionStore);
+
+    private readonly camera = inject(Camera);
+    protected readonly canUseLiveCamera = this.camera.available();
+    protected readonly live = signal(this.canUseLiveCamera && !phoneCameraChosen());
 
     private readonly api = inject(ApiService);
     private readonly scaler = inject(PhotoScaler);
@@ -71,8 +89,41 @@ export class ScanPage {
         const file = input.files?.[0];
         input.value = '';
         if (file) {
-            this.stopCropping();
-            this.cropping.set({ side, file, url: URL.createObjectURL(file) });
+            this.crop(side, file);
+        }
+    }
+
+    protected recrop(side: PhotoSide): void {
+        const shot = this.shots()[side];
+        if (this.live() && shot && !this.busy()) {
+            this.crop(side, shot.file);
+        }
+    }
+
+    protected taken({ file, corners }: CameraShot): void {
+        const side = this.nextSide();
+        if (corners) {
+            void this.process(side, file, corners);
+        } else {
+            this.crop(side, file);
+        }
+    }
+
+    protected cameraFailed(): void {
+        this.toasts.show({ kind: 'error', text: this.translate.instant('scan.unreadable') });
+    }
+
+    protected cameraUnavailable(): void {
+        this.live.set(false);
+        this.toasts.show({ kind: 'error', text: this.translate.instant('scan.camera.unavailable') });
+    }
+
+    protected useLiveCamera(live: boolean): void {
+        this.live.set(live);
+        try {
+            localStorage.setItem(CAMERA_CHOICE_KEY, live ? 'live' : 'phone');
+        } catch {
+            return;
         }
     }
 
@@ -84,26 +135,11 @@ export class ScanPage {
         }
     }
 
-    protected async cropped(corners: Corners | undefined): Promise<void> {
+    protected cropped(corners: Corners | undefined): void {
         const cropping = this.cropping();
-        if (!cropping) {
-            return;
-        }
-        const { side, file } = cropping;
-        this.stopCropping();
-
-        this.busy.set(side);
-        try {
-            const scaled = corners ? await this.scaler.straighten(file, corners) : await this.scaler.scale(file);
-            this.release(this.shots()[side]);
-            this.shots.update((shots) => ({ ...shots, [side]: { ...scaled, preview: URL.createObjectURL(scaled.thumb) } }));
-            if (side === 'front') {
-                this.readText(corners ? scaled.photo : undefined);
-            }
-        } catch {
-            this.toasts.show({ kind: 'error', text: this.translate.instant('scan.unreadable') });
-        } finally {
-            this.busy.set(undefined);
+        if (cropping) {
+            this.stopCropping();
+            void this.process(cropping.side, cropping.file, corners);
         }
     }
 
@@ -170,6 +206,31 @@ export class ScanPage {
         SIDES.forEach((side) => this.release(this.shots()[side]));
         this.shots.set({});
         this.textReading.set(undefined);
+    }
+
+    private crop(side: PhotoSide, file: Blob): void {
+        this.stopCropping();
+        this.cropping.set({ side, file, url: URL.createObjectURL(file) });
+    }
+
+    private async process(side: PhotoSide, file: Blob, corners?: Corners): Promise<void> {
+        this.busy.set(side);
+        try {
+            const scaled = corners ? await this.scaler.straighten(file, corners) : await this.scaler.scale(file);
+            this.release(this.shots()[side]);
+            this.shots.update((shots) => ({ ...shots, [side]: { ...scaled, file, preview: URL.createObjectURL(scaled.thumb) } }));
+            if (side === 'front') {
+                this.readText(corners ? scaled.photo : undefined);
+            }
+        } catch {
+            this.toasts.show({ kind: 'error', text: this.translate.instant('scan.unreadable') });
+        } finally {
+            this.busy.set(undefined);
+        }
+
+        if (this.complete()) {
+            this.save();
+        }
     }
 
     private readText(cardPhoto?: Blob): void {

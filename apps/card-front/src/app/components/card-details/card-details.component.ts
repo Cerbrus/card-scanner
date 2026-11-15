@@ -9,21 +9,22 @@ import { CandidateListComponent } from '../candidate-list/candidate-list.compone
 import { languageFlag } from '../card-tile/card-tile.component';
 
 const LAST_LANGUAGE_KEY = 'last-card-language';
+const LAST_CONDITION_KEY = 'last-card-condition';
 
-export function lastLanguage(): Language | undefined {
+function lastChoice<T extends string>(key: string, options: ReadonlyArray<T>): T | undefined {
     try {
-        const stored = localStorage.getItem(LAST_LANGUAGE_KEY);
+        const stored = localStorage.getItem(key);
 
-        return LANGUAGES.find((language) => language === stored);
+        return options.find((option) => option === stored);
     } catch {
         return undefined;
     }
 }
 
-function rememberLanguage(language?: Language): void {
+function remember(key: string, value?: string): void {
     try {
-        if (language) {
-            localStorage.setItem(LAST_LANGUAGE_KEY, language);
+        if (value) {
+            localStorage.setItem(key, value);
         }
     } catch {
         return;
@@ -122,9 +123,9 @@ export class CardDetailsComponent {
     protected readonly finishes = FINISHES;
     protected readonly languages = LANGUAGES;
     protected readonly chosen = linkedSignal<Candidate | undefined>(() => this.card().candidates[0]);
-    protected readonly condition = linkedSignal<Condition | undefined>(() => this.card().condition);
+    protected readonly condition = linkedSignal<Condition | undefined>(() => this.card().condition ?? lastChoice(LAST_CONDITION_KEY, CONDITIONS));
     protected readonly variant = linkedSignal<Finish | undefined>(() => this.card().variant ?? 'normal');
-    protected readonly language = linkedSignal<Language | undefined>(() => this.card().language ?? lastLanguage());
+    protected readonly language = linkedSignal<Language | undefined>(() => this.card().language ?? lastChoice(LAST_LANGUAGE_KEY, LANGUAGES));
     protected readonly results = signal<Array<Candidate> | undefined>(undefined);
     protected readonly searching = signal(false);
     protected readonly saving = signal(false);
@@ -149,7 +150,8 @@ export class CardDetailsComponent {
     protected save(): void {
         const id = this.card().id;
         const chosen = this.chosen();
-        rememberLanguage(this.language());
+        remember(LAST_LANGUAGE_KEY, this.language());
+        remember(LAST_CONDITION_KEY, this.condition());
         this.saving.set(true);
         this.api
             .updateCard(id, { condition: this.condition() ?? null, variant: this.variant() ?? null, language: this.language() ?? null })

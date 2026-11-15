@@ -12,7 +12,7 @@ Everything below is built. Each item is switched off, or not reachable, until th
 
 Also open for the owner to decide:
 
-- Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15). The reviewer needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN` and the Claude GitHub App on this repository; until then its review job fails.
+- Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15), with the secret and the Claude GitHub App in place; its first review ran on 2026-11-15.
 - The branch ruleset `protect-master` of the barcode scanner (no force-push, no deletion) is not set here.
 
 ## Never tested
@@ -27,6 +27,7 @@ Also open for the owner to decide:
 - **Crop and straighten on a real phone**: dragging the corners with a finger, and the time the straightening takes on a 12-megapixel photo. Tested in desktop Chrome with a made-up photo.
 - **Moving photos to the Drive trash** against the real Drive; tested with the fake Google.
 - **Reading name and number from real phone photos.** Tried on the catalogue pictures of eight Base Set and Jungle cards (600 pixels wide, sharper photos are expected from a phone): all seven Pokémon names right, five of seven numbers right and none wrong, about one second per card in desktop Chrome. Trainer and Energy cards, newer layouts and Dutch prints are not tried; the time on a phone is not known. First real card from the owner's phone (Fossil Dragonite): number right, name wrong; right after the change of 2026-11-15 21:30.
+- **The camera in the page on a real phone**: the sharpness of its photos against the camera app, `ImageCapture` on the owner's phone, how fast the card is found per frame, and whether turning the card over always takes the back. Tested in headless Chrome with a fake camera playing a made-up card.
 - **Finding the card in real photos.** The line detection was tried on nine of the owner's uncropped photos on a dark mat: the seven where the whole card is in the photo got their outer edges, fronts and backs; the two where the card fills the photo got an outline along the photo's edge. Not tried on a light or busy table, or with a shiny sleeve, and not timed on a phone.
 
 ## Done
@@ -65,6 +66,7 @@ Also open for the owner to decide:
 - [x] Inbox with the cards that are not confirmed (done 2026-11-14 15:55); replaced by the details step on the scan page and a filter in the collection (done 2026-11-15 23:10)
 - [x] Details step right after the scan: which card (best fit chosen), condition, finish, language; one tap to save and go to the next card (done 2026-11-15 23:10)
 - [x] The language read from the weakness line of the straightened front (done 2026-11-15 23:10)
+- [x] Fewer taps per card: the camera in the scan page takes front and back by itself once the card holds still, straightens a card it finds without asking, saves once both sides are there, and the details step starts from the previous card's condition and language. The phone's camera app stays as a choice (done 2026-11-16 00:21)
 - [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set; the owner will not set one (done 2026-11-14 15:55)
 - [x] Reading name and number on the phone with Tesseract.js from fixed strips of the straightened front; the details step after the scan starts with the catalogue cards that fit, and the search fields filled in (done 2026-11-15 20:40)
 
@@ -110,7 +112,7 @@ Also open for the owner to decide:
 ## Open
 
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
-- Finding the corners of the card in the photo by itself, instead of dragging them.
+- If the photos from the camera in the page disappoint: back to the phone's camera app, and open it by itself for the front when the scan page opens and for the back after the front is cropped. A browser only opens a file input from a tap, so the back can follow the crop button's tap; the front on page open needs checking on the phone.
 
 ## Package upgrades
 

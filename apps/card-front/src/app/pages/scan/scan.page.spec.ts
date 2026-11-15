@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { FakeStore, card, click, detail, fakeStore, texts } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
+import { LiveCameraComponent } from '../../components/live-camera/live-camera.component';
 import { ApiService } from '../../services/api.service';
+import { Camera } from '../../services/camera';
 import { CardTextReader } from '../../services/card-text-reader';
 import { CollectionStore } from '../../services/collection.store';
 import { PhotoScaler } from '../../services/photo-scaler';
@@ -21,6 +24,8 @@ const scaler = {
     )
 };
 
+const camera = { live: false, available: (): boolean => camera.live, open: vi.fn(() => new Promise<MediaStream>(() => undefined)), takePhoto: vi.fn() };
+
 const reader = { read: vi.fn(() => Promise.resolve({ name: 'Charizard', number: '4/102' })) };
 
 describe('ScanPage', () => {
@@ -36,14 +41,24 @@ describe('ScanPage', () => {
         input.dispatchEvent(new Event('change'));
         fixture.detectChanges();
     };
+    const settle = async (): Promise<void> => {
+        for (let round = 0; round < 4; round++) {
+            await fixture.whenStable();
+            await Promise.resolve();
+            fixture.detectChanges();
+        }
+    };
     const photograph = async (index: number, button = '.whole'): Promise<void> => {
         pick(index);
         click(page, `app-crop-editor ${button}`);
-        await fixture.whenStable();
-        await Promise.resolve();
-        fixture.detectChanges();
+        await settle();
     };
-    const saveButton = (): HTMLButtonElement => page.querySelector('button.primary') as HTMLButtonElement;
+    const create = (): void => {
+        fixture = TestBed.createComponent(ScanPage);
+        fixture.detectChanges();
+        page = fixture.nativeElement as HTMLElement;
+    };
+    const liveCamera = (): LiveCameraComponent => fixture.debugElement.query(By.directive(LiveCameraComponent)).componentInstance as LiveCameraComponent;
     const toasts = (): Array<string> =>
         TestBed.inject(ToastService)
             .toasts()
@@ -51,6 +66,7 @@ describe('ScanPage', () => {
 
     beforeEach(() => {
         scaler.fail = false;
+        camera.live = false;
         localStorage.clear();
         scaler.scale.mockClear();
         scaler.straighten.mockClear();
@@ -69,12 +85,11 @@ describe('ScanPage', () => {
                 { provide: ApiService, useValue: api },
                 { provide: CollectionStore, useValue: store },
                 { provide: PhotoScaler, useValue: scaler },
-                { provide: CardTextReader, useValue: reader }
+                { provide: CardTextReader, useValue: reader },
+                { provide: Camera, useValue: camera }
             ]
         });
-        fixture = TestBed.createComponent(ScanPage);
-        fixture.detectChanges();
-        page = fixture.nativeElement as HTMLElement;
+        create();
     });
 
     it('asks the phone for its back camera, once for each side', () => {
@@ -134,9 +149,6 @@ describe('ScanPage', () => {
         expect(texts(page, '.read-result')).toEqual(['text_fields scan.read.found']);
 
         await photograph(1);
-        saveButton().click();
-        await fixture.whenStable();
-        fixture.detectChanges();
 
         const form = api.createCard.mock.calls[0][0] as FormData;
         expect([form.get('name'), form.get('number')]).toEqual(['Charizard', '4/102']);
@@ -148,8 +160,6 @@ describe('ScanPage', () => {
         api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
         await photograph(0);
         await photograph(1);
-        saveButton().click();
-        await fixture.whenStable();
 
         expect(reader.read).not.toHaveBeenCalled();
         expect((api.createCard.mock.calls[0][0] as FormData).has('name')).toBe(false);
@@ -165,25 +175,23 @@ describe('ScanPage', () => {
         expect(scaler.scale).not.toHaveBeenCalled();
     });
 
-    it('only lets the card be saved once both sides are photographed', async () => {
-        expect(saveButton().disabled).toBe(true);
+    it('saves the card by itself as soon as both sides are photographed', async () => {
+        api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
+        expect(page.querySelector('button.save')).toBeNull();
 
         await photograph(0);
-        expect(saveButton().disabled).toBe(true);
+        expect(api.createCard).not.toHaveBeenCalled();
         expect(page.querySelectorAll('.side.filled').length).toBe(1);
 
         await photograph(1);
-        expect(saveButton().disabled).toBe(false);
+        expect(api.createCard).toHaveBeenCalledTimes(1);
+        expect(page.querySelector('app-card-details')).not.toBeNull();
     });
 
     it('sends both photos, then asks right away which card it is with its condition, finish and language', async () => {
         api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
         await photograph(0);
         await photograph(1);
-
-        saveButton().click();
-        await fixture.whenStable();
-        fixture.detectChanges();
 
         const form = api.createCard.mock.calls[0][0] as FormData;
         expect(Array.from(form.keys())).toEqual(['front', 'frontThumb', 'back', 'backThumb']);
@@ -206,19 +214,19 @@ describe('ScanPage', () => {
         expect(page.querySelectorAll('.side.filled').length).toBe(0);
         expect(texts(page, 'p.muted.mt-4')[0]).toContain('scan.count');
         expect(localStorage.getItem('last-card-language')).toBe('nl');
+        expect(localStorage.getItem('last-card-condition')).toBe('near_mint');
     });
 
-    it('lets the details wait, keeping the card unconfirmed, and remembers the last language for the next card', async () => {
+    it('lets the details wait, keeping the card unconfirmed, and starts from the last language and condition', async () => {
         localStorage.setItem('last-card-language', 'de');
+        localStorage.setItem('last-card-condition', 'excellent');
         api.createCard.mockReturnValue(of(card(8, { status: 'new' })));
         api.getCard.mockReturnValue(of(detail(8, { status: 'new', candidates: [] })));
         await photograph(0);
         await photograph(1);
-        saveButton().click();
-        await fixture.whenStable();
-        fixture.detectChanges();
 
         expect(page.querySelector('app-card-details .choice.language.on')?.textContent).toContain('language.de');
+        expect(texts(page, 'app-card-details .choice.condition.on')).toEqual(['conditionShort.excellent']);
         expect(texts(page, 'app-card-details .save')).toEqual(['check details.saveUnknown']);
         expect(texts(page, 'app-card-details .choice.finish.on')).toEqual(['variant.normal']);
 
@@ -233,13 +241,14 @@ describe('ScanPage', () => {
         await photograph(0);
         await photograph(1);
 
-        saveButton().click();
-        await fixture.whenStable();
-        fixture.detectChanges();
-
         expect(toasts()).toEqual(['error: scan.failed']);
         expect(page.querySelectorAll('.side.filled').length).toBe(2);
-        expect(saveButton().disabled).toBe(false);
+
+        api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
+        click(page, 'button.save');
+        await settle();
+        expect(api.createCard).toHaveBeenCalledTimes(2);
+        expect(page.querySelector('app-card-details')).not.toBeNull();
     });
 
     it('says so when a chosen file is not a usable photo', async () => {
@@ -252,10 +261,78 @@ describe('ScanPage', () => {
 
     it('throws the photos away on request', async () => {
         await photograph(0);
-        click(page, 'button.btn:not(.primary)');
+        click(page, 'button.again');
         fixture.detectChanges();
 
         expect(page.querySelectorAll('.side.filled').length).toBe(0);
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:preview');
+    });
+
+    describe('with the camera in the app', () => {
+        const found = [{ x: 10, y: 10 }, { x: 90, y: 10 }, { x: 90, y: 130 }, { x: 10, y: 130 }];
+        const shot = (corners?: typeof found): void => {
+            liveCamera().captured.emit({ file: new Blob(['frame']), corners: corners as never });
+        };
+
+        beforeEach(() => {
+            camera.live = true;
+            fixture.destroy();
+            create();
+        });
+
+        it('shows the camera instead of the phone camera buttons', () => {
+            expect(page.querySelector('app-live-camera')).not.toBeNull();
+            expect(page.querySelectorAll('input[type=file]').length).toBe(0);
+            expect(page.querySelector('.side.next')?.textContent).toContain('scan.front');
+        });
+
+        it('straightens a photo where the card was found without asking, and saves after the back', async () => {
+            api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
+            shot(found);
+            await settle();
+
+            expect(scaler.straighten).toHaveBeenCalledWith(expect.any(Blob), found);
+            expect(page.querySelector('app-crop-editor')).toBeNull();
+            expect(page.querySelector('.side.next')?.textContent).toContain('scan.back');
+
+            shot(found);
+            await settle();
+            expect(api.createCard).toHaveBeenCalledTimes(1);
+            expect(page.querySelector('app-card-details')).not.toBeNull();
+            expect(page.querySelector('app-live-camera')?.classList).toContain('hidden');
+        });
+
+        it('asks for the corners when the card was not found, and can crop a taken side again', async () => {
+            shot();
+            await settle();
+            expect(page.querySelector('app-crop-editor')).not.toBeNull();
+            click(page, 'app-crop-editor .whole');
+            await settle();
+            expect(page.querySelectorAll('.side.filled').length).toBe(1);
+
+            click(page, '.side.filled');
+            fixture.detectChanges();
+            expect(page.querySelector('app-crop-editor')).not.toBeNull();
+        });
+
+        it('falls back to the phone camera when the camera cannot be opened', () => {
+            liveCamera().unavailable.emit();
+            fixture.detectChanges();
+
+            expect(page.querySelectorAll('input[type=file]').length).toBe(2);
+            expect(toasts()).toEqual(['error: scan.camera.unavailable']);
+        });
+
+        it('remembers when the phone camera is chosen instead', () => {
+            click(page, 'button.camera-choice');
+            fixture.detectChanges();
+
+            expect(page.querySelectorAll('input[type=file]').length).toBe(2);
+            expect(localStorage.getItem('scan-camera')).toBe('phone');
+
+            fixture.destroy();
+            create();
+            expect(page.querySelector('app-live-camera')).toBeNull();
+        });
     });
 });

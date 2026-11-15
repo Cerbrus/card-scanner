@@ -40,6 +40,8 @@ const jpegSize = (data: Buffer): { width: number; height: number } => {
     throw new Error('no size in this JPEG');
 };
 
+const usePhoneCamera = (page: Page): Promise<void> => page.addInitScript(() => localStorage.setItem('scan-camera', 'phone'));
+
 const cards = async (request: APIRequestContext): Promise<Array<Card>> => (await request.get('/api/v1/cards')).json();
 
 const addConfirmed = async (page: Page, request: APIRequestContext, catalogCardId: string, changes: object): Promise<void> => {
@@ -54,7 +56,8 @@ test.beforeAll(async ({ request }) => {
     await expect.poll(async () => ((await (await request.get('/api/v1/system')).json()) as { catalog: { cards: number } }).catalog.cards).toBeGreaterThan(0);
 });
 
-test('photograph both sides, straighten the front and save the card', async ({ page }) => {
+test('photograph both sides with the phone camera, straighten the front and save the card', async ({ page }) => {
+    await usePhoneCamera(page);
     await page.goto('/#/scan');
     const front = await photo(page, '#f2d14b');
     const back = await photo(page, '#2f5fd0');
@@ -86,9 +89,7 @@ test('photograph both sides, straighten the front and save the card', async ({ p
     await page.locator('input[type=file]').nth(1).setInputFiles({ name: 'back.jpg', mimeType: 'image/jpeg', buffer: back });
     await expect(editor.locator('.stage')).toHaveAttribute('data-start', 'found');
     await editor.locator('button.whole').click();
-    await expect(page.locator('.side.filled')).toHaveCount(2);
 
-    await page.getByRole('button', { name: 'Kaart opslaan' }).click();
     const details = page.locator('app-card-details');
     await expect(details).toBeVisible();
 
@@ -174,6 +175,7 @@ test('show the log from the settings page', async ({ page }) => {
 
 test('read the name and number of a straightened card and offer the matching catalogue card', async ({ page, request }) => {
     test.setTimeout(120_000);
+    await usePhoneCamera(page);
     await page.goto('/#/scan');
     const card = { left: 150, top: 200, width: 1260, height: 1760 };
     const url = await page.evaluate((box) => {
@@ -220,7 +222,6 @@ test('read the name and number of a straightened card and offer the matching cat
 
     await page.locator('input[type=file]').nth(1).setInputFiles({ name: 'back.jpg', mimeType: 'image/jpeg', buffer: await photo(page, '#2f5fd0') });
     await page.locator('app-crop-editor button.whole').click();
-    await page.getByRole('button', { name: 'Kaart opslaan' }).click();
     await expect(page.locator('app-card-details .chosen')).toContainText('Charizard');
     await page.locator('app-card-details').getByRole('button', { name: 'Later' }).click();
     await expect(page.locator('app-card-details')).toHaveCount(0);
@@ -273,4 +274,25 @@ test('delete a card after a second tap', async ({ page, request }) => {
 
     await expect(page).toHaveURL(/#\/collection$/);
     expect((await cards(request)).length).toBe(before.length - 1);
+});
+
+test('the camera in the app takes both sides by itself, straightens them and saves the card', async ({ page, request }) => {
+    test.setTimeout(90_000);
+    const before = (await cards(request)).length;
+    await page.goto('/#/scan');
+    await expect(page.locator('app-live-camera video')).toBeVisible();
+
+    const details = page.locator('app-card-details');
+    await expect(details).toBeVisible({ timeout: 45_000 });
+    await expect(page.locator('app-crop-editor')).toHaveCount(0);
+    await details.getByRole('button', { name: 'Later' }).click();
+    await expect(page.locator('.side.next')).toContainText('Voorkant');
+
+    const all = await cards(request);
+    expect(all.length).toBe(before + 1);
+    const detail = (await (await request.get(`/api/v1/cards/${all[0].id}`)).json()) as { photos: { front: number; back: number } };
+    for (const id of [detail.photos.front, detail.photos.back]) {
+        const { width, height } = jpegSize(await (await request.get(`/api/v1/photos/${id}`)).body());
+        expect(width / height).toBeCloseTo(63 / 88, 1);
+    }
 });

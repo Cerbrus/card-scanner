@@ -6,11 +6,26 @@
     } @else if (cropping(); as cropping) {
         <h2 class="section-title !mt-0">{{ 'scan.crop.title' | translate: { side: ('scan.' + cropping.side | translate) } }}</h2>
         <app-crop-editor [src]="cropping.url" (done)="cropped($event)" (cancelled)="stopCropping()" />
-    } @else {
-        <div class="sides">
+    }
+
+    @if (live()) {
+        <app-live-camera
+            [class.hidden]="details() || cropping()"
+            [side]="nextSide()"
+            [paused]="cameraPaused()"
+            (captured)="taken($event)"
+            (unavailable)="cameraUnavailable()"
+            (failed)="cameraFailed()"
+        />
+    }
+
+    @if (!details() && !cropping()) {
+        <div class="sides" [class.small]="live()">
             @for (side of sides; track side) {
-                <label class="side" [class.filled]="shots()[side]">
-                    <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="busy()" (change)="choose(side, $event)" />
+                <label class="side" [class.filled]="shots()[side]" [class.next]="live() && !shots()[side] && nextSide() === side" (click)="recrop(side)">
+                    @if (!live()) {
+                        <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="busy()" (change)="choose(side, $event)" />
+                    }
                     @if (shots()[side]; as shot) {
                         <img [src]="shot.preview" [alt]="'scan.' + side | translate" />
                         <span class="side-label">
@@ -18,9 +33,11 @@
                             {{ 'scan.' + side | translate }}
                         </span>
                     } @else {
-                        <i class="material-symbols-outlined side-icon">{{ busy() === side ? 'hourglass_top' : 'add_a_photo' }}</i>
+                        <i class="material-symbols-outlined side-icon">{{ busy() === side ? 'hourglass_top' : live() ? 'photo_camera' : 'add_a_photo' }}</i>
                         <span class="font-semibold">{{ 'scan.' + side | translate }}</span>
-                        <span class="muted text-xs">{{ 'scan.tap' | translate }}</span>
+                        @if (!live()) {
+                            <span class="muted text-xs">{{ 'scan.tap' | translate }}</span>
+                        }
                     }
                 </label>
             }
@@ -42,15 +59,28 @@
             </p>
         }
 
-        <div class="mt-4 flex gap-2">
-            <button type="button" class="btn primary grow" [disabled]="!complete() || busy()" (click)="save()">
-                <i class="material-symbols-outlined">save</i>
-                {{ (busy() === 'saving' ? 'scan.saving' : 'scan.save') | translate }}
-            </button>
-            <button type="button" class="btn" [disabled]="busy() || !(shots().front || shots().back)" (click)="forget()">
+        <div class="mt-4 flex flex-wrap gap-2">
+            @if (busy() === 'saving') {
+                <p class="saving muted flex grow items-center gap-1">
+                    <i class="material-symbols-outlined">hourglass_top</i>
+                    {{ 'scan.saving' | translate }}
+                </p>
+            } @else if (complete()) {
+                <button type="button" class="save btn primary grow" (click)="save()">
+                    <i class="material-symbols-outlined">save</i>
+                    {{ 'scan.save' | translate }}
+                </button>
+            }
+            <button type="button" class="again btn" [disabled]="busy() || !(shots().front || shots().back)" (click)="forget()">
                 <i class="material-symbols-outlined">restart_alt</i>
                 {{ 'scan.again' | translate }}
             </button>
+            @if (canUseLiveCamera) {
+                <button type="button" class="camera-choice btn" [disabled]="busy()" (click)="useLiveCamera(!live())">
+                    <i class="material-symbols-outlined">{{ live() ? 'add_a_photo' : 'videocam' }}</i>
+                    {{ (live() ? 'scan.camera.usePhone' : 'scan.camera.useLive') | translate }}
+                </button>
+            }
         </div>
     }
 
@@ -58,3 +88,4 @@
         <p class="muted mt-4 text-sm">{{ 'scan.count' | translate: { count } }}</p>
     }
 </div>
+

@@ -18,6 +18,8 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 **No inbox: the details come right after the scan.** The owner wants to say which card it is, its condition, holo or not, and its language while the card is still in hand. After saving the photos, the scan page asks for exactly that, with the best catalogue match already chosen and the language preset, and goes on to the next card with one tap. A card left for later stays unconfirmed in the collection, behind a filter. Changed on 2026-11-15 from an inbox that collected the unconfirmed cards.
 
+**The details step starts from the previous card.** Language and condition are preset to those of the previous card, as most of a stack is in the same language and about the same state; the finish starts at normal. Added on 2026-11-16.
+
 **Two copies of a card are two rows.** Each physical card has its own photos, condition and price history.
 
 ## Prices
@@ -62,7 +64,7 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **The phone makes the photo smaller, and makes the thumbnail.** A phone photo is 12 megapixels or more. The web app scales it to 2400 pixels on the long side and makes a 480-pixel thumbnail, both as JPEG, before upload. The server stores what it receives and checks only that it is a JPEG of a sane size. So the server needs no image library, which saves memory and a native dependency on a Pi that has little to spare.
 
-**The phone straightens the card, the owner sets the corners.** After a photo is taken, the scan page shows it with four corners to drag onto the card; the web app then cuts the card out and straightens it to the card's shape (63 by 88) with a perspective transform on a canvas. "Whole photo" skips this. Finding the corners automatically needs edge detection that is unreliable on cards with a white border on a light table; a few seconds of dragging is reliable. The server still gets plain JPEGs and needs no image library.
+**The phone straightens the card; the owner sets the corners only when it is not found.** The web app cuts the card out and straightens it to the card's shape (63 by 88) with a perspective transform on a canvas. Its edges are found by line detection; when found in a photo from the camera in the app, the photo is straightened without asking, otherwise the four corners are shown to drag. "Whole photo" skips this. The server still gets plain JPEGs and needs no image library. Changed on 2026-11-16 from always asking for the corners, to take fewer taps per card.
 
 **The app reloads itself after a release.** The image build writes `app-files.json`, the list of the web app's script and style files. The open app fetches it when it comes back to the screen and every minute; when the files it loaded are no longer in the list, it reloads, but not on the scan page, while a photo is cropped or viewed, or while a field has focus; then it waits for the next page change. Taken from the barcode scanner, which checks when its event stream reconnects; this app has no event stream.
 
@@ -74,7 +76,7 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **Photos as files, not in the database.** Stored under `data/photos/`, with the file name in the database. The database stays small and easy to copy.
 
-**Photo from the phone's own camera app.** The scan page uses a file input that opens the camera. That gives a sharp, full photo with the phone's own focus and flash, and it works without HTTPS. A live camera view inside the page is not needed.
+**The camera in the page takes the photos by itself; the phone's camera app stays as a choice.** The owner wants as few taps per card as possible. The scan page shows the camera, takes a side once the card holds still, and takes the back once the card was turned over; with both sides it saves by itself. That needs HTTPS, which the app has behind the proxy. A frame from the camera in the page may be less sharp than a photo from the camera app; Chrome on Android takes a full photo through `ImageCapture`, other browsers give the video frame. The file input that opens the camera app stays one tap away and the choice is remembered; if the photos disappoint, the owner goes back to it. Changed on 2026-11-16 from the camera app only.
 
 **The web app asks again while a card is being read.** Reading takes some seconds. The collection and the card page poll every few seconds only while a reading is pending. No event stream and no service worker: nothing here needs push or offline use.
 

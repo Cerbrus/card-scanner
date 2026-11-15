@@ -3,7 +3,12 @@ import { join } from 'node:path';
 
 import { defineConfig } from '@playwright/test';
 
+import { writeFakeCamera } from './fake-camera';
+
 const PORT = 3932;
+const FAKE_CAMERA = join(tmpdir(), 'cardscanner-e2e-camera.y4m');
+
+writeFakeCamera(FAKE_CAMERA);
 
 export default defineConfig({
     testDir: '.',
@@ -19,7 +24,9 @@ export default defineConfig({
         channel: 'chrome',
         viewport: { width: 390, height: 844 },
         hasTouch: true,
-        locale: 'nl-NL'
+        locale: 'nl-NL',
+        permissions: ['camera'],
+        launchOptions: { args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-video-capture=${FAKE_CAMERA}`] }
     },
     webServer: {
         command: 'node e2e/start-app.mjs',

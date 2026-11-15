@@ -36,6 +36,12 @@
             "use": "Rechtzetten",
             "whole": "Hele foto"
         },
+        "camera": {
+            "shutter": "Foto maken: {side}",
+            "usePhone": "Telefooncamera",
+            "useLive": "Camera in de app",
+            "unavailable": "De camera kon niet worden geopend; gebruik de telefooncamera."
+        },
         "read": {
             "busy": "Naam en nummer lezen…",
             "found": "Gelezen: {name} · {number}",
