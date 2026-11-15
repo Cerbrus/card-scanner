@@ -220,6 +220,7 @@ describe('ScanPage', () => {
 
         expect(page.querySelector('app-card-details .choice.language.on')?.textContent).toContain('language.de');
         expect(texts(page, 'app-card-details .save')).toEqual(['check details.saveUnknown']);
+        expect(texts(page, 'app-card-details .choice.finish.on')).toEqual(['variant.normal']);
 
         click(page, 'app-card-details .later');
         fixture.detectChanges();

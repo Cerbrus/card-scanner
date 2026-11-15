@@ -123,7 +123,7 @@ export class CardDetailsComponent {
     protected readonly languages = LANGUAGES;
     protected readonly chosen = linkedSignal<Candidate | undefined>(() => this.card().candidates[0]);
     protected readonly condition = linkedSignal<Condition | undefined>(() => this.card().condition);
-    protected readonly variant = linkedSignal<Finish | undefined>(() => this.card().variant);
+    protected readonly variant = linkedSignal<Finish | undefined>(() => this.card().variant ?? 'normal');
     protected readonly language = linkedSignal<Language | undefined>(() => this.card().language ?? lastLanguage());
     protected readonly results = signal<Array<Candidate> | undefined>(undefined);
     protected readonly searching = signal(false);
