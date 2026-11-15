@@ -24,6 +24,12 @@ for script in update.sh firewall.sh; do
     fi
 done
 
+exec 9>/run/lock/docker-update.lock
+if ! flock -w 600 9; then
+    echo "another updater on this machine held the Docker lock for ten minutes; trying again next time" >&2
+    exit 0
+fi
+
 if ! docker compose pull --quiet; then
     echo "could not pull the image, keeping the current one" >&2
 fi

@@ -111,7 +111,7 @@ Notes:
 
 ## Updates, rollback, restore
 
-- **Update**: push to `master`; the Pi follows within about 5 minutes plus build time.
+- **Update**: push to `master`; the Pi follows within about 5 minutes plus build time. The barcode scanner and the card scanner share the Pi and each have an updater every 5 minutes; both take the lock `/run/lock/docker-update.lock` around pulling, restarting and pruning, so one never prunes while the other pulls. Without it, Docker's image store broke the other's pull with "lease does not exist" (seen 2026-11-15). An updater that waits more than ten minutes for the lock skips that round.
 - **Check**: `curl http://127.0.0.1:3030/api/v1/health` on the Pi for the running version, `systemctl list-timers cardscanner-update.timer`, `journalctl -u cardscanner-update`, `docker compose ps`.
 - **Rollback**: set `IMAGE_TAG=<version>` in `.env` and run the updater. Database migrations only go forward.
 - **Logs**: `/opt/cardscanner/data/logs/app.log` (JSON lines, rotated at 256 KB).
