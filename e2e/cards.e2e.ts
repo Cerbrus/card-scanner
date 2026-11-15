@@ -276,12 +276,20 @@ test('delete a card after a second tap', async ({ page, request }) => {
     expect((await cards(request)).length).toBe(before.length - 1);
 });
 
-test('the camera in the app takes both sides by itself, straightens them and saves the card', async ({ page, request }) => {
+test('the camera in the app takes the front on a tap, the back by itself, straightens both and saves the card', async ({ page, request }) => {
     test.setTimeout(90_000);
     const before = (await cards(request)).length;
     await page.goto('/#/scan');
-    await expect(page.locator('app-live-camera video')).toBeVisible();
+    const camera = page.locator('app-live-camera');
+    await expect(camera.locator('video')).toBeVisible();
+    await expect(camera.locator('.auto')).toHaveAttribute('aria-pressed', 'false');
 
+    await expect(camera.locator('.edge:not(.lost)')).toHaveCount(1, { timeout: 20_000 });
+    await camera.locator('button.shutter').click();
+    await expect(page.locator('.side.filled')).toHaveCount(1, { timeout: 20_000 });
+    await expect(page.locator('app-crop-editor')).toHaveCount(0);
+
+    await camera.locator('.auto').click();
     const details = page.locator('app-card-details');
     await expect(details).toBeVisible({ timeout: 45_000 });
     await expect(page.locator('app-crop-editor')).toHaveCount(0);

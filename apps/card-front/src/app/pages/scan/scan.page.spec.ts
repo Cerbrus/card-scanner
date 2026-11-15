@@ -33,7 +33,7 @@ describe('ScanPage', () => {
     let page: HTMLElement;
     let store: FakeStore;
     const charizard = { catalogCardId: 'base1-4', name: 'Charizard', localId: '4', setId: 'base1', setName: 'Base Set', score: 13 };
-    const api = { createCard: vi.fn(), getCard: vi.fn(), updateCard: vi.fn(), confirmCard: vi.fn(), searchCatalog: vi.fn() };
+    const api = { createCard: vi.fn(), getCard: vi.fn(), updateCard: vi.fn(), confirmCard: vi.fn(), searchCatalog: vi.fn(), deleteCard: vi.fn() };
 
     const pick = (index: number): void => {
         const input = page.querySelectorAll('input[type=file]')[index] as HTMLInputElement;
@@ -234,6 +234,23 @@ describe('ScanPage', () => {
         fixture.detectChanges();
         expect(page.querySelector('app-card-details')).toBeNull();
         expect(api.updateCard).not.toHaveBeenCalled();
+    });
+
+    it('throws a scanned card away from the details step and goes back to scanning', async () => {
+        api.createCard.mockReturnValue(of(card(9, { status: 'new' })));
+        api.deleteCard.mockReturnValue(of(undefined));
+        await photograph(0);
+        await photograph(1);
+
+        click(page, 'app-card-details .discard');
+        await settle();
+
+        expect(api.deleteCard).toHaveBeenCalledWith(9);
+        expect(store.drop).toHaveBeenCalledWith(9);
+        expect(api.updateCard).not.toHaveBeenCalled();
+        expect(page.querySelector('app-card-details')).toBeNull();
+        expect(page.querySelectorAll('.side.filled').length).toBe(0);
+        expect(toasts()).toEqual(['ok: scan.discarded']);
     });
 
     it('keeps the photos when saving fails, so the user can try again', async () => {

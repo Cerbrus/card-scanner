@@ -20,7 +20,6 @@
         }
     },
     "scan": {
-        "title": "Kaart scannen",
         "front": "Voorkant",
         "back": "Achterkant",
         "tap": "Tik om een foto te maken",
@@ -38,15 +37,18 @@
         },
         "camera": {
             "shutter": "Foto maken: {side}",
-            "usePhone": "Telefooncamera",
-            "useLive": "Camera in de app",
-            "unavailable": "De camera kon niet worden geopend; gebruik de telefooncamera."
+            "usePhone": "Handmatige scan",
+            "useLive": "Automatische scan",
+            "unavailable": "De camera kon niet worden geopend; gebruik de handmatige scan.",
+            "auto": "Auto",
+            "autoHint": "Foto vanzelf maken zodra de kaart stil ligt"
         },
         "read": {
             "busy": "Naam en nummer lezen…",
             "found": "Gelezen: {name} · {number}",
             "nothing": "Naam en nummer niet gevonden; je kiest de kaart na het opslaan."
-        }
+        },
+        "discarded": "Kaart weggegooid"
     },
     "state": {
         "unknown": "Niet herkend",
@@ -255,6 +257,7 @@
         "noCandidates": "Nog geen kaart gevonden; zoek op naam en nummer.",
         "saveNext": "Opslaan en volgende kaart",
         "saveUnknown": "Opslaan zonder kaart",
-        "later": "Later"
+        "later": "Later",
+        "discard": "Weggooien"
     }
 }

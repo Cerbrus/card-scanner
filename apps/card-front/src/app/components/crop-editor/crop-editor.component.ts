@@ -6,8 +6,8 @@ import { Corners, Point, startCorners } from '../../services/perspective';
 
 const HANDLE_SHARE = 0.018;
 const TOUCH_SHARE = 0.07;
-const LINE_SHARE = 0.0025;
-const DASH_SHARE = 0.012;
+export const LINE_SHARE = 0.0025;
+export const DASH_SHARE = 0.012;
 const LOUPE_SHARE = 0.52;
 const LOUPE_MAX_WIDTH_SHARE = 0.7;
 const LOUPE_CORNER_SHARE = 0.12;
@@ -40,7 +40,9 @@ let nextEditor = 0;
                             </clipPath>
                         </defs>
                         <path class="shade" fill-rule="evenodd" [attr.d]="shade()" />
-                        <polygon class="edge" [attr.points]="outline()" [attr.stroke-width]="line()" [attr.stroke-dasharray]="dash()" />
+                        @for (side of sides(); track $index) {
+                            <line class="edge" [attr.x1]="side.from.x" [attr.y1]="side.from.y" [attr.x2]="side.to.x" [attr.y2]="side.to.y" [attr.stroke-width]="line()" [attr.stroke-dasharray]="dash()" />
+                        }
                         @for (corner of corners(); track $index) {
                             <circle class="handle" [class.active]="dragging() === $index" [attr.cx]="corner.x" [attr.cy]="corner.y" [attr.r]="handle()" [attr.stroke-width]="line()" />
                             <circle class="grip" [attr.cx]="corner.x" [attr.cy]="corner.y" [attr.r]="grip()" (pointerdown)="grab($index, $event)" />
@@ -109,6 +111,18 @@ export class CropEditorComponent {
     protected readonly dash = computed(() => `${this.longest() * DASH_SHARE} ${this.longest() * DASH_SHARE * 0.7}`);
     protected readonly loupeSide = computed(() => Math.min(this.longest() * LOUPE_SHARE, (this.size()?.width ?? 1) * LOUPE_MAX_WIDTH_SHARE));
     protected readonly loupeCorner = computed(() => this.loupeSide() * LOUPE_CORNER_SHARE);
+    protected readonly sides = computed(() =>
+        this.corners().map((corner, index) => {
+            const next = this.corners()[(index + 1) % 4];
+            const length = Math.hypot(next.x - corner.x, next.y - corner.y);
+            const gap = Math.min(this.handle(), length / 2);
+            const share = length ? gap / length : 0;
+            const along = (point: Point, toward: Point): Point => ({ x: point.x + (toward.x - point.x) * share, y: point.y + (toward.y - point.y) * share });
+
+            return { from: along(corner, next), to: along(next, corner) };
+        })
+    );
+
     protected readonly outline = computed(() => this.corners().map(({ x, y }) => `${x},${y}`).join(' '));
     protected readonly dragged = computed(() => {
         const index = this.dragging();

@@ -20,7 +20,6 @@
         }
     },
     "scan": {
-        "title": "Scan a card",
         "front": "Front",
         "back": "Back",
         "tap": "Tap to take a photo",
@@ -38,15 +37,18 @@
         },
         "camera": {
             "shutter": "Take photo: {side}",
-            "usePhone": "Phone camera",
-            "useLive": "Camera in the app",
-            "unavailable": "The camera could not be opened; use the phone camera."
+            "usePhone": "Manual scan",
+            "useLive": "Automatic scan",
+            "unavailable": "The camera could not be opened; use the manual scan.",
+            "auto": "Auto",
+            "autoHint": "Take the photo by itself once the card holds still"
         },
         "read": {
             "busy": "Reading the name and number…",
             "found": "Read: {name} · {number}",
             "nothing": "Name and number not found; you pick the card after saving."
-        }
+        },
+        "discarded": "Card discarded"
     },
     "state": {
         "unknown": "Not identified",
@@ -255,6 +257,7 @@
         "noCandidates": "No card found yet; search by name and number.",
         "saveNext": "Save and next card",
         "saveUnknown": "Save without card",
-        "later": "Later"
+        "later": "Later",
+        "discard": "Discard"
     }
 }

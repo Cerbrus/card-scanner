@@ -90,12 +90,16 @@ function remember(key: string, value?: string): void {
                 }
             </div>
 
-            <div class="mt-5 flex gap-2">
+            <div class="mt-5 flex flex-wrap gap-2">
                 <button type="button" class="save btn primary grow" [disabled]="saving()" (click)="save()">
                     <i class="material-symbols-outlined">check</i>
                     {{ (chosen() ? 'details.saveNext' : 'details.saveUnknown') | translate }}
                 </button>
                 <button type="button" class="later btn" [disabled]="saving()" (click)="later.emit()">{{ 'details.later' | translate }}</button>
+                <button type="button" class="discard btn" [disabled]="saving()" (click)="discard()">
+                    <i class="material-symbols-outlined">delete</i>
+                    {{ 'details.discard' | translate }}
+                </button>
             </div>
         </div>
     `,
@@ -118,6 +122,7 @@ export class CardDetailsComponent {
     public readonly saved = output<CardDetail>();
     public readonly later = output<void>();
     public readonly failed = output<void>();
+    public readonly discarded = output<number>();
 
     protected readonly conditions = CONDITIONS;
     protected readonly finishes = FINISHES;
@@ -142,6 +147,24 @@ export class CardDetailsComponent {
                 tap((results) => this.results.set(results)),
                 catchError(() => of(undefined)),
                 finalize(() => this.searching.set(false)),
+                takeUntilDestroyed(this.destroyRef)
+            )
+            .subscribe();
+    }
+
+    protected discard(): void {
+        const id = this.card().id;
+        this.saving.set(true);
+        this.api
+            .deleteCard(id)
+            .pipe(
+                tap(() => this.discarded.emit(id)),
+                catchError(() => {
+                    this.failed.emit();
+
+                    return of(undefined);
+                }),
+                finalize(() => this.saving.set(false)),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe();

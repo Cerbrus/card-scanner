@@ -193,6 +193,12 @@ export class ScanPage {
         this.toasts.show({ kind: 'ok', text: this.translate.instant('scan.saved') });
     }
 
+    protected detailsDiscarded(id: number): void {
+        this.store.drop(id);
+        this.details.set(undefined);
+        this.toasts.show({ kind: 'ok', text: this.translate.instant('scan.discarded') });
+    }
+
     protected detailsFailed(): void {
         this.toasts.show({ kind: 'error', text: this.translate.instant('common.failed') });
     }
