@@ -66,6 +66,8 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **The crop starts on the card.** When the photo opens for cropping, the web app looks for the card on a 320-pixel copy: the colour along the photo's edge is taken as the background, everything clearly different from it is card, and the four corners go on the outer points of the largest such area (`services/card-finder.ts`). That works for the yellow front and the blue back alike, as long as the card lies on a plain surface. When nothing card-shaped is found, the corners of the previous crop are used, and for the very first photo the middle. The owner always confirms the corners.
 
+**The app icon is an original drawing of a card back**, not the real one: a blue card with swirls and a red and white ball, without the logo or the printed artwork, which belong to Nintendo and The Pokémon Company while this repository and its image are public. The source is `assets/icons/icon.svg`; the PNG sizes and `favicon.ico` are rendered from it, the small ones zoomed in on the card, the install icons with the margin Android's masks need.
+
 **Photos as files, not in the database.** Stored under `data/photos/`, with the file name in the database. The database stays small and easy to copy.
 
 **Photo from the phone's own camera app.** The scan page uses a file input that opens the camera. That gives a sharp, full photo with the phone's own focus and flash, and it works without HTTPS. A live camera view inside the page is not needed.
