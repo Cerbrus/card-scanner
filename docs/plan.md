@@ -102,7 +102,7 @@ Also open for the owner to decide:
 
 - [x] Search and sort in the collection (done 2026-11-14 15:55)
 - [x] Filters, sort and direction kept for the next visit; a button for the sort direction; the search field with an icon (done 2026-11-16 02:47)
-- [x] Card page: condition, finish and language as the filter menus, above the value; "Browse on Cardmarket" as a link at the value heading (done 2026-11-16 03:25)
+- [x] Card page: condition, finish and language on one line as the compact filter menus, above the value; "Browse on Cardmarket" as a link at the value heading (done 2026-11-16 03:25)
 - [x] Copies counted per catalogue card and language (done 2026-11-16 02:47)
 - [x] Help page for conditions and finishes, a tab in the bottom bar (done 2026-11-16 02:47)
 - [x] The 1st edition mark removed everywhere, with a migration that drops the column and a sync that drops the sheet column (done 2026-11-16 02:47)

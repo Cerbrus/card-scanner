@@ -26,8 +26,7 @@ const ICONS: Record<FilterKind, string> = {
         <button
             type="button"
             class="toggle"
-            [class.active]="value() && !labelled()"
-            [class.labelled]="labelled()"
+            [class.active]="value() && highlight()"
             [attr.aria-label]="'collection.filter.' + kind() | translate"
             [attr.aria-expanded]="open()"
             [title]="'collection.filter.' + kind() | translate"
@@ -37,14 +36,9 @@ const ICONS: Record<FilterKind, string> = {
                 <ng-container *ngTemplateOutlet="mark; context: { $implicit: chosen }" />
                 @if (kind() === 'set') {
                     <span class="set-name">{{ chosen === unknown ? ('collection.filter.unknown' | translate) : chosen }}</span>
-                } @else if (labelled()) {
-                    <span class="set-name">{{ text(chosen) | translate }}</span>
                 }
             } @else {
                 <i class="material-symbols-outlined">{{ icons[kind()] }}</i>
-                @if (labelled()) {
-                    <span class="set-name muted">{{ emptyLabel() ?? 'collection.filter.all.' + kind() | translate }}</span>
-                }
             }
             <i class="material-symbols-outlined caret">arrow_drop_down</i>
         </button>
@@ -93,8 +87,6 @@ const ICONS: Record<FilterKind, string> = {
             border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--text);
         }
         .toggle.active { border-color: var(--accent); }
-        .toggle.labelled { justify-content: flex-start; gap: 8px; height: 44px; padding-left: 10px; }
-        .toggle.labelled .set-name { font-size: 0.95rem; font-weight: 400; }
         .toggle i { font-size: 20px; }
         .toggle .caret { margin-left: auto; color: var(--text-muted); }
         .set-name { min-width: 0; overflow: hidden; font-size: 0.78rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
@@ -121,7 +113,7 @@ export class FilterMenuComponent {
     public readonly options = input.required<ReadonlyArray<string>>();
     public readonly value = input('');
     public readonly emptyLabel = input<string>();
-    public readonly labelled = input(false);
+    public readonly highlight = input(true);
     public readonly chosen = output<string>();
 
     protected readonly open = signal(false);

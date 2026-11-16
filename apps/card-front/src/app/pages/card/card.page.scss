@@ -85,3 +85,9 @@
         font-size: 15px;
     }
 }
+
+.detail-menus {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}

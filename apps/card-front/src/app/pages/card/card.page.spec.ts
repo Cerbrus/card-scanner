@@ -241,7 +241,7 @@ describe('CardPage', () => {
 
         expect(page.textContent).toContain('White edges.');
 
-        expect(texts(page, '.detail-condition .toggle')).toEqual(['conditionShort.goodcondition.goodarrow_drop_down']);
+        expect(texts(page, '.detail-condition .toggle')).toEqual(['conditionShort.goodarrow_drop_down']);
         click(page, '.detail-condition .toggle');
         fixture.detectChanges();
         click(page, '.detail-condition .option[data-value="played"]');

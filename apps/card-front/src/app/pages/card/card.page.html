@@ -107,46 +107,38 @@
 
         <h2 class="section-title">{{ 'card.details' | translate }}</h2>
         <div class="card">
-            <span class="field-label !mt-0">{{ 'card.condition' | translate }}</span>
-            <app-filter-menu
-                class="detail-condition"
-                kind="condition"
-                emptyLabel="card.notSet"
-                [labelled]="true"
-                [options]="conditions"
-                [value]="card.condition ?? ''"
-                (chosen)="change({ condition: $any($event) || null })"
-            />
+            <div class="detail-menus">
+                <app-filter-menu
+                    class="detail-condition"
+                    kind="condition"
+                    emptyLabel="card.notSet"
+                    [highlight]="false"
+                    [options]="conditions"
+                    [value]="card.condition ?? ''"
+                    (chosen)="change({ condition: $any($event) || null })"
+                />
+                <app-filter-menu
+                    class="detail-finish"
+                    kind="finish"
+                    emptyLabel="card.notSet"
+                    [highlight]="false"
+                    [options]="finishes"
+                    [value]="card.variant ?? ''"
+                    (chosen)="change({ variant: $any($event) || null })"
+                />
+                <app-filter-menu
+                    class="detail-language"
+                    kind="language"
+                    emptyLabel="card.notSet"
+                    [highlight]="false"
+                    [options]="languages"
+                    [value]="card.language ?? ''"
+                    (chosen)="change({ language: $any($event) || null })"
+                />
+            </div>
             @if (card.conditionSource === 'model') {
                 <p class="muted mt-1 text-xs">{{ 'card.conditionByModel' | translate }} {{ card.conditionNotes }}</p>
             }
-
-            <div class="flex gap-2">
-                <div class="min-w-0 flex-1">
-                    <span class="field-label">{{ 'card.variant' | translate }}</span>
-                    <app-filter-menu
-                        class="detail-finish"
-                        kind="finish"
-                        emptyLabel="card.notSet"
-                        [labelled]="true"
-                        [options]="finishes"
-                        [value]="card.variant ?? ''"
-                        (chosen)="change({ variant: $any($event) || null })"
-                    />
-                </div>
-                <div class="min-w-0 flex-1">
-                    <span class="field-label">{{ 'card.language' | translate }}</span>
-                    <app-filter-menu
-                        class="detail-language"
-                        kind="language"
-                        emptyLabel="card.notSet"
-                        [labelled]="true"
-                        [options]="languages"
-                        [value]="card.language ?? ''"
-                        (chosen)="change({ language: $any($event) || null })"
-                    />
-                </div>
-            </div>
 
             <label>
                 <span class="field-label">{{ 'card.notes' | translate }}</span>
