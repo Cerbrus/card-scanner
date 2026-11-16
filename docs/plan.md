@@ -14,7 +14,7 @@ Also open for the owner to decide:
 
 - Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15), with the secret and the Claude GitHub App in place; its first review ran on 2026-11-15.
 - The branch ruleset `protect-master` is set (done 2026-11-16 18:32): on `master` no deletion, no force-push, and only the repository admin may push. A workflow token can no longer change the scripts the Pi fetches from `master`; the Dependabot reviewer pushes to Dependabot branches only and the build pushes tags only.
-- The Dependabot reviewer still installs the proposed packages in the job that holds the Claude token (review of 2026-11-16, finding 29). Not decided.
+- The Dependabot reviewer still installs the proposed packages in the job that holds the Claude token ([review of 2026-11-16](review-2026-11-16.md), finding 29; all its other findings are fixed or dropped). Accepted as it is (owner, 2026-11-16).
 
 ## Never tested
 
@@ -127,7 +127,6 @@ Also open for the owner to decide:
 
 ## Open
 
-- The findings of the review of 2026-11-16, in [review-2026-11-16.md](review-2026-11-16.md): all fixed or dropped (done 2026-11-16 18:25), except finding 29, the rights of the Dependabot reviewer, which is decided in the barcode scanner first.
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - If the photos from the camera in the page disappoint: back to the phone's camera app, and open it by itself for the front when the scan page opens and for the back after the front is cropped. A browser only opens a file input from a tap, so the back can follow the crop button's tap; the front on page open needs checking on the phone.
 
