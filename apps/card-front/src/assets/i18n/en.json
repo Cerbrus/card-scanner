@@ -147,6 +147,7 @@
             "newest": "Added",
             "name": "Name",
             "number": "Number",
+            "condition": "Condition",
             "value": "Value",
             "set": "Set"
         },

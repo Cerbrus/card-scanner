@@ -7,7 +7,7 @@ import { FilterMenuComponent, UNKNOWN_OPTION } from '../../components/filter-men
 import { CONDITIONS, CardSummary, FINISHES, LANGUAGES } from '../../models';
 import { CollectionStore, copyKey } from '../../services/collection.store';
 
-export const SORTS = ['newest', 'name', 'number', 'value', 'set'] as const;
+export const SORTS = ['newest', 'name', 'number', 'condition', 'value', 'set'] as const;
 export type Sort = (typeof SORTS)[number];
 
 export const UNKNOWN = UNKNOWN_OPTION;
@@ -34,12 +34,17 @@ export const NO_FILTER: CardFilter = { search: '', set: '', condition: '', langu
 const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> = {
     newest: (left, right) => left.createdAt.localeCompare(right.createdAt) || left.id - right.id,
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
+    condition: (left, right) => conditionRank(left) - conditionRank(right) || (left.name ?? '').localeCompare(right.name ?? ''),
     value: (left, right) => (left.value ?? -1) - (right.value ?? -1),
     number: (left, right) => (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity) || (left.setName ?? '').localeCompare(right.setName ?? '') || byNumber(left, right),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
 
-const DESCENDING_FIRST: Record<Sort, boolean> = { newest: true, name: false, number: false, value: true, set: false };
+const DESCENDING_FIRST: Record<Sort, boolean> = { newest: true, name: false, number: false, condition: false, value: true, set: false };
+
+function conditionRank(card: CardSummary): number {
+    return card.condition ? CONDITIONS.indexOf(card.condition) : CONDITIONS.length;
+}
 
 function byNumber(left: CardSummary, right: CardSummary): number {
     if (!left.number || !right.number) {

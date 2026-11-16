@@ -147,6 +147,7 @@
             "newest": "Toegevoegd",
             "name": "Naam",
             "number": "Nummer",
+            "condition": "Conditie",
             "value": "Waarde",
             "set": "Set"
         },

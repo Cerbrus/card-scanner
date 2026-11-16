@@ -100,6 +100,12 @@ describe('the pages around the collection', () => {
         expect(visibleCards(cards, NO_FILTER, 'number').map((known) => known.id)).toEqual([5, 6, 3, 2, 1, 4]);
     });
 
+    it('sorts on condition, the best first and the unknown ones last', () => {
+        const cards = [card(1, { condition: 'poor' }), card(2), card(3, { condition: 'mint' }), card(4, { condition: 'excellent' })];
+
+        expect(visibleCards(cards, NO_FILTER, 'condition').map((known) => known.id)).toEqual([3, 4, 1, 2]);
+    });
+
     it('filters on set, condition, language and finish, also on those that are not known, and on cards worth grading', () => {
         const cards = [
             card(1, { setName: 'Jungle', condition: 'near_mint', language: 'nl', variant: 'holo', worthGrading: true }),
