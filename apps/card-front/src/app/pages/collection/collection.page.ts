@@ -35,7 +35,7 @@ const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> =
     newest: (left, right) => right.createdAt.localeCompare(left.createdAt) || right.id - left.id,
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
     value: (left, right) => (right.value ?? -1) - (left.value ?? -1),
-    number: (left, right) => byNumber(left, right) || (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity),
+    number: (left, right) => (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity) || (left.setName ?? '').localeCompare(right.setName ?? '') || byNumber(left, right),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
 

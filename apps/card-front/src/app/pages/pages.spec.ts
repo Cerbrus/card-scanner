@@ -83,10 +83,17 @@ describe('the pages around the collection', () => {
         expect(ids(visibleCards(cards, searching('PIKA'), 'newest'))).toEqual([1]);
     });
 
-    it('sorts on the card number, the smaller set first for the same number', () => {
-        const cards = [card(1, { number: '63', setTotal: 102 }), card(2, { number: '7', setTotal: 102 }), card(3, { number: '63', setTotal: 64 }), card(4, { number: undefined })];
+    it('sorts on the card number within each set, the smaller sets first', () => {
+        const cards = [
+            card(1, { setName: 'Base Set', number: '63', setTotal: 102 }),
+            card(2, { setName: 'Base Set', number: '7', setTotal: 102 }),
+            card(3, { setName: 'Jungle', number: '63', setTotal: 64 }),
+            card(4, { setName: undefined, number: undefined }),
+            card(5, { setName: 'Fossil', number: '42', setTotal: 62 }),
+            card(6, { setName: 'Jungle', number: '7', setTotal: 64 })
+        ];
 
-        expect(visibleCards(cards, NO_FILTER, 'number').map((known) => known.id)).toEqual([2, 3, 1, 4]);
+        expect(visibleCards(cards, NO_FILTER, 'number').map((known) => known.id)).toEqual([5, 6, 3, 2, 1, 4]);
     });
 
     it('filters on set, condition, language and finish, also on those that are not known, and on cards worth grading', () => {
