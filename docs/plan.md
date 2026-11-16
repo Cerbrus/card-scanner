@@ -13,7 +13,8 @@ Everything below is built. Each item is switched off, or not reachable, until th
 Also open for the owner to decide:
 
 - Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15), with the secret and the Claude GitHub App in place; its first review ran on 2026-11-15.
-- The branch ruleset `protect-master` of the barcode scanner (no force-push, no deletion) is not set here.
+- The branch ruleset `protect-master` is set (done 2026-11-16 18:32): on `master` no deletion, no force-push, and only the repository admin may push. A workflow token can no longer change the scripts the Pi fetches from `master`; the Dependabot reviewer pushes to Dependabot branches only and the build pushes tags only.
+- The Dependabot reviewer still installs the proposed packages in the job that holds the Claude token (review of 2026-11-16, finding 29). Not decided.
 
 ## Never tested
 
