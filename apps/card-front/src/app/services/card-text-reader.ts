@@ -5,6 +5,7 @@ import type { Worker as TextWorker } from 'tesseract.js';
 import { CardText, LANGUAGE_REGION, NAME_LINES, NUMBER_CORNERS, NUMBER_REGION, NameReading, Region, TextWord, bestNumber, localThreshold, nameFromWords, readLanguage, readNumber } from './card-text';
 
 const LINE_HEIGHT = 140;
+const NAME_LINE_HEIGHT = 50;
 const IDLE_MILLISECONDS = 180_000;
 const SINGLE_LINE = '7';
 const SPARSE_TEXT = '11';
@@ -50,7 +51,7 @@ export class CardTextReader {
         await worker.setParameters({ tessedit_pageseg_mode: SINGLE_LINE as never, tessedit_char_whitelist: '' });
         const readings: Array<NameReading> = [];
         for (const line of NAME_LINES) {
-            const { data } = await worker.recognize(this.strip(card, line), {}, { text: true, blocks: true });
+            const { data } = await worker.recognize(this.strip(card, line, NAME_LINE_HEIGHT), {}, { text: true, blocks: true });
             const words = (data.blocks ?? []).flatMap((block) =>
                 block.paragraphs.flatMap((paragraph) =>
                     paragraph.lines.flatMap((textLine) =>
@@ -112,10 +113,10 @@ export class CardTextReader {
         await (await worker)?.terminate();
     }
 
-    private strip(card: ImageBitmap, region: Region): HTMLCanvasElement {
+    private strip(card: ImageBitmap, region: Region, lineHeight = LINE_HEIGHT): HTMLCanvasElement {
         const width = card.width * region.width;
         const height = card.height * region.height;
-        const scale = LINE_HEIGHT / height;
+        const scale = lineHeight / height;
         const canvas = this.document.createElement('canvas');
         canvas.width = Math.round(width * scale);
         canvas.height = Math.round(height * scale);

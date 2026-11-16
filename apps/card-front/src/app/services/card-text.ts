@@ -24,8 +24,8 @@ export interface Region {
 
 export const NAME_LINES: Array<Region> = [0.06, 0.07, 0.08, 0.09].map((top) => ({ left: 0.05, top, width: 0.61, height: 0.058 }));
 export const NUMBER_CORNERS: Array<Region> = [
-    { left: 0.83, top: 0.926, width: 0.097, height: 0.038 },
-    { left: 0.83, top: 0.936, width: 0.097, height: 0.038 },
+    { left: 0.76, top: 0.926, width: 0.167, height: 0.038 },
+    { left: 0.76, top: 0.936, width: 0.167, height: 0.038 },
     { left: 0.02, top: 0.944, width: 0.32, height: 0.048 }
 ];
 export const NUMBER_REGION: Region = { left: 0.03, top: 0.885, width: 0.94, height: 0.1 };
@@ -38,7 +38,7 @@ const LANGUAGE_WORDS: Record<Language, Array<string>> = {
     fr: ['faiblesse', 'résistance', 'retraite', 'coût']
 };
 const MIN_WORD_MATCH = 0.75;
-const MIN_TEXT_CONTRAST = 24;
+const MIN_TEXT_CONTRAST = 55;
 
 const CARD_NUMBER = /([A-Z]{0,3})(\d+)\s*[/|]\s*([A-Z]{0,3})(\d{2,3})(?!\d)/g;
 const SECRET_RARE_ROOM = 1.3;
