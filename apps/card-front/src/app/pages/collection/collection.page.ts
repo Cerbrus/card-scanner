@@ -3,19 +3,21 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CardTileComponent } from '../../components/card-tile/card-tile.component';
-import { CONDITIONS, CardSummary, LANGUAGES } from '../../models';
+import { FilterMenuComponent, UNKNOWN_OPTION } from '../../components/filter-menu/filter-menu.component';
+import { CONDITIONS, CardSummary, FINISHES, LANGUAGES } from '../../models';
 import { CollectionStore } from '../../services/collection.store';
 
-export const SORTS = ['newest', 'name', 'value', 'set'] as const;
+export const SORTS = ['newest', 'name', 'number', 'value', 'set'] as const;
 export type Sort = (typeof SORTS)[number];
 
-export const UNKNOWN = 'unknown';
+export const UNKNOWN = UNKNOWN_OPTION;
 
 export interface CardFilter {
     search: string;
     set: string;
     condition: string;
     language: string;
+    finish: string;
     grading: boolean;
     unconfirmed: boolean;
 }
@@ -24,16 +26,26 @@ export interface FilterOptions {
     sets: Array<string>;
     conditions: Array<string>;
     languages: Array<string>;
+    finishes: Array<string>;
 }
 
-export const NO_FILTER: CardFilter = { search: '', set: '', condition: '', language: '', grading: false, unconfirmed: false };
+export const NO_FILTER: CardFilter = { search: '', set: '', condition: '', language: '', finish: '', grading: false, unconfirmed: false };
 
 const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> = {
     newest: (left, right) => right.createdAt.localeCompare(left.createdAt) || right.id - left.id,
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
     value: (left, right) => (right.value ?? -1) - (left.value ?? -1),
+    number: (left, right) => byNumber(left, right) || (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
+
+function byNumber(left: CardSummary, right: CardSummary): number {
+    if (!left.number || !right.number) {
+        return (left.number ? 0 : 1) - (right.number ? 0 : 1);
+    }
+
+    return left.number.localeCompare(right.number, undefined, { numeric: true });
+}
 
 const sameAs = (wanted: string, value?: string): boolean => !wanted || (wanted === UNKNOWN ? !value : wanted === value);
 
@@ -46,6 +58,7 @@ function fits(card: CardSummary, filter: CardFilter): boolean {
         sameAs(filter.set, card.setName) &&
         sameAs(filter.condition, card.condition) &&
         sameAs(filter.language, card.language) &&
+        sameAs(filter.finish, card.variant) &&
         (!filter.grading || card.worthGrading) &&
         (!filter.unconfirmed || card.status !== 'confirmed')
     );
@@ -67,14 +80,15 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
     return {
         sets: present(setNames, (card) => card.setName || undefined),
         conditions: present(CONDITIONS, (card) => card.condition),
-        languages: present(LANGUAGES, (card) => card.language)
+        languages: present(LANGUAGES, (card) => card.language),
+        finishes: present(FINISHES, (card) => card.variant)
     };
 }
 
 @Component({
     selector: 'app-collection-page',
     standalone: true,
-    imports: [CurrencyPipe, TranslatePipe, CardTileComponent],
+    imports: [CurrencyPipe, TranslatePipe, CardTileComponent, FilterMenuComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="page">
@@ -108,38 +122,10 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
             </div>
 
             <div class="filters mb-2">
-                <select class="filter-set field" [class.active]="filter().set" [attr.aria-label]="'collection.filter.set' | translate" (change)="narrow('set', $any($event.target).value)">
-                    <option value="" [selected]="!filter().set">{{ 'collection.filter.allSets' | translate }}</option>
-                    @for (option of options().sets; track option) {
-                        <option [value]="option" [selected]="option === filter().set">{{ option === unknown ? ('collection.filter.unknown' | translate) : option }}</option>
-                    }
-                </select>
-                <select
-                    class="filter-condition field"
-                    [class.active]="filter().condition"
-                    [attr.aria-label]="'collection.filter.condition' | translate"
-                    (change)="narrow('condition', $any($event.target).value)"
-                >
-                    <option value="" [selected]="!filter().condition">{{ 'collection.filter.allConditions' | translate }}</option>
-                    @for (option of options().conditions; track option) {
-                        <option [value]="option" [selected]="option === filter().condition">
-                            {{ (option === unknown ? 'collection.filter.unknown' : 'condition.' + option) | translate }}
-                        </option>
-                    }
-                </select>
-                <select
-                    class="filter-language field"
-                    [class.active]="filter().language"
-                    [attr.aria-label]="'collection.filter.language' | translate"
-                    (change)="narrow('language', $any($event.target).value)"
-                >
-                    <option value="" [selected]="!filter().language">{{ 'collection.filter.allLanguages' | translate }}</option>
-                    @for (option of options().languages; track option) {
-                        <option [value]="option" [selected]="option === filter().language">
-                            {{ (option === unknown ? 'collection.filter.unknown' : 'language.' + option) | translate }}
-                        </option>
-                    }
-                </select>
+                <app-filter-menu class="filter-set" kind="set" [options]="options().sets" [value]="filter().set" (chosen)="narrow('set', $event)" />
+                <app-filter-menu class="filter-condition" kind="condition" [options]="options().conditions" [value]="filter().condition" (chosen)="narrow('condition', $event)" />
+                <app-filter-menu class="filter-language" kind="language" [options]="options().languages" [value]="filter().language" (chosen)="narrow('language', $event)" />
+                <app-filter-menu class="filter-finish" kind="finish" [options]="options().finishes" [value]="filter().finish" (chosen)="narrow('finish', $event)" />
             </div>
 
             @if (gradingCount() || filtered()) {
@@ -175,9 +161,7 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
         </div>
     `,
     styles: `
-        .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-        .filters .field { min-width: 0; padding-right: 4px; font-size: 0.8rem; text-overflow: ellipsis; }
-        .filters .field.active { border-color: var(--accent); }
+        .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
         .filter-actions { display: flex; flex-wrap: wrap; gap: 6px; }
         .filter-actions .btn { font-size: 0.8rem; }
         .unconfirmed-filter.on { background: var(--accent); color: var(--accent-text); }
@@ -186,7 +170,6 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
 export class CollectionPage {
     protected readonly store = inject(CollectionStore);
     protected readonly sorts = SORTS;
-    protected readonly unknown = UNKNOWN;
     protected readonly none = NO_FILTER;
     protected readonly filter = signal<CardFilter>(NO_FILTER);
     protected readonly sort = signal<Sort>('newest');
@@ -194,9 +177,9 @@ export class CollectionPage {
     protected readonly options = computed(() => filterOptions(this.store.cards()));
     protected readonly gradingCount = computed(() => this.store.cards().filter((card) => card.worthGrading).length);
     protected readonly filtered = computed(() => {
-        const { set, condition, language, grading, unconfirmed } = this.filter();
+        const { set, condition, language, finish, grading, unconfirmed } = this.filter();
 
-        return set || condition || language || grading || unconfirmed;
+        return set || condition || language || finish || grading || unconfirmed;
     });
 
     protected copiesOf(card: CardSummary): number {

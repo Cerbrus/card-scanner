@@ -143,11 +143,14 @@ test('count copies, filter the collection and find the cards worth grading', asy
     await expect(page.locator('app-card-tile .copies')).toHaveText(['×2', '×2']);
     await expect(page.locator('app-card-tile .grading')).toHaveCount(1);
 
-    await page.locator('select.filter-set').selectOption('Jungle');
+    await page.locator('.filter-set .toggle').click();
+    await page.locator('.filter-set .option', { hasText: 'Jungle' }).click();
     await expect(page.locator('.tile-name')).toHaveText(['Pikachu']);
 
     await page.locator('.clear-filters').click();
-    await page.locator('select.filter-condition').selectOption('poor');
+    await page.locator('.filter-condition .toggle').click();
+    await page.locator('.filter-condition .option[data-value="poor"]').click();
+    await expect(page.locator('.filter-condition .toggle .pill.poor')).toBeVisible();
     await expect(page.locator('app-card-tile')).toHaveCount(1);
 
     await page.locator('.clear-filters').click();

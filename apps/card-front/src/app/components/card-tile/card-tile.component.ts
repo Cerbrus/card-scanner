@@ -98,18 +98,6 @@ const FLAGS: Record<Language, string> = {
         .tile-name { flex: 1 1 auto; min-width: 0; overflow: hidden; font-size: 0.82rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
         .tile-line { flex: 1 1 auto; min-width: 0; overflow: hidden; font-size: 0.72rem; text-overflow: ellipsis; white-space: nowrap; }
         .flag { flex: 0 0 auto; font-size: 0.85rem; line-height: 1; }
-        .pill {
-            flex: 0 0 auto; min-width: 22px; padding: 0 4px; border-radius: 4px; color: var(--condition-text);
-            font-size: 0.62rem; font-weight: 700; line-height: 15px; text-align: center;
-        }
-        .pill.mint { background: var(--condition-mint); }
-        .pill.near_mint { background: var(--condition-near-mint); }
-        .pill.excellent { background: var(--condition-excellent); }
-        .pill.good { background: var(--condition-good); color: var(--condition-text-dark); }
-        .pill.light_played { background: var(--condition-light-played); }
-        .pill.played { background: var(--condition-played); }
-        .pill.poor { background: var(--condition-poor); }
-        .pill.unknown { border: 1px dashed var(--warning); color: var(--text-muted); line-height: 13px; }
         .tile-price { color: var(--accent); font-size: 0.82rem; font-weight: 700; }
         .tile-price.rough { color: var(--text-muted); font-weight: 600; }
         .badge { align-self: flex-start; }

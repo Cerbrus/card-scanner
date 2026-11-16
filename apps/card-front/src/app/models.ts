@@ -50,6 +50,7 @@ export interface CardSummary {
     catalogCardId?: string;
     name?: string;
     setName?: string;
+    setTotal?: number;
     number?: string;
     rarity?: string;
     image?: string;

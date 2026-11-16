@@ -146,6 +146,7 @@
         "sortBy": {
             "newest": "Nieuwste",
             "name": "Naam",
+            "number": "Nummer",
             "value": "Waarde",
             "set": "Set"
         },
@@ -155,12 +156,16 @@
             "set": "Set",
             "condition": "Staat",
             "language": "Taal",
-            "allSets": "Alle sets",
-            "allConditions": "Elke staat",
-            "allLanguages": "Alle talen",
             "unknown": "Onbekend",
             "grading": "{count} het graderen waard",
-            "clear": "Filters weg ({shown} van {count})"
+            "clear": "Filters weg ({shown} van {count})",
+            "finish": "Afwerking",
+            "all": {
+                "set": "Alle sets",
+                "condition": "Elke staat",
+                "language": "Alle talen",
+                "finish": "Elke afwerking"
+            }
         }
     },
     "settings": {

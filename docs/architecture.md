@@ -159,7 +159,7 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 
 | Page | Content |
 |---|---|
-| Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort, filters on set, condition and language and on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies |
+| Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort (newest, name, card number, value, set; on number the smaller set comes first for the same number, from `setTotal` in the summary), filter menus with an icon each on set, condition, language and finish, showing the condition pills, flags and stars (`components/filter-menu`), and a filter on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies |
 | Scan | Live camera that takes front and back by itself and straightens them, or the phone's camera app with four corners to drag; saved by itself, then the details step: which card, condition, finish, language; then the next card |
 | Card | Photos and catalogue picture, opened full screen with previous and next; crop a photo again or take a new one; candidates, catalogue search, the other copies, value, the grading mark, the field for the owner's own price, the source's price with history, the print and condition, delete |
 | Settings | What is on and off and why, Google connection, catalogue and prices, the log, export, theme, language, log out |

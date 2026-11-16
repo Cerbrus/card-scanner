@@ -83,8 +83,8 @@ export class CatalogService {
         return new Map(found.map((card) => [card.id, card]));
     }
 
-    public async setNames(): Promise<Map<string, string>> {
-        return new Map((await this.sets.find()).map((set) => [set.id, set.name]));
+    public async setsById(): Promise<Map<string, CatalogSetEntity>> {
+        return new Map((await this.sets.find()).map((set) => [set.id, set]));
     }
 
     public async withDetails(id: string, now = new Date()): Promise<CatalogCardEntity | undefined> {

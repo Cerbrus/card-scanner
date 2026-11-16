@@ -280,3 +280,50 @@ select.field {
     background-repeat: no-repeat;
     background-size: 18px;
 }
+
+.pill {
+    flex: 0 0 auto;
+    min-width: 22px;
+    padding: 0 4px;
+    border-radius: 4px;
+    color: var(--condition-text);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 15px;
+    text-align: center;
+}
+
+.pill.mint {
+    background: var(--condition-mint);
+}
+
+.pill.near_mint {
+    background: var(--condition-near-mint);
+}
+
+.pill.excellent {
+    background: var(--condition-excellent);
+}
+
+.pill.good {
+    background: var(--condition-good);
+    color: var(--condition-text-dark);
+}
+
+.pill.light_played {
+    background: var(--condition-light-played);
+}
+
+.pill.played {
+    background: var(--condition-played);
+}
+
+.pill.poor {
+    background: var(--condition-poor);
+}
+
+.pill.unknown {
+    border: 1px dashed var(--warning);
+    color: var(--text-muted);
+    line-height: 13px;
+}

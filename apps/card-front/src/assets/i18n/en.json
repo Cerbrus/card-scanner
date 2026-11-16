@@ -146,6 +146,7 @@
         "sortBy": {
             "newest": "Newest",
             "name": "Name",
+            "number": "Number",
             "value": "Value",
             "set": "Set"
         },
@@ -155,12 +156,16 @@
             "set": "Set",
             "condition": "Condition",
             "language": "Language",
-            "allSets": "All sets",
-            "allConditions": "All conditions",
-            "allLanguages": "All languages",
             "unknown": "Not known",
             "grading": "{count} worth grading",
-            "clear": "Clear filters ({shown} of {count})"
+            "clear": "Clear filters ({shown} of {count})",
+            "finish": "Finish",
+            "all": {
+                "set": "All sets",
+                "condition": "Any condition",
+                "language": "All languages",
+                "finish": "Any finish"
+            }
         }
     },
     "settings": {

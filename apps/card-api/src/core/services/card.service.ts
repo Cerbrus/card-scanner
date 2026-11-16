@@ -10,6 +10,7 @@ import {
     Candidate,
     CardReading,
     CatalogCardEntity,
+    CatalogSetEntity,
     Condition,
     DriveTrashEntity,
     Finish,
@@ -57,6 +58,7 @@ export interface CardSummary {
     catalogCardId?: string;
     name?: string;
     setName?: string;
+    setTotal?: number;
     number?: string;
     rarity?: string;
     image?: string;
@@ -475,17 +477,17 @@ export class CardService implements OnApplicationBootstrap {
 
     private async summaries(cards: Array<OwnedCardEntity>): Promise<Array<CardSummary>> {
         const catalog = await this.catalog.byIds(cards.map((card) => card.catalogCardId).filter((id): id is string => id != null));
-        const setNames = await this.catalog.setNames();
+        const sets = await this.catalog.setsById();
         const photos = cards.length ? await this.photos.find() : [];
 
         return cards.map((card) => {
             const known = card.catalogCardId ? catalog.get(card.catalogCardId) : undefined;
 
-            return this.summary(card, known, known ? setNames.get(known.setId) : undefined, photos);
+            return this.summary(card, known, known ? sets.get(known.setId) : undefined, photos);
         });
     }
 
-    private summary(card: OwnedCardEntity, known: CatalogCardEntity | undefined, setName: string | undefined, photos: Array<PhotoEntity>): CardSummary {
+    private summary(card: OwnedCardEntity, known: CatalogCardEntity | undefined, set: CatalogSetEntity | undefined, photos: Array<PhotoEntity>): CardSummary {
         const guess = card.candidates?.[0];
         const worth = ownedValue(card.ownPrice, card.priceTrend);
 
@@ -495,7 +497,8 @@ export class CardService implements OnApplicationBootstrap {
             readingState: card.readingState,
             catalogCardId: card.catalogCardId ?? undefined,
             name: known?.name ?? card.reading?.name ?? guess?.name ?? undefined,
-            setName: setName ?? card.reading?.setName ?? undefined,
+            setName: set?.name ?? card.reading?.setName ?? undefined,
+            setTotal: set?.officialCount || undefined,
             number: known?.localId ?? card.reading?.number ?? undefined,
             rarity: known?.rarity ?? undefined,
             image: known?.image ?? undefined,

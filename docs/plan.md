@@ -101,6 +101,7 @@ Also open for the owner to decide:
 ### Milestone 7: comfort
 
 - [x] Search and sort in the collection (done 2026-11-14 15:55)
+- [x] Filter on finish, the filters as icon menus with pills, flags and stars, and a sort on card number with the smaller set first (done 2026-11-16 02:30)
 - [x] Markers on each card in the collection: flag for the language, coloured pill for the condition, a mark when unknown, a star for holo and reverse holo (done 2026-11-14 23:29)
 - [x] The card page says whether the price is the print's own, the foil figure or the card's general one (done 2026-11-14 23:29)
 - [x] Filter the collection by set, condition and language, also on "not known", and on the cards worth grading (done 2026-11-15 17:20)

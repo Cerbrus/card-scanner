@@ -83,10 +83,16 @@ describe('the pages around the collection', () => {
         expect(ids(visibleCards(cards, searching('PIKA'), 'newest'))).toEqual([1]);
     });
 
-    it('filters on set, condition and language, also on those that are not known, and on cards worth grading', () => {
+    it('sorts on the card number, the smaller set first for the same number', () => {
+        const cards = [card(1, { number: '63', setTotal: 102 }), card(2, { number: '7', setTotal: 102 }), card(3, { number: '63', setTotal: 64 }), card(4, { number: undefined })];
+
+        expect(visibleCards(cards, NO_FILTER, 'number').map((known) => known.id)).toEqual([2, 3, 1, 4]);
+    });
+
+    it('filters on set, condition, language and finish, also on those that are not known, and on cards worth grading', () => {
         const cards = [
-            card(1, { setName: 'Jungle', condition: 'near_mint', language: 'nl', worthGrading: true }),
-            card(2, { setName: 'Base Set', condition: 'poor', language: 'en' }),
+            card(1, { setName: 'Jungle', condition: 'near_mint', language: 'nl', variant: 'holo', worthGrading: true }),
+            card(2, { setName: 'Base Set', condition: 'poor', language: 'en', variant: 'normal' }),
             card(3, { setName: undefined, condition: undefined, language: 'nl' })
         ];
         const ids = (filter: Partial<typeof NO_FILTER>): Array<number> => visibleCards(cards, { ...NO_FILTER, ...filter }, 'newest').map((known) => known.id);
@@ -97,20 +103,32 @@ describe('the pages around the collection', () => {
         expect(ids({ language: 'nl' })).toEqual([3, 1]);
         expect(ids({ language: 'nl', condition: 'near_mint' })).toEqual([1]);
         expect(ids({ grading: true })).toEqual([1]);
+        expect(ids({ finish: 'holo' })).toEqual([1]);
+        expect(ids({ finish: 'unknown' })).toEqual([3]);
         expect(filterOptions(cards)).toEqual({
             sets: ['Base Set', 'Jungle', 'unknown'],
             conditions: ['near_mint', 'poor', 'unknown'],
-            languages: ['en', 'nl']
+            languages: ['en', 'nl'],
+            finishes: ['normal', 'holo', 'unknown']
         });
     });
 
-    it('narrows the grid with the filter fields and clears them in one tap', () => {
-        store.cards.set([card(1, { condition: 'mint', worthGrading: true }), card(2, { condition: 'poor' }), card(3)]);
+    it('narrows the grid with the filter menus, showing pills and flags, and clears them in one tap', () => {
+        store.cards.set([card(1, { condition: 'mint', language: 'nl', worthGrading: true }), card(2, { condition: 'poor' }), card(3)]);
         const fixture = open(CollectionPage);
 
-        choose(page, 'select.filter-condition', 'poor');
+        expect(texts(page, '.filter-condition .toggle')).toEqual(['verifiedarrow_drop_down']);
+        click(page, '.filter-language .toggle');
+        fixture.detectChanges();
+        expect(texts(page, '.filter-language .option')).toEqual(['translate collection.filter.all.language', '🇳🇱 language.nl', '? collection.filter.unknown']);
+        click(page, '.filter-language .toggle');
+        click(page, '.filter-condition .toggle');
+        fixture.detectChanges();
+        click(page, '.filter-condition .option[data-value="poor"]');
         fixture.detectChanges();
         expect(texts(page, '.tile-name')).toEqual(['Card 2']);
+        expect(page.querySelector('.filter-condition .menu')).toBeNull();
+        expect(texts(page, '.filter-condition .toggle .pill.poor')).toEqual(['conditionShort.poor']);
         expect(texts(page, '.clear-filters')).toEqual(['filter_alt_off collection.filter.clear']);
 
         click(page, '.clear-filters');
