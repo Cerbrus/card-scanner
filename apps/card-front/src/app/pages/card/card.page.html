@@ -9,7 +9,7 @@
 
         @if (editing(); as editing) {
             <h2 class="section-title">{{ 'card.photo.editTitle' | translate: { side: ('scan.' + editing.side | translate) } }}</h2>
-            <app-crop-editor [src]="editing.url" (done)="saveEdited($event)" (cancelled)="stopEditing()" />
+            <app-crop-editor [src]="editing.url" [busy]="savingPhoto()" (done)="saveEdited($event)" (cancelled)="stopEditing()" />
         } @else {
             <div class="photos">
                 @for (photo of strip(); track photo.src; let index = $index) {

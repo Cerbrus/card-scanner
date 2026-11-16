@@ -36,22 +36,26 @@ const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> =
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
     condition: (left, right) => conditionRank(left) - conditionRank(right) || (left.name ?? '').localeCompare(right.name ?? ''),
     value: (left, right) => (left.value ?? -1) - (right.value ?? -1),
-    number: (left, right) => (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity) || (left.setName ?? '').localeCompare(right.setName ?? '') || byNumber(left, right),
+    number: (left, right) =>
+        (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity) ||
+        (left.setName ?? '').localeCompare(right.setName ?? '') ||
+        (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true }),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
 
 const DESCENDING_FIRST: Record<Sort, boolean> = { newest: true, name: false, number: false, condition: false, value: true, set: false };
 
+const KNOWN: Record<Sort, (card: CardSummary) => unknown> = {
+    newest: () => true,
+    name: (card) => card.name,
+    number: (card) => card.setName && card.number,
+    condition: (card) => card.condition,
+    value: (card) => card.value !== undefined,
+    set: (card) => card.setName
+};
+
 function conditionRank(card: CardSummary): number {
     return card.condition ? CONDITIONS.indexOf(card.condition) : CONDITIONS.length;
-}
-
-function byNumber(left: CardSummary, right: CardSummary): number {
-    if (!left.number || !right.number) {
-        return (left.number ? 0 : 1) - (right.number ? 0 : 1);
-    }
-
-    return left.number.localeCompare(right.number, undefined, { numeric: true });
 }
 
 const VIEW_KEY = 'collection-view';
@@ -105,9 +109,11 @@ function fits(card: CardSummary, filter: CardFilter): boolean {
 }
 
 export function visibleCards(cards: Array<CardSummary>, filter: CardFilter, sort: Sort, descending = DESCENDING_FIRST[sort]): Array<CardSummary> {
-    const sorted = cards.filter((card) => fits(card, filter)).sort(SORTERS[sort]);
+    const fitting = cards.filter((card) => fits(card, filter));
+    const known = fitting.filter((card) => KNOWN[sort](card)).sort(SORTERS[sort]);
+    const unknown = fitting.filter((card) => !KNOWN[sort](card));
 
-    return descending ? sorted.reverse() : sorted;
+    return [...(descending ? known.reverse() : known), ...unknown];
 }
 
 export function filterOptions(cards: Array<CardSummary>): FilterOptions {

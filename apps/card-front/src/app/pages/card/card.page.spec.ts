@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { FakeStore, choose, click, detail, fakeStore, system, texts } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
@@ -128,6 +128,58 @@ describe('CardPage', () => {
         expect(Array.from(page.querySelectorAll('.photos img'), (image) => image.getAttribute('src'))).toEqual(['/photos/90?thumb', '/photos/71?thumb']);
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:editing');
         expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['card.photo.saved']);
+    });
+
+    it('keeps the photo and its crop when saving fails, so it can be tried again', async () => {
+        api.getPhoto.mockReturnValue(of(new Blob(['stored front'])));
+        api.replacePhoto.mockReturnValueOnce(throwError(() => new Error('offline'))).mockReturnValue(of(confirmed));
+        await open(confirmed);
+        click(page, '.photo-actions .recrop');
+        fixture.detectChanges();
+
+        click(page, 'app-crop-editor .whole');
+        await settle();
+        expect(page.querySelector('app-crop-editor')).not.toBeNull();
+        expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+        expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['common.failed']);
+
+        click(page, 'app-crop-editor .whole');
+        await settle();
+        expect(api.replacePhoto).toHaveBeenCalledTimes(2);
+        expect(page.querySelector('app-crop-editor')).toBeNull();
+    });
+
+    it('starts clean when the route goes to another copy, and keeps a late answer for the first one away', async () => {
+        const late = new Subject<CardDetail>();
+        api.updateCard.mockReturnValue(late);
+        api.searchCatalog.mockReturnValue(of([reprint]));
+        await open(confirmed);
+        click(page, 'button.danger');
+        click(page, '.card .btn');
+        fixture.detectChanges();
+        click(page, 'form button');
+        click(page, '.photo-open');
+        const notes = page.querySelector('textarea') as HTMLTextAreaElement;
+        notes.value = 'for copy 7';
+        notes.dispatchEvent(new Event('change'));
+        await settle();
+        expect(texts(page, 'button.danger')).toEqual(['delete card.deleteSure']);
+        expect(page.querySelector('app-photo-viewer')).not.toBeNull();
+        expect(page.querySelector('.candidate')).not.toBeNull();
+
+        api.getCard.mockReturnValue(of(detail(8, { name: 'Blastoise' })));
+        fixture.componentRef.setInput('id', '8');
+        await settle();
+        expect(texts(page, 'h1')).toEqual(['Blastoise']);
+        expect(texts(page, 'button.danger')).toEqual(['delete card.delete']);
+        expect(page.querySelector('app-photo-viewer')).toBeNull();
+        expect(page.querySelector('form')).toBeNull();
+        expect(page.querySelector('.candidate')).toBeNull();
+
+        late.next({ ...confirmed, notes: 'for copy 7' });
+        await settle();
+        expect(texts(page, 'h1')).toEqual(['Blastoise']);
+        expect(store.put).toHaveBeenLastCalledWith({ ...confirmed, notes: 'for copy 7' });
     });
 
     it('takes a new photo for one side and lets it be cropped before saving', async () => {

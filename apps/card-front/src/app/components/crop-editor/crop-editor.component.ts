@@ -71,12 +71,12 @@ let nextEditor = 0;
             </div>
         </div>
         <div class="mt-3 flex flex-wrap gap-2">
-            <button type="button" class="use btn primary grow" [disabled]="!size()" (click)="use()">
+            <button type="button" class="use btn primary grow" [disabled]="!size() || busy()" (click)="use()">
                 <i class="material-symbols-outlined">crop</i>
                 {{ 'scan.crop.use' | translate }}
             </button>
-            <button type="button" class="whole btn" (click)="done.emit(undefined)">{{ 'scan.crop.whole' | translate }}</button>
-            <button type="button" class="cancel btn" (click)="cancelled.emit()">{{ 'common.cancel' | translate }}</button>
+            <button type="button" class="whole btn" [disabled]="busy()" (click)="done.emit(undefined)">{{ 'scan.crop.whole' | translate }}</button>
+            <button type="button" class="cancel btn" [disabled]="busy()" (click)="cancelled.emit()">{{ 'common.cancel' | translate }}</button>
         </div>
     `,
     styles: `
@@ -97,6 +97,7 @@ let nextEditor = 0;
 })
 export class CropEditorComponent {
     public readonly src = input.required<string>();
+    public readonly busy = input(false);
     public readonly done = output<Corners | undefined>();
     public readonly cancelled = output<void>();
 

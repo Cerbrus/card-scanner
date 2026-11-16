@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable, Subject, catchError, exhaustMap, finalize, from, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
+import { Observable, Subject, catchError, exhaustMap, filter, finalize, from, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
 
 import { CandidateListComponent } from '../../components/candidate-list/candidate-list.component';
 import { cardState } from '../../components/card-tile/card-tile.component';
@@ -103,7 +103,7 @@ export class CardPage {
     private readonly reload$ = new Subject<void>();
 
     constructor() {
-        merge(toObservable(this.id), this.reload$.pipe(map(() => this.id())))
+        merge(toObservable(this.id).pipe(tap(() => this.reset())), this.reload$.pipe(map(() => this.id())))
             .pipe(
                 switchMap((id) => this.follow(Number(id))),
                 takeUntilDestroyed()
@@ -128,10 +128,12 @@ export class CardPage {
             return;
         }
 
+        const id = this.id();
         this.api
             .getPhoto(photoId, true)
             .pipe(
                 catchError(() => this.api.getPhoto(photoId)),
+                filter(() => id === this.id()),
                 tap((photo) => this.startEditing(side, photo, true)),
                 catchError(() => this.fail()),
                 takeUntilDestroyed(this.destroyRef)
@@ -158,16 +160,19 @@ export class CardPage {
 
     protected saveEdited(corners: Corners | undefined): void {
         const editing = this.editing();
-        if (!editing) {
+        if (!editing || this.savingPhoto()) {
             return;
         }
-        this.stopEditing();
+        const id = Number(this.id());
         this.savingPhoto.set(true);
 
         from(corners ? this.scaler.straighten(editing.file, corners) : this.scaler.scale(editing.file))
             .pipe(
-                switchMap((scaled) => this.api.replacePhoto(Number(this.id()), editing.side, scaled, editing.stored)),
+                switchMap((scaled) => this.api.replacePhoto(id, editing.side, scaled, editing.stored)),
                 tap((card) => {
+                    if (this.editing() === editing) {
+                        this.stopEditing();
+                    }
                     this.show(card);
                     this.toasts.show({ kind: 'ok', text: this.translate.instant('card.photo.saved') });
                 }),
@@ -211,10 +216,12 @@ export class CardPage {
     }
 
     protected search(name: string, number: string): void {
+        const id = this.id();
         this.searching.set(true);
         this.api
             .searchCatalog(name, number)
             .pipe(
+                filter(() => id === this.id()),
                 tap((results) => this.results.set(results)),
                 catchError(() => this.fail()),
                 finalize(() => this.searching.set(false)),
@@ -228,8 +235,9 @@ export class CardPage {
         this.api
             .deleteCard(id)
             .pipe(
+                tap(() => this.store.drop(id)),
+                filter(() => id === Number(this.id())),
                 tap(() => {
-                    this.store.drop(id);
                     void this.router.navigateByUrl('/collection');
                 }),
                 catchError(() => this.fail()),
@@ -270,8 +278,19 @@ export class CardPage {
     }
 
     private show(card: CardDetail): void {
-        this.card.set(card);
         this.store.put(card);
+        if (card.id === Number(this.id())) {
+            this.card.set(card);
+        }
+    }
+
+    private reset(): void {
+        this.stopEditing();
+        this.card.set(undefined);
+        this.results.set(undefined);
+        this.viewing.set(undefined);
+        this.searchOpen.set(false);
+        this.deleteAsked.set(false);
     }
 
     private fail(): Observable<undefined> {

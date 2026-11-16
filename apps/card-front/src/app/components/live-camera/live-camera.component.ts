@@ -10,6 +10,7 @@ import { Corners, Point } from '../../services/perspective';
 import { DASH_SHARE, LINE_SHARE } from '../crop-editor/crop-editor.component';
 
 export interface CameraShot {
+    side: PhotoSide;
     file: Blob;
     corners?: Corners;
 }
@@ -158,12 +159,13 @@ export class LiveCameraComponent {
             return;
         }
 
+        const side = this.side();
         this.capturing.set(true);
         this.trigger.taken(this.colour);
         try {
             const file = await this.camera.takePhoto(stream, this.video().nativeElement);
             const corners = await this.cropStart.findIn(file);
-            this.captured.emit({ file, corners });
+            this.captured.emit({ side, file, corners });
         } catch {
             this.failed.emit();
         } finally {

@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { FakeStore, card, click, detail, fakeStore, texts } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
 import { LiveCameraComponent } from '../../components/live-camera/live-camera.component';
+import { PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { Camera } from '../../services/camera';
 import { CardTextReader } from '../../services/card-text-reader';
@@ -270,6 +271,20 @@ describe('ScanPage', () => {
         expect(page.querySelector('app-card-details')).not.toBeNull();
     });
 
+    it('drops the photos of a card that was stored when its details cannot be opened, so it is not saved twice', async () => {
+        api.createCard.mockReturnValue(of(card(7, { status: 'new' })));
+        api.getCard.mockReturnValue(throwError(() => new Error('offline')));
+        await photograph(0);
+        await photograph(1);
+
+        expect(store.put).toHaveBeenCalledWith(card(7, { status: 'new' }));
+        expect(toasts()).toEqual(['ok: scan.savedUnopened']);
+        expect(page.querySelectorAll('.side.filled').length).toBe(0);
+        expect(page.querySelector('button.save')).toBeNull();
+        expect(page.querySelector('app-card-details')).toBeNull();
+        expect(texts(page, 'p.muted.mt-4')[0]).toContain('scan.count');
+    });
+
     it('says so when a chosen file is not a usable photo', async () => {
         scaler.fail = true;
         await photograph(0);
@@ -289,8 +304,9 @@ describe('ScanPage', () => {
 
     describe('with the camera in the app', () => {
         const found = [{ x: 10, y: 10 }, { x: 90, y: 10 }, { x: 90, y: 130 }, { x: 10, y: 130 }];
-        const shot = (corners?: typeof found): void => {
-            liveCamera().captured.emit({ file: new Blob(['frame']), corners: corners as never });
+        const filled = (): Array<boolean> => Array.from(page.querySelectorAll('.side'), (side) => side.classList.contains('filled'));
+        const shot = (corners?: typeof found, side: PhotoSide = filled()[0] ? 'back' : 'front'): void => {
+            liveCamera().captured.emit({ side, file: new Blob(['frame']), corners: corners as never });
         };
 
         beforeEach(() => {
@@ -334,6 +350,21 @@ describe('ScanPage', () => {
             expect(page.querySelectorAll('.side.filled').length).toBe(0);
             expect(page.querySelector('.side.next')?.textContent).toContain('scan.front');
             expect(page.querySelector('app-crop-editor')).toBeNull();
+        });
+
+        it('keeps a photo on the side it was taken for when the other side is taken again meanwhile', async () => {
+            shot(found);
+            await settle();
+            click(page, '.side.filled');
+            fixture.detectChanges();
+            expect(page.querySelector('.side.next')?.textContent).toContain('scan.front');
+
+            shot(found, 'back');
+            await settle();
+
+            expect(filled()).toEqual([false, true]);
+            expect(page.querySelector('.side.next')?.textContent).toContain('scan.front');
+            expect(reader.read).toHaveBeenCalledTimes(1);
         });
 
         it('falls back to the phone camera when the camera cannot be opened', () => {

@@ -2,11 +2,14 @@
 # Pulls the current compose file and image and restarts what changed.
 # Run by cardscanner-update.timer every minute; safe to run by hand.
 # Each run first asks the registry for the image's digest and stops there
-# when the running container already has it and the compose file is unchanged.
+# when the running container already has it and no compose file change waits.
+# A changed compose file leaves a marker that stays until it has been applied,
+# so a run that fails halfway is repeated by the next one.
 set -euo pipefail
 
 APP_DIR=/opt/cardscanner
 REPO_RAW=https://raw.githubusercontent.com/Cerbrus/card-scanner/master/deployment
+COMPOSE_PENDING=.compose-pending
 MANIFEST_TYPES=(
     application/vnd.oci.image.index.v1+json
     application/vnd.docker.distribution.manifest.list.v2+json
@@ -16,10 +19,9 @@ MANIFEST_TYPES=(
 
 cd "$APP_DIR"
 
-compose_changed=0
 if curl -fsSL -o docker-compose.yml.new "$REPO_RAW/docker-compose.yml"; then
     if ! cmp -s docker-compose.yml.new docker-compose.yml; then
-        compose_changed=1
+        touch "$COMPOSE_PENDING"
     fi
     mv docker-compose.yml.new docker-compose.yml
 else
@@ -50,7 +52,7 @@ remote_digest() {
 }
 
 image=$(docker compose config --images 2>/dev/null | head -n 1)
-if [ "$compose_changed" -eq 0 ] && [[ "$image" == ghcr.io/* ]]; then
+if [ ! -e "$COMPOSE_PENDING" ] && [[ "$image" == ghcr.io/* ]]; then
     remote=$(remote_digest "$image" || true)
     running=$(docker compose ps --quiet 2>/dev/null | head -n 1)
     local_digests=$(docker image inspect --format '{{join .RepoDigests " "}}' "$image" 2>/dev/null || true)
@@ -69,6 +71,7 @@ if ! docker compose pull --quiet; then
     echo "could not pull the image, keeping the current one" >&2
 fi
 docker compose up -d --remove-orphans
+rm -f "$COMPOSE_PENDING"
 docker image prune -f >/dev/null
 
 if [ -x firewall.sh ]; then

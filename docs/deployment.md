@@ -7,7 +7,7 @@ How the app runs on the Raspberry Pi. The model is the barcode scanner's deploym
 The Pi pulls; nothing pushes to the Pi.
 
 1. A push to `master` makes GitHub Actions build the `app` image and publish it to GitHub's container registry (`ghcr.io`), tagged `latest`, with the version number and with the commit hash.
-2. A systemd timer on the Pi runs every minute: fetch the compose file and scripts, ask the registry for the image's digest, and stop there when the running container has it and the compose file is unchanged. Otherwise pull the image and restart.
+2. A systemd timer on the Pi runs every minute: fetch the compose file and scripts, ask the registry for the image's digest, and stop there when the running container has it and no compose file change waits. Otherwise pull the image and restart. A changed compose file leaves the marker `.compose-pending`, removed once the containers are up with it, so a run that fails halfway is repeated a minute later.
 3. The Pi needs Docker and outbound internet. No inbound port for deployment, no SSH key in GitHub, no Node on the Pi.
 
 The repository and the image are public, so the Pi needs no GitHub token and no registry login. Secrets never go into the image.

@@ -28,6 +28,7 @@
         "saving": "Saving…",
         "again": "Start over",
         "saved": "Card saved",
+        "savedUnopened": "Card saved, but its details could not be opened. It waits in the collection.",
         "failed": "The card could not be saved. Try again.",
         "unreadable": "That photo could not be used. Take it again.",
         "count": "{count, plural, one {# card} other {# cards}} scanned just now.",

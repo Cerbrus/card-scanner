@@ -28,6 +28,7 @@
         "saving": "Opslaan…",
         "again": "Opnieuw",
         "saved": "Kaart opgeslagen",
+        "savedUnopened": "Kaart opgeslagen, maar de details konden niet worden geopend. Hij wacht in de collectie.",
         "failed": "De kaart kon niet worden opgeslagen. Probeer het opnieuw.",
         "unreadable": "Die foto kon niet worden gebruikt. Maak hem opnieuw.",
         "count": "Zojuist {count, plural, one {# kaart} other {# kaarten}} gescand.",

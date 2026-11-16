@@ -98,12 +98,15 @@ describe('the pages around the collection', () => {
         ];
 
         expect(visibleCards(cards, NO_FILTER, 'number').map((known) => known.id)).toEqual([5, 6, 3, 2, 1, 4]);
+        expect(visibleCards(cards, NO_FILTER, 'number', true).map((known) => known.id)).toEqual([1, 2, 3, 6, 5, 4]);
     });
 
-    it('sorts on condition, the best first and the unknown ones last', () => {
+    it('sorts on condition, the best first, and keeps the unknown ones last in both directions', () => {
         const cards = [card(1, { condition: 'poor' }), card(2), card(3, { condition: 'mint' }), card(4, { condition: 'excellent' })];
 
         expect(visibleCards(cards, NO_FILTER, 'condition').map((known) => known.id)).toEqual([3, 4, 1, 2]);
+        expect(visibleCards(cards, NO_FILTER, 'condition', true).map((known) => known.id)).toEqual([1, 4, 3, 2]);
+        expect(visibleCards([card(1), card(2, { value: 3 }), card(3, { value: 1 })], NO_FILTER, 'value', false).map((known) => known.id)).toEqual([3, 2, 1]);
     });
 
     it('filters on set, condition, language and finish, also on those that are not known, and on cards worth grading', () => {

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { catchError, finalize, from, of, switchMap, tap } from 'rxjs';
+import { Observable, catchError, finalize, from, of, switchMap, tap } from 'rxjs';
 
 import { CardDetailsComponent, SavedDetails } from '../../components/card-details/card-details.component';
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
@@ -106,8 +106,7 @@ export class ScanPage {
         }
     }
 
-    protected taken({ file, corners }: CameraShot): void {
-        const side = this.nextSide();
+    protected taken({ file, corners, side }: CameraShot): void {
         if (corners) {
             void this.process(side, file, corners);
         } else {
@@ -176,12 +175,12 @@ export class ScanPage {
 
                     return this.api.createCard(form);
                 }),
-                tap((card) => this.store.put(card)),
-                switchMap((card) => this.api.getCard(card.id)),
                 tap((card) => {
+                    this.store.put(card);
                     this.forget();
-                    this.details.set(card);
                 }),
+                switchMap((card) => this.api.getCard(card.id).pipe(catchError(() => this.storedWithoutDetails()))),
+                tap((card) => this.details.set(card)),
                 catchError(() => {
                     this.toasts.show({ kind: 'error', text: this.translate.instant('scan.failed') });
 
@@ -217,6 +216,13 @@ export class ScanPage {
         SIDES.forEach((side) => this.release(this.shots()[side]));
         this.shots.set({});
         this.textReading.set(undefined);
+    }
+
+    private storedWithoutDetails(): Observable<undefined> {
+        this.saved.update((count) => count + 1);
+        this.toasts.show({ kind: 'ok', text: this.translate.instant('scan.savedUnopened') });
+
+        return of(undefined);
     }
 
     private crop(side: PhotoSide, file: Blob): void {
