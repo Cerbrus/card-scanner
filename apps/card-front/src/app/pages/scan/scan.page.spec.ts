@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { FakeStore, card, click, detail, fakeStore, texts } from '../../../testing/fakes';
@@ -203,7 +203,7 @@ describe('ScanPage', () => {
         click(page, 'app-card-details .choice.finish', 1);
         click(page, 'app-card-details .choice.language', 1);
         fixture.detectChanges();
-        click(page, 'app-card-details .save');
+        click(page, 'app-card-details .next');
         await fixture.whenStable();
         fixture.detectChanges();
 
@@ -217,7 +217,7 @@ describe('ScanPage', () => {
         expect(localStorage.getItem('last-card-condition')).toBe('near_mint');
     });
 
-    it('lets the details wait, keeping the card unconfirmed, and starts from the last language and condition', async () => {
+    it('starts from the last language and condition, and stops to the collection after saving', async () => {
         localStorage.setItem('last-card-language', 'de');
         localStorage.setItem('last-card-condition', 'excellent');
         api.createCard.mockReturnValue(of(card(8, { status: 'new' })));
@@ -227,13 +227,15 @@ describe('ScanPage', () => {
 
         expect(page.querySelector('app-card-details .choice.language.on')?.textContent).toContain('language.de');
         expect(texts(page, 'app-card-details .choice.condition.on')).toEqual(['conditionShort.excellent']);
-        expect(texts(page, 'app-card-details .save')).toEqual(['check details.saveUnknown']);
         expect(texts(page, 'app-card-details .choice.finish.on')).toEqual(['variant.normal']);
+        expect(texts(page, 'app-card-details .keep')).toEqual(['save details.next', 'save details.stop']);
 
-        click(page, 'app-card-details .later');
-        fixture.detectChanges();
-        expect(page.querySelector('app-card-details')).toBeNull();
-        expect(api.updateCard).not.toHaveBeenCalled();
+        const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+        click(page, 'app-card-details .stop');
+        await settle();
+        expect(api.updateCard).toHaveBeenCalledWith(8, { condition: 'excellent', variant: 'normal', language: 'de' });
+        expect(api.confirmCard).not.toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledWith('/collection');
     });
 
     it('throws a scanned card away from the details step and goes back to scanning', async () => {
@@ -319,7 +321,7 @@ describe('ScanPage', () => {
             expect(page.querySelector('app-live-camera')?.classList).toContain('hidden');
         });
 
-        it('asks for the corners when the card was not found, and can crop a taken side again', async () => {
+        it('asks for the corners when the card was not found, and takes a side again after a tap on it', async () => {
             shot();
             await settle();
             expect(page.querySelector('app-crop-editor')).not.toBeNull();
@@ -329,7 +331,9 @@ describe('ScanPage', () => {
 
             click(page, '.side.filled');
             fixture.detectChanges();
-            expect(page.querySelector('app-crop-editor')).not.toBeNull();
+            expect(page.querySelectorAll('.side.filled').length).toBe(0);
+            expect(page.querySelector('.side.next')?.textContent).toContain('scan.front');
+            expect(page.querySelector('app-crop-editor')).toBeNull();
         });
 
         it('falls back to the phone camera when the camera cannot be opened', () => {

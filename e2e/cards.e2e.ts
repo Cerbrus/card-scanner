@@ -101,7 +101,7 @@ test('photograph both sides with the phone camera, straighten the front and save
     await details.locator('.choice.condition', { hasText: 'NM' }).click();
     await details.locator('.choice.finish', { hasText: /^\s*Holo\s*$/ }).click();
     await details.locator('.choice.language', { hasText: 'Nederlands' }).click();
-    await details.getByRole('button', { name: 'Opslaan en volgende kaart' }).click();
+    await details.getByRole('button', { name: 'Volgende' }).click();
 
     await expect(page.getByText('Kaart opgeslagen')).toBeVisible();
     await expect(details).toHaveCount(0);
@@ -191,7 +191,7 @@ test('read the name and number of a straightened card and offer the matching cat
         context.font = 'bold 84px Arial';
         context.fillText('Charizard', box.left + box.width * 0.1, box.top + box.height * 0.1);
         context.font = 'bold 44px Arial';
-        context.fillText('4/102', box.left + box.width * 0.85, box.top + box.height * 0.975);
+        context.fillText('4/102', box.left + box.width * 0.835, box.top + box.height * 0.955);
 
         return canvas.toDataURL('image/jpeg', 0.95);
     }, card);
@@ -223,12 +223,12 @@ test('read the name and number of a straightened card and offer the matching cat
     await page.locator('input[type=file]').nth(1).setInputFiles({ name: 'back.jpg', mimeType: 'image/jpeg', buffer: await photo(page, '#2f5fd0') });
     await page.locator('app-crop-editor button.whole').click();
     await expect(page.locator('app-card-details .chosen')).toContainText('Charizard');
-    await page.locator('app-card-details').getByRole('button', { name: 'Later' }).click();
-    await expect(page.locator('app-card-details')).toHaveCount(0);
+    await page.locator('app-card-details').getByRole('button', { name: 'Stop' }).click();
+    await expect(page).toHaveURL(/#\/collection$/);
 
     const [newest] = await cards(request);
     const detail = (await (await request.get(`/api/v1/cards/${newest.id}`)).json()) as { status: string; candidates: Array<{ catalogCardId: string }> };
-    expect(detail.status).toBe('identified');
+    expect(detail.status).toBe('confirmed');
     expect(detail.candidates[0].catalogCardId).toBe('base1-4');
 });
 
@@ -293,7 +293,7 @@ test('the camera in the app takes the front on a tap, the back by itself, straig
     const details = page.locator('app-card-details');
     await expect(details).toBeVisible({ timeout: 45_000 });
     await expect(page.locator('app-crop-editor')).toHaveCount(0);
-    await details.getByRole('button', { name: 'Later' }).click();
+    await details.getByRole('button', { name: 'Volgende' }).click();
     await expect(page.locator('.side.next')).toContainText('Voorkant');
 
     const all = await cards(request);

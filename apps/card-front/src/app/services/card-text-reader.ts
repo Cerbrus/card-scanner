@@ -2,14 +2,15 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 import type { Worker as TextWorker } from 'tesseract.js';
 
-import { otsuThreshold } from './card-finder';
-import { CardText, LANGUAGE_REGION, NAME_REGION, NUMBER_CORNERS, NUMBER_REGION, Region, TextWord, bestNumber, nameFromWords, readLanguage, readName, readNumber } from './card-text';
+import { CardText, LANGUAGE_REGION, NAME_REGION, NUMBER_CORNERS, NUMBER_REGION, Region, TextWord, bestNumber, localThreshold, nameFromWords, readLanguage, readName, readNumber } from './card-text';
 
 const LINE_HEIGHT = 140;
 const IDLE_MILLISECONDS = 180_000;
 const SINGLE_LINE = '7';
 const SPARSE_TEXT = '11';
 const NUMBER_CHARACTERS = '0123456789/';
+const LOCAL_WINDOW_SHARE = 0.5;
+const LOCAL_DARKER = 0.15;
 
 @Injectable({ providedIn: 'root' })
 export class CardTextReader {
@@ -73,15 +74,7 @@ export class CardTextReader {
     private blackAndWhite(canvas: HTMLCanvasElement): HTMLCanvasElement {
         const context = canvas.getContext('2d') as CanvasRenderingContext2D;
         const image = context.getImageData(0, 0, canvas.width, canvas.height);
-        const histogram = new Array<number>(256).fill(0);
-        for (let index = 0; index < image.data.length; index += 4) {
-            histogram[image.data[index]]++;
-        }
-        const threshold = otsuThreshold(histogram);
-        for (let index = 0; index < image.data.length; index += 4) {
-            const shade = image.data[index] <= threshold ? 0 : 255;
-            image.data[index] = image.data[index + 1] = image.data[index + 2] = shade;
-        }
+        localThreshold(image, Math.max(3, Math.round(canvas.height * LOCAL_WINDOW_SHARE)), LOCAL_DARKER);
         context.putImageData(image, 0, 0);
 
         return canvas;

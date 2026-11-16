@@ -8,6 +8,13 @@ import { ApiService } from '../../services/api.service';
 import { CandidateListComponent } from '../candidate-list/candidate-list.component';
 import { languageFlag } from '../card-tile/card-tile.component';
 
+export type AfterSaving = 'next' | 'stop';
+
+export interface SavedDetails {
+    card: CardDetail;
+    then: AfterSaving;
+}
+
 const LAST_LANGUAGE_KEY = 'last-card-language';
 const LAST_CONDITION_KEY = 'last-card-condition';
 
@@ -91,12 +98,15 @@ function remember(key: string, value?: string): void {
             </div>
 
             <div class="mt-5 flex flex-wrap gap-2">
-                <button type="button" class="save btn primary grow" [disabled]="saving()" (click)="save()">
-                    <i class="material-symbols-outlined">check</i>
-                    {{ (chosen() ? 'details.saveNext' : 'details.saveUnknown') | translate }}
+                <button type="button" class="next btn keep grow" [disabled]="saving()" (click)="save('next')">
+                    <i class="material-symbols-outlined">save</i>
+                    {{ 'details.next' | translate }}
                 </button>
-                <button type="button" class="later btn" [disabled]="saving()" (click)="later.emit()">{{ 'details.later' | translate }}</button>
-                <button type="button" class="discard btn" [disabled]="saving()" (click)="discard()">
+                <button type="button" class="stop btn keep grow" [disabled]="saving()" (click)="save('stop')">
+                    <i class="material-symbols-outlined">save</i>
+                    {{ 'details.stop' | translate }}
+                </button>
+                <button type="button" class="discard btn grow" [disabled]="saving()" (click)="discard()">
                     <i class="material-symbols-outlined">delete</i>
                     {{ 'details.discard' | translate }}
                 </button>
@@ -104,6 +114,8 @@ function remember(key: string, value?: string): void {
         </div>
     `,
     styles: `
+        .keep { border-color: var(--ok); background: var(--ok); color: var(--accent-text); }
+        .discard { border-color: var(--danger); background: var(--danger); color: var(--accent-text); }
         .chosen img { width: 44px; aspect-ratio: 63 / 88; border-radius: 4px; object-fit: cover; }
         .choices { display: flex; flex-wrap: wrap; gap: 6px; }
         .choice { min-width: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 0.85rem; font-weight: 600; }
@@ -119,8 +131,7 @@ function remember(key: string, value?: string): void {
 })
 export class CardDetailsComponent {
     public readonly card = input.required<CardDetail>();
-    public readonly saved = output<CardDetail>();
-    public readonly later = output<void>();
+    public readonly saved = output<SavedDetails>();
     public readonly failed = output<void>();
     public readonly discarded = output<number>();
 
@@ -170,7 +181,7 @@ export class CardDetailsComponent {
             .subscribe();
     }
 
-    protected save(): void {
+    protected save(then: AfterSaving): void {
         const id = this.card().id;
         const chosen = this.chosen();
         remember(LAST_LANGUAGE_KEY, this.language());
@@ -180,7 +191,7 @@ export class CardDetailsComponent {
             .updateCard(id, { condition: this.condition() ?? null, variant: this.variant() ?? null, language: this.language() ?? null })
             .pipe(
                 switchMap((card): Observable<CardDetail> => (chosen ? this.api.confirmCard(id, chosen.catalogCardId) : of(card))),
-                tap((card) => this.saved.emit(card)),
+                tap((card) => this.saved.emit({ card, then })),
                 catchError(() => {
                     this.failed.emit();
 

@@ -1,4 +1,4 @@
-import { Pixels, findCard, otsuThreshold } from './card-finder';
+import { Pixels, findCard, refineCard } from './card-finder';
 import { Corners, Point } from './perspective';
 
 type Colour = [number, number, number];
@@ -98,12 +98,20 @@ describe('finding the card in a photo', () => {
         expect(findCard(photo(320, 427, turned({ x: 160, y: 210 }, 30, 42, 0), YELLOW_BORDER))).toBeUndefined();
     });
 
-    it('cuts between two groups of shades', () => {
-        const histogram = new Array<number>(256).fill(0);
-        histogram[30] = 100;
-        histogram[200] = 900;
+    it('fits the edges closely to the card when the first corners are a few pixels off', () => {
+        const exact = turned({ x: 300, y: 400 }, 430, 600, 4);
+        const pixels = photo(600, 800, exact, YELLOW_BORDER);
+        const rough = exact.map(({ x, y }, index) => ({ x: x + [6, -5, 4, -6][index], y: y + [-5, 6, 5, -4][index] })) as Corners;
 
-        expect(otsuThreshold(histogram)).toBeGreaterThanOrEqual(30);
-        expect(otsuThreshold(histogram)).toBeLessThan(200);
+        const refined = refineCard(pixels, rough);
+
+        refined.forEach((corner, index) => expect(distance(corner, exact[index])).toBeLessThan(2));
+    });
+
+    it('keeps the first corners when no edge is near them', () => {
+        const pixels = photo(600, 800, undefined, YELLOW_BORDER);
+        const rough = turned({ x: 300, y: 400 }, 430, 600, 4);
+
+        expect(refineCard(pixels, rough)).toEqual(rough);
     });
 });

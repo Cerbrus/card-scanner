@@ -1,4 +1,4 @@
-import { TextWord, bestNumber, nameFromWords, readLanguage, readName, readNumber } from './card-text';
+import { TextWord, bestNumber, localThreshold, nameFromWords, readLanguage, readName, readNumber } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -52,5 +52,29 @@ describe('reading name and number from the text on a card', () => {
         expect(bestNumber(['4/64', undefined, '54/64', '54/64'])).toBe('54/64');
         expect(bestNumber([undefined, '12/102'])).toBe('12/102');
         expect(bestNumber([undefined, undefined])).toBeUndefined();
+    });
+
+    it('turns text black against its own surroundings, also where the background changes colour', () => {
+        const width = 40;
+        const height = 10;
+        const data = new Uint8ClampedArray(width * height * 4);
+        const shade = (x: number, y: number): number => {
+            const background = x < 20 ? 90 : 220;
+            const text = y >= 4 && y < 6 && x % 10 >= 4 && x % 10 < 6;
+
+            return text ? background - 60 : background;
+        };
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                data.fill(shade(x, y), (y * width + x) * 4, (y * width + x) * 4 + 3);
+                data[(y * width + x) * 4 + 3] = 255;
+            }
+        }
+
+        localThreshold({ data, width, height }, 3, 0.15);
+
+        const black = (x: number, y: number): boolean => data[(y * width + x) * 4] === 0;
+        expect([black(5, 4), black(15, 5), black(25, 4), black(35, 5)]).toEqual([true, true, true, true]);
+        expect([black(1, 1), black(12, 8), black(22, 1), black(38, 8)]).toEqual([false, false, false, false]);
     });
 });

@@ -68,6 +68,9 @@ Also open for the owner to decide:
 - [x] The language read from the weakness line of the straightened front (done 2026-11-15 23:10)
 - [x] Fewer taps per card: the camera in the scan page takes front and back by itself once the card holds still, straightens a card it finds without asking, saves once both sides are there, and the details step starts from the previous card's condition and language. The phone's camera app stays as a choice (done 2026-11-16 00:21)
 - [x] The owner takes the photo with a round shutter in the camera frame; taking it by itself is a switch there, off by default. Dashed outline with rounded corners that glides along with the card; the read line under the camera; "Automatic scan" and "Manual scan"; crop lines stop at the corner circles; "Discard" in the details step (done 2026-11-16 01:05)
+- [x] Details step buttons "Next", "Stop" (save and open the collection) and "Discard", green and red; a tap on the front's thumbnail takes the front again (done 2026-11-16 01:25)
+- [x] Reading the number from real photos: the strip moved up to where the number sits on the owner's cards, stops before the rarity symbol, and the text is made black against its own surroundings instead of one threshold for the strip; the corners are fitted to the edges on a larger copy. On the owner's 38 straightened fronts: 24 numbers right, 2 wrong, 12 not read, was 13 right (done 2026-11-16 01:25)
+- [x] The Pi checks for a new image every minute and only pulls when the registry's digest differs from the running one (done 2026-11-16 01:25)
 - [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set; the owner will not set one (done 2026-11-14 15:55)
 - [x] Reading name and number on the phone with Tesseract.js from fixed strips of the straightened front; the details step after the scan starts with the catalogue cards that fit, and the search fields filled in (done 2026-11-15 20:40)
 

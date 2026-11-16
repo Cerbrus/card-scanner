@@ -74,8 +74,8 @@ Description=Check for card scanner updates
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=5min
-RandomizedDelaySec=30
+OnUnitActiveSec=1min
+RandomizedDelaySec=10
 
 [Install]
 WantedBy=timers.target

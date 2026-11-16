@@ -16,7 +16,7 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 **Four card languages: English, Dutch, German, French.** Those are the languages of the owner's cards; the lists offer nothing else, and the model leaves the language empty for any other.
 
-**No inbox: the details come right after the scan.** The owner wants to say which card it is, its condition, holo or not, and its language while the card is still in hand. After saving the photos, the scan page asks for exactly that, with the best catalogue match already chosen and the language preset, and goes on to the next card with one tap. A card left for later stays unconfirmed in the collection, behind a filter. Changed on 2026-11-15 from an inbox that collected the unconfirmed cards.
+**No inbox: the details come right after the scan.** The owner wants to say which card it is, its condition, holo or not, and its language while the card is still in hand. After saving the photos, the scan page asks for exactly that, with the best catalogue match already chosen and the language preset, and goes on to the next card with one tap ("Next"), or saves and opens the collection ("Stop"), or throws the card away ("Discard"). A card saved without a chosen catalogue card stays unconfirmed in the collection, behind a filter. Changed on 2026-11-15 from an inbox that collected the unconfirmed cards.
 
 **The details step starts from the previous card.** Language and condition are preset to those of the previous card, as most of a stack is in the same language and about the same state; the finish starts at normal. Added on 2026-11-16.
 

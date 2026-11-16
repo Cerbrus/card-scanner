@@ -255,9 +255,8 @@
     "details": {
         "which": "Welke kaart is het",
         "noCandidates": "Nog geen kaart gevonden; zoek op naam en nummer.",
-        "saveNext": "Opslaan en volgende kaart",
-        "saveUnknown": "Opslaan zonder kaart",
-        "later": "Later",
-        "discard": "Weggooien"
+        "discard": "Weggooien",
+        "next": "Volgende",
+        "stop": "Stop"
     }
 }

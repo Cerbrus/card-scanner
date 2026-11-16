@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, from, of, switchMap, tap } from 'rxjs';
 
-import { CardDetailsComponent } from '../../components/card-details/card-details.component';
+import { CardDetailsComponent, SavedDetails } from '../../components/card-details/card-details.component';
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
 import { CameraShot, LiveCameraComponent } from '../../components/live-camera/live-camera.component';
 import { CardDetail, PhotoSide } from '../../models';
@@ -76,6 +77,7 @@ export class ScanPage {
     private readonly toasts = inject(ToastService);
     private readonly translate = inject(TranslateService);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly router = inject(Router);
 
     constructor() {
         this.destroyRef.onDestroy(() => {
@@ -93,10 +95,14 @@ export class ScanPage {
         }
     }
 
-    protected recrop(side: PhotoSide): void {
+    protected retake(side: PhotoSide): void {
         const shot = this.shots()[side];
         if (this.live() && shot && !this.busy()) {
-            this.crop(side, shot.file);
+            this.release(shot);
+            this.shots.update(({ [side]: _dropped, ...kept }) => kept);
+            if (side === 'front') {
+                this.textReading.set(undefined);
+            }
         }
     }
 
@@ -187,10 +193,14 @@ export class ScanPage {
             .subscribe();
     }
 
-    protected detailsSaved(card: CardDetail): void {
+    protected detailsSaved({ card, then }: SavedDetails): void {
         this.store.put(card);
-        this.finishDetails();
+        this.details.set(undefined);
+        this.saved.update((count) => count + 1);
         this.toasts.show({ kind: 'ok', text: this.translate.instant('scan.saved') });
+        if (then === 'stop') {
+            void this.router.navigateByUrl('/collection');
+        }
     }
 
     protected detailsDiscarded(id: number): void {
@@ -201,11 +211,6 @@ export class ScanPage {
 
     protected detailsFailed(): void {
         this.toasts.show({ kind: 'error', text: this.translate.instant('common.failed') });
-    }
-
-    protected finishDetails(): void {
-        this.details.set(undefined);
-        this.saved.update((count) => count + 1);
     }
 
     protected forget(): void {

@@ -22,7 +22,8 @@ export interface Region {
 
 export const NAME_REGION: Region = { left: 0.05, top: 0.062, width: 0.62, height: 0.058 };
 export const NUMBER_CORNERS: Array<Region> = [
-    { left: 0.82, top: 0.946, width: 0.17, height: 0.04 },
+    { left: 0.83, top: 0.926, width: 0.097, height: 0.038 },
+    { left: 0.83, top: 0.936, width: 0.097, height: 0.038 },
     { left: 0.02, top: 0.944, width: 0.32, height: 0.048 }
 ];
 export const NUMBER_REGION: Region = { left: 0.03, top: 0.885, width: 0.94, height: 0.1 };
@@ -35,6 +36,7 @@ const LANGUAGE_WORDS: Record<Language, Array<string>> = {
     fr: ['faiblesse', 'résistance', 'retraite', 'coût']
 };
 const MIN_WORD_MATCH = 0.75;
+const MIN_TEXT_CONTRAST = 24;
 
 const CARD_NUMBER = /([A-Z]{0,3})(\d+)\s*[/|]\s*([A-Z]{0,3})(\d{2,3})(?!\d)/g;
 const SECRET_RARE_ROOM = 1.3;
@@ -55,6 +57,31 @@ export function readNumber(text: string): string | undefined {
     }
 
     return undefined;
+}
+
+export function localThreshold(image: { data: Uint8ClampedArray; width: number; height: number }, radius: number, darker: number): void {
+    const { data, width, height } = image;
+    const sums = new Float64Array((width + 1) * (height + 1));
+    for (let y = 0; y < height; y++) {
+        let row = 0;
+        for (let x = 0; x < width; x++) {
+            row += data[(y * width + x) * 4];
+            sums[(y + 1) * (width + 1) + x + 1] = sums[y * (width + 1) + x + 1] + row;
+        }
+    }
+    for (let y = 0; y < height; y++) {
+        const top = Math.max(0, y - radius);
+        const bottom = Math.min(height, y + radius + 1);
+        for (let x = 0; x < width; x++) {
+            const left = Math.max(0, x - radius);
+            const right = Math.min(width, x + radius + 1);
+            const total = sums[bottom * (width + 1) + right] - sums[top * (width + 1) + right] - sums[bottom * (width + 1) + left] + sums[top * (width + 1) + left];
+            const mean = total / ((bottom - top) * (right - left));
+            const index = (y * width + x) * 4;
+            const shade = data[index] < mean * (1 - darker) && mean - data[index] > MIN_TEXT_CONTRAST ? 0 : 255;
+            data[index] = data[index + 1] = data[index + 2] = shade;
+        }
+    }
 }
 
 export function readLanguage(text: string): Language | undefined {

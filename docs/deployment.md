@@ -7,7 +7,7 @@ How the app runs on the Raspberry Pi. The model is the barcode scanner's deploym
 The Pi pulls; nothing pushes to the Pi.
 
 1. A push to `master` makes GitHub Actions build the `app` image and publish it to GitHub's container registry (`ghcr.io`), tagged `latest`, with the version number and with the commit hash.
-2. A systemd timer on the Pi runs every 5 minutes: fetch the compose file and scripts, pull the image, restart when it changed.
+2. A systemd timer on the Pi runs every minute: fetch the compose file and scripts, ask the registry for the image's digest, and stop there when the running container has it and the compose file is unchanged. Otherwise pull the image and restart.
 3. The Pi needs Docker and outbound internet. No inbound port for deployment, no SSH key in GitHub, no Node on the Pi.
 
 The repository and the image are public, so the Pi needs no GitHub token and no registry login. Secrets never go into the image.
@@ -30,7 +30,7 @@ The image package took its visibility from the public repository at its first bu
     `-- logs/app.log      # log file with its rotated files
 ```
 
-Systemd units: `cardscanner-update.timer` (every 5 minutes), `cardscanner-firewall.service` (at boot).
+Systemd units: `cardscanner-update.timer` (every minute), `cardscanner-firewall.service` (at boot).
 
 One-time install on a fresh Pi:
 
@@ -111,7 +111,7 @@ Notes:
 
 ## Updates, rollback, restore
 
-- **Update**: push to `master`; the Pi follows within about 5 minutes plus build time. The barcode scanner and the card scanner share the Pi and each have an updater every 5 minutes; both take the lock `/run/lock/docker-update.lock` around pulling, restarting and pruning, so one never prunes while the other pulls. Without it, Docker's image store broke the other's pull with "lease does not exist" (seen 2026-11-15). An updater that waits more than ten minutes for the lock skips that round.
+- **Update**: push to `master`; the Pi follows within about a minute after the image is published. A run without a new image ends after the digest check (about two seconds) and does not take the Docker lock. The barcode scanner and the card scanner share the Pi and each have an updater; both take the lock `/run/lock/docker-update.lock` around pulling, restarting and pruning, so one never prunes while the other pulls. Without it, Docker's image store broke the other's pull with "lease does not exist" (seen 2026-11-15). An updater that waits more than ten minutes for the lock skips that round.
 - **Check**: `curl http://127.0.0.1:3030/api/v1/health` on the Pi for the running version, `systemctl list-timers cardscanner-update.timer`, `journalctl -u cardscanner-update`, `docker compose ps`.
 - **Rollback**: set `IMAGE_TAG=<version>` in `.env` and run the updater. Database migrations only go forward.
 - **Logs**: `/opt/cardscanner/data/logs/app.log` (JSON lines, rotated at 256 KB).

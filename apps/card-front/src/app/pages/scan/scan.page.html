@@ -1,6 +1,6 @@
 <div class="page">
     @if (details(); as card) {
-        <app-card-details [card]="card" (saved)="detailsSaved($event)" (later)="finishDetails()" (failed)="detailsFailed()" (discarded)="detailsDiscarded($event)" />
+        <app-card-details [card]="card" (saved)="detailsSaved($event)" (failed)="detailsFailed()" (discarded)="detailsDiscarded($event)" />
     } @else if (cropping(); as cropping) {
         <h2 class="section-title !mt-0">{{ 'scan.crop.title' | translate: { side: ('scan.' + cropping.side | translate) } }}</h2>
         <app-crop-editor [src]="cropping.url" (done)="cropped($event)" (cancelled)="stopCropping()" />
@@ -36,7 +36,7 @@
 
         <div class="sides" [class.small]="live()">
             @for (side of sides; track side) {
-                <label class="side" [class.filled]="shots()[side]" [class.next]="live() && !shots()[side] && nextSide() === side" (click)="recrop(side)">
+                <label class="side" [class.filled]="shots()[side]" [class.next]="live() && !shots()[side] && nextSide() === side" (click)="retake(side)">
                     @if (!live()) {
                         <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="busy()" (change)="choose(side, $event)" />
                     }

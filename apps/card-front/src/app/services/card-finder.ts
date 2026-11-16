@@ -34,30 +34,11 @@ const CORNER_SKIP = 0.1;
 const MIN_RATIO = CARD_RATIO * 0.7;
 const MAX_RATIO = CARD_RATIO / 0.7;
 const OUTSIDE_SLACK = 0.01;
-
-export function otsuThreshold(histogram: ArrayLike<number>): number {
-    const levels = Array.from(histogram);
-    const count = levels.reduce((total, value) => total + value, 0);
-    const sum = levels.reduce((total, value, level) => total + value * level, 0);
-    let below = 0;
-    let belowSum = 0;
-    let best = 0;
-    let threshold = 0;
-    for (let level = 0; level < levels.length; level++) {
-        below += levels[level];
-        belowSum += levels[level] * level;
-        const above = count - below;
-        if (below && above) {
-            const spread = below * above * (belowSum / below - (sum - belowSum) / above) ** 2;
-            if (spread > best) {
-                best = spread;
-                threshold = level;
-            }
-        }
-    }
-
-    return threshold;
-}
+const REFINE_REACH = 0.025;
+const REFINE_SAMPLES = 60;
+const REFINE_CORNER_SKIP = 0.12;
+const REFINE_MIN_STEP = 60;
+const REFINE_OUTLIER = 2.5;
 
 export function findCard(pixels: Pixels): Corners | undefined {
     const edges = findEdges(pixels);
@@ -77,6 +58,97 @@ export function findCard(pixels: Pixels): Corners | undefined {
     }
 
     return best ? portrait(best.corners) : undefined;
+}
+
+export function refineCard(pixels: Pixels, corners: Corners): Corners {
+    const reach = Math.max(4, Math.round(Math.max(pixels.width, pixels.height) * REFINE_REACH));
+    const sides = corners.map((from, index) => fitSide(pixels, from, corners[(index + 1) % 4], reach));
+    const refined = corners.map((corner, index) => {
+        const before = sides[(index + 3) % 4];
+        const after = sides[index];
+
+        return before && after ? (meet(before, after) ?? corner) : corner;
+    });
+
+    return refined.every((point, index) => distance(point, corners[index]) <= reach * 2) ? (refined as Corners) : corners;
+}
+
+interface FittedLine {
+    point: Point;
+    direction: Point;
+}
+
+function fitSide(pixels: Pixels, from: Point, to: Point, reach: number): FittedLine | undefined {
+    const length = distance(from, to);
+    const along = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
+    const across = { x: -along.y, y: along.x };
+    const points: Array<Point> = [];
+    for (let sample = 0; sample < REFINE_SAMPLES; sample++) {
+        const share = REFINE_CORNER_SKIP + ((1 - 2 * REFINE_CORNER_SKIP) * sample) / (REFINE_SAMPLES - 1);
+        const base = { x: from.x + (to.x - from.x) * share, y: from.y + (to.y - from.y) * share };
+        let best = REFINE_MIN_STEP;
+        let offset: number | undefined;
+        for (let step = -reach; step <= reach; step++) {
+            const before = colourAt(pixels, base.x + across.x * (step - 1), base.y + across.y * (step - 1));
+            const after = colourAt(pixels, base.x + across.x * (step + 1), base.y + across.y * (step + 1));
+            const change = before && after ? Math.abs(before[0] - after[0]) + Math.abs(before[1] - after[1]) + Math.abs(before[2] - after[2]) : 0;
+            if (change > best) {
+                best = change;
+                offset = step;
+            }
+        }
+        if (offset !== undefined) {
+            points.push({ x: base.x + across.x * offset, y: base.y + across.y * offset });
+        }
+    }
+
+    const first = fitLine(points);
+    const close = first ? points.filter((point) => lineDistance(first, point) <= REFINE_OUTLIER) : [];
+
+    return close.length >= REFINE_SAMPLES / 2 ? fitLine(close) : undefined;
+}
+
+function colourAt({ data, width, height }: Pixels, x: number, y: number): [number, number, number] | undefined {
+    const column = Math.round(x);
+    const row = Math.round(y);
+    if (column < 0 || row < 0 || column >= width || row >= height) {
+        return undefined;
+    }
+    const index = (row * width + column) * 4;
+
+    return [data[index], data[index + 1], data[index + 2]];
+}
+
+function fitLine(points: Array<Point>): FittedLine | undefined {
+    if (points.length < 2) {
+        return undefined;
+    }
+    const mean = { x: points.reduce((total, point) => total + point.x, 0) / points.length, y: points.reduce((total, point) => total + point.y, 0) / points.length };
+    let xx = 0;
+    let xy = 0;
+    let yy = 0;
+    for (const point of points) {
+        xx += (point.x - mean.x) ** 2;
+        xy += (point.x - mean.x) * (point.y - mean.y);
+        yy += (point.y - mean.y) ** 2;
+    }
+    const angle = Math.atan2(2 * xy, xx - yy) / 2;
+
+    return { point: mean, direction: { x: Math.cos(angle), y: Math.sin(angle) } };
+}
+
+function lineDistance(line: FittedLine, point: Point): number {
+    return Math.abs((point.x - line.point.x) * line.direction.y - (point.y - line.point.y) * line.direction.x);
+}
+
+function meet(first: FittedLine, second: FittedLine): Point | undefined {
+    const determinant = first.direction.x * second.direction.y - first.direction.y * second.direction.x;
+    if (Math.abs(determinant) < 1e-6) {
+        return undefined;
+    }
+    const share = ((second.point.x - first.point.x) * second.direction.y - (second.point.y - first.point.y) * second.direction.x) / determinant;
+
+    return { x: first.point.x + first.direction.x * share, y: first.point.y + first.direction.y * share };
 }
 
 function blur({ data, width, height }: Pixels): Float32Array {

@@ -255,9 +255,8 @@
     "details": {
         "which": "Which card is it",
         "noCandidates": "No card found yet; search by name and number.",
-        "saveNext": "Save and next card",
-        "saveUnknown": "Save without card",
-        "later": "Later",
-        "discard": "Discard"
+        "discard": "Discard",
+        "next": "Next",
+        "stop": "Stop"
     }
 }
