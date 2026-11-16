@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CONDITIONS, FINISHES } from '../../models';
@@ -7,14 +6,10 @@ import { CONDITIONS, FINISHES } from '../../models';
 @Component({
     selector: 'app-help-page',
     standalone: true,
-    imports: [RouterLink, TranslatePipe],
+    imports: [TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="page">
-            <a class="back-bar" routerLink="/settings">
-                <i class="material-symbols-outlined">arrow_back</i>
-                {{ 'nav.settings' | translate }}
-            </a>
             <h1 class="page-title">{{ 'help.title' | translate }}</h1>
 
             <h2 class="section-title">{{ 'card.condition' | translate }}</h2>

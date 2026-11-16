@@ -9,6 +9,7 @@
     "nav": {
         "collection": "Collection",
         "scan": "Scan",
+        "help": "Help",
         "settings": "Settings"
     },
     "login": {
@@ -140,10 +141,10 @@
         "title": "Collection",
         "valueOf": "{own} of {count, plural, one {# confirmed card} other {# confirmed cards}} priced by you, the rest at the general price trend (≈)",
         "waiting": "{count} still to confirm",
-        "search": "Name or number",
+        "search": "Name / number",
         "sort": "Sort",
         "sortBy": {
-            "newest": "Date added",
+            "newest": "Added",
             "name": "Name",
             "number": "Number",
             "value": "Value",
@@ -267,7 +268,6 @@
     },
     "help": {
         "title": "Help",
-        "open": "Condition and finish explained",
         "condition": {
             "intro": "Condition follows Cardmarket's scale. Look mainly at the edges and corners of the back (whitening), scratches on the front and the foil, and creases or dents. When in doubt between two, pick the lower. Only Near Mint and Mint count for grading.",
             "mint": "Perfect, as if fresh from a booster. No flaw even up close: sharp corners, no whitening on the edges, no scratches.",

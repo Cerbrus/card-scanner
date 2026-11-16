@@ -148,20 +148,22 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
                     <i class="material-symbols-outlined">search</i>
                     <input class="field" type="search" [placeholder]="'collection.search' | translate" [value]="filter().search" (input)="narrow('search', $any($event.target).value)" />
                 </label>
-                <select class="sort field !w-auto" [attr.aria-label]="'collection.sort' | translate" (change)="sortBy($any($event.target).value)">
-                    @for (option of sorts; track option) {
-                        <option [value]="option" [selected]="option === sort()">{{ 'collection.sortBy.' + option | translate }}</option>
-                    }
-                </select>
-                <button
-                    type="button"
-                    class="direction field !w-auto"
-                    [attr.aria-label]="(descending() ? 'collection.descending' : 'collection.ascending') | translate"
-                    [title]="(descending() ? 'collection.descending' : 'collection.ascending') | translate"
-                    (click)="descending.set(!descending())"
-                >
-                    <i class="material-symbols-outlined">{{ descending() ? 'arrow_downward' : 'arrow_upward' }}</i>
-                </button>
+                <div class="sorting">
+                    <select class="sort field" [attr.aria-label]="'collection.sort' | translate" (change)="sortBy($any($event.target).value)">
+                        @for (option of sorts; track option) {
+                            <option [value]="option" [selected]="option === sort()">{{ 'collection.sortBy.' + option | translate }}</option>
+                        }
+                    </select>
+                    <button
+                        type="button"
+                        class="direction field"
+                        [attr.aria-label]="(descending() ? 'collection.descending' : 'collection.ascending') | translate"
+                        [title]="(descending() ? 'collection.descending' : 'collection.ascending') | translate"
+                        (click)="descending.set(!descending())"
+                    >
+                        <i class="material-symbols-outlined" [class.flipped]="!descending()">sort</i>
+                    </button>
+                </div>
             </div>
 
             <div class="filters mb-2">
@@ -207,8 +209,12 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
         .search { position: relative; flex: 1 1 auto; min-width: 0; }
         .search i { position: absolute; top: 50%; left: 10px; color: var(--text-muted); font-size: 20px; transform: translateY(-50%); pointer-events: none; }
         .search .field { padding-left: 36px; }
-        .direction { display: grid; place-items: center; padding: 0 10px; }
+        .sorting { display: flex; flex: 0 0 auto; }
+        .sorting .sort { width: 7rem; padding: 0 24px 0 9px; border-top-right-radius: 0; border-bottom-right-radius: 0; background-position: right 6px center; background-size: 16px; font-size: 0.9rem; }
+        .sorting .direction { display: grid; place-items: center; width: auto; margin-left: -1px; padding: 0 10px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        .sorting .sort:focus, .sorting .direction:focus { position: relative; z-index: 1; }
         .direction i { font-size: 20px; }
+        .direction i.flipped { transform: scaleY(-1); }
         .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
         .filter-actions { display: flex; flex-wrap: wrap; gap: 6px; }
         .filter-actions .btn { font-size: 0.8rem; }

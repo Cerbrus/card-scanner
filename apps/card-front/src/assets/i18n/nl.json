@@ -9,6 +9,7 @@
     "nav": {
         "collection": "Collectie",
         "scan": "Scannen",
+        "help": "Uitleg",
         "settings": "Instellingen"
     },
     "login": {
@@ -140,7 +141,7 @@
         "title": "Collectie",
         "valueOf": "{own} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} door jou geprijsd, de rest tegen de algemene prijstrend (≈)",
         "waiting": "{count} nog te bevestigen",
-        "search": "Naam of nummer",
+        "search": "Naam / nummer",
         "sort": "Sorteren",
         "sortBy": {
             "newest": "Toegevoegd",
@@ -267,7 +268,6 @@
     },
     "help": {
         "title": "Uitleg",
-        "open": "Conditie en afwerking uitgelegd",
         "condition": {
             "intro": "De conditie volgt de schaal van Cardmarket. Kijk vooral naar de randen en hoeken van de achterkant (witte slijtage), krassen op de voorkant en de folie, en vouwen of deuken. Twijfel je tussen twee, kies dan de laagste. Alleen Near Mint en Mint komen in aanmerking voor graderen.",
             "mint": "Perfect, zoals net uit een booster. Ook van dichtbij geen enkel gebrek: scherpe hoeken, geen wit op de randen, geen krassen.",

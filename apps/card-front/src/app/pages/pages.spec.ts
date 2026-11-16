@@ -159,7 +159,7 @@ describe('the pages around the collection', () => {
         click(page, '.filter-condition .option[data-value="poor"]');
         choose(page, 'select.sort', 'name');
         fixture.detectChanges();
-        expect(texts(page, 'button.direction')).toEqual(['arrow_upward']);
+        expect(page.querySelector('button.direction i.flipped')?.textContent).toBe('sort');
         click(page, 'button.direction');
         type(page, 'input[type=search]', 'Card');
         fixture.detectChanges();
@@ -168,7 +168,7 @@ describe('the pages around the collection', () => {
         fixture = open(CollectionPage);
         expect(texts(page, '.tile-name')).toEqual(['Card 2']);
         expect((page.querySelector('select.sort') as HTMLSelectElement).value).toBe('name');
-        expect(texts(page, 'button.direction')).toEqual(['arrow_downward']);
+        expect(page.querySelector('button.direction i.flipped')).toBeNull();
         expect((page.querySelector('input[type=search]') as HTMLInputElement).value).toBe('');
 
         localStorage.setItem('collection-view', '{"filter":{"condition":7,"grading":"yes"},"sort":"nonsense"}');

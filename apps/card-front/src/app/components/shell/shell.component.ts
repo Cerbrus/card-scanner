@@ -28,6 +28,7 @@ export class ShellComponent {
     protected readonly links: Array<NavLink> = [
         { route: '/collection', label: 'nav.collection', icon: 'style' },
         { route: '/scan', label: 'nav.scan', icon: 'photo_camera' },
+        { route: '/help', label: 'nav.help', icon: 'help' },
         { route: '/settings', label: 'nav.settings', icon: 'settings' }
     ];
 
