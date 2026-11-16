@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Pulls the current compose file and image and restarts what changed.
 # Run by cardscanner-update.timer every minute; safe to run by hand.
-# Each run first asks the registry for the image's digest and stops there
-# when the running container already has it and no compose file change waits.
+# Each run first asks the registry for the image's digest and asks Compose what
+# a restart would change. It stops there when the image on this machine is the
+# registry's, Compose would leave the container running, and no compose file
+# change waits.
 # A changed compose file leaves a marker that stays until it has been applied,
 # so a run that fails halfway is repeated by the next one.
 set -euo pipefail
@@ -51,12 +53,18 @@ remote_digest() {
         tr -d '\r' | sed -n 's/^docker-content-digest: *//Ip'
 }
 
+containers_current() {
+    local plan
+    plan=$(docker compose --ansi never --progress plain --dry-run up -d --remove-orphans 2>&1) || return 1
+    [ -n "$plan" ] || return 1
+    ! grep -qv ' Running *$' <<<"$plan"
+}
+
 image=$(docker compose config --images 2>/dev/null | head -n 1)
 if [ ! -e "$COMPOSE_PENDING" ] && [[ "$image" == ghcr.io/* ]]; then
     remote=$(remote_digest "$image" || true)
-    running=$(docker compose ps --quiet 2>/dev/null | head -n 1)
     local_digests=$(docker image inspect --format '{{join .RepoDigests " "}}' "$image" 2>/dev/null || true)
-    if [ -n "$remote" ] && [ -n "$running" ] && [[ " $local_digests " == *"@$remote "* ]]; then
+    if [ -n "$remote" ] && [[ " $local_digests " == *"@$remote "* ]] && containers_current; then
         exit 0
     fi
 fi
