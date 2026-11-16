@@ -1,4 +1,4 @@
-FROM node:25-slim AS build
+FROM node:26-slim AS build
 WORKDIR /repo
 
 COPY package.json yarn.lock .yarnrc.yml ./
@@ -11,7 +11,7 @@ RUN printf '{"api":{"core":"/api"}}' > dist/apps/card-front/browser/assets/appse
 RUN node -e "const fs = require('fs'); const folder = 'dist/apps/card-front/browser'; fs.writeFileSync(folder + '/app-files.json', JSON.stringify(fs.readdirSync(folder).filter((file) => /\\.(js|css)$/.test(file))))"
 
 
-FROM node:25-slim
+FROM node:26-slim
 WORKDIR /app
 
 ENV NODE_ENV=production \
