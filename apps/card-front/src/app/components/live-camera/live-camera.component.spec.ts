@@ -49,7 +49,7 @@ describe('LiveCameraComponent', () => {
 
     it('opens the camera and stops it when the page is left', () => {
         expect(camera.open).toHaveBeenCalledTimes(1);
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(false);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('false');
 
         fixture.destroy();
         expect(track.stop).toHaveBeenCalledTimes(1);
@@ -67,7 +67,7 @@ describe('LiveCameraComponent', () => {
         frames.mockClear();
         await new Promise((resolve) => setTimeout(resolve, 60));
         expect(frames).not.toHaveBeenCalled();
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(true);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('true');
 
         fixture.componentRef.setInput('paused', false);
         await settle();
@@ -84,11 +84,11 @@ describe('LiveCameraComponent', () => {
 
         await hide(true);
         expect(track.stop).toHaveBeenCalledTimes(1);
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(true);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('true');
 
         await hide(false);
         expect(camera.open).toHaveBeenCalledTimes(2);
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(false);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('false');
         Reflect.deleteProperty(document, 'hidden');
     });
 
@@ -98,7 +98,24 @@ describe('LiveCameraComponent', () => {
         await settle();
 
         expect(camera.open).toHaveBeenCalledTimes(2);
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(false);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('false');
+    });
+
+    it('keeps a quick second tap in the camera frame from zooming the page, and still passes it to the button', () => {
+        const auto = host.querySelector('.auto') as HTMLButtonElement;
+        const tap = (timeStamp: number): Event => {
+            const touch = new Event('touchend', { bubbles: true, cancelable: true });
+            Object.defineProperty(touch, 'timeStamp', { value: timeStamp });
+            auto.dispatchEvent(touch);
+
+            return touch;
+        };
+
+        expect(tap(1000).defaultPrevented).toBe(false);
+        expect(tap(1200).defaultPrevented).toBe(true);
+        fixture.detectChanges();
+        expect(auto.getAttribute('aria-pressed')).toBe('true');
+        expect(tap(2000).defaultPrevented).toBe(false);
     });
 
     it('remembers whether the photo is taken by itself', () => {
@@ -115,7 +132,7 @@ describe('LiveCameraComponent', () => {
     it('hands a photo over for the side it was started for, also when the side changes while it is taken', async () => {
         click(host, '.shutter');
         fixture.detectChanges();
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(true);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('true');
 
         fixture.componentRef.setInput('side', 'front');
         const file = new Blob(['back']);
@@ -123,6 +140,6 @@ describe('LiveCameraComponent', () => {
         await settle();
 
         expect(shots).toEqual([{ side: 'back', file, corners: undefined }]);
-        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(false);
+        expect(host.querySelector('.shutter')?.getAttribute('aria-disabled')).toBe('false');
     });
 });

@@ -28,6 +28,7 @@ interface Card {
     variant?: string;
     condition?: string;
     conditionSource?: string;
+    notes?: string;
     priceTrend?: number;
     ownPrice?: number;
     value?: number;
@@ -168,8 +169,9 @@ describe('the whole app', () => {
     it('reprices when the print changes, and remembers that the user set the condition', async () => {
         const card = await upload();
         await json(`/cards/${card.id}/confirm`, send('POST', { catalogCardId: 'base1-4' }));
-        const changed = await json<Card>(`/cards/${card.id}`, send('PATCH', { variant: 'holo', condition: 'played', notes: 'from the attic' }));
+        const changed = await json<Card>(`/cards/${card.id}`, send('PATCH', { variant: 'holo', condition: 'played', notes: '  from the attic \n' }));
 
+        assert.equal(changed.notes, 'from the attic');
         assert.deepEqual([changed.priceTrend, changed.condition, changed.conditionSource], [412.5, 'played', 'user']);
         assert.deepEqual([changed.value, changed.valueSource, changed.priceBasis], [412.5, 'trend', 'print']);
         assert.equal((await fetch(`${api}/cards/${card.id}`, send('PATCH', { condition: 'shiny' }))).status, 400);

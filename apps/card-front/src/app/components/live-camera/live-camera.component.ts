@@ -22,6 +22,7 @@ const FOLLOW_MILLISECONDS = 90;
 const LOST_JUMP_MILLISECONDS = 600;
 const CORNER_SHARE = 0.06;
 const AUTO_KEY = 'scan-auto-photo';
+const DOUBLE_TAP_MILLISECONDS = 400;
 
 function autoChosen(): boolean {
     try {
@@ -60,7 +61,7 @@ function distance(from: Point, to: Point): number {
     host: { '(document:visibilitychange)': 'seen()' },
     template: `
         <div class="stage">
-            <div class="frame">
+            <div class="frame" (touchend)="tapped($event)">
                 <video #video class="video" autoplay playsinline muted></video>
                 @if (size(); as size) {
                     <svg class="overlay" [attr.viewBox]="'0 0 ' + size.width + ' ' + size.height">
@@ -80,7 +81,8 @@ function distance(from: Point, to: Point): number {
                 <button
                     type="button"
                     class="shutter"
-                    [disabled]="!ready() || capturing() || paused()"
+                    [class.off]="!usable()"
+                    [attr.aria-disabled]="!usable()"
                     [attr.aria-label]="'scan.camera.shutter' | translate: { side: ('scan.' + side() | translate) }"
                     (click)="capture()"
                 >
@@ -105,7 +107,7 @@ function distance(from: Point, to: Point): number {
         .flash { position: absolute; inset: 0; border-radius: 12px; background: var(--mark-text); opacity: 0.35; }
         .shutter { position: absolute; bottom: 14px; left: 50%; display: grid; place-items: center; width: 68px; height: 68px; transform: translateX(-50%); border: 4px solid var(--mark-text); border-radius: 50%; background: var(--crop-shade); color: var(--mark-text); }
         .shutter i { font-size: 30px; }
-        .shutter:disabled { opacity: 0.5; }
+        .shutter.off { opacity: 0.5; }
     `
 })
 export class LiveCameraComponent {
@@ -121,6 +123,7 @@ export class LiveCameraComponent {
     protected readonly outline = signal<string | undefined>(undefined);
     protected readonly lost = signal(true);
     protected readonly auto = signal(autoChosen());
+    protected readonly usable = computed(() => this.ready() && !this.capturing() && !this.paused());
     protected readonly line = computed(() => this.longest() * LINE_SHARE);
     protected readonly dash = computed(() => `${this.longest() * DASH_SHARE} ${this.longest() * DASH_SHARE * 0.7}`);
 
@@ -139,6 +142,7 @@ export class LiveCameraComponent {
     private colour?: [number, number, number];
     private lostSince = 0;
     private lastFrame = 0;
+    private lastTap = 0;
     private opening = false;
     private looking = false;
     private stopped = false;
@@ -164,7 +168,7 @@ export class LiveCameraComponent {
 
     protected async capture(): Promise<void> {
         const stream = this.stream;
-        if (!stream || this.capturing()) {
+        if (!stream || !this.usable()) {
             return;
         }
 
@@ -179,6 +183,15 @@ export class LiveCameraComponent {
             this.failed.emit();
         } finally {
             this.capturing.set(false);
+        }
+    }
+
+    protected tapped(event: TouchEvent): void {
+        const again = event.timeStamp - this.lastTap < DOUBLE_TAP_MILLISECONDS;
+        this.lastTap = event.timeStamp;
+        if (again && event.cancelable) {
+            event.preventDefault();
+            (event.target as Element).closest('button')?.click();
         }
     }
 

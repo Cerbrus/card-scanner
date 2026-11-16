@@ -216,6 +216,11 @@ export class CardPage {
         this.changes$.next({ id: Number(this.id()), changes });
     }
 
+    protected setNotes(field: HTMLTextAreaElement): void {
+        field.value = field.value.trim();
+        this.change({ notes: field.value });
+    }
+
     protected setOwnPrice(text: string): void {
         const entered = text.trim();
         if (entered && !PRICE.test(entered)) {

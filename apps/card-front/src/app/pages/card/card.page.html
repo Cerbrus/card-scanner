@@ -142,7 +142,7 @@
 
             <label>
                 <span class="field-label">{{ 'card.notes' | translate }}</span>
-                <textarea class="field" rows="2" [class.unsaved]="unsaved().notes" [value]="card.notes" (change)="change({ notes: $any($event.target).value })"></textarea>
+                <textarea class="field" rows="2" [class.unsaved]="unsaved().notes" [value]="card.notes" (change)="setNotes($any($event.target))"></textarea>
                 @if (unsaved().notes) {
                     <span class="unsaved-note">{{ 'card.unsaved' | translate }}</span>
                 }

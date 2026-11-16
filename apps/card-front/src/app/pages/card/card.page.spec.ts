@@ -273,9 +273,10 @@ describe('CardPage', () => {
         api.updateCard.mockReturnValueOnce(first).mockReturnValue(of({ ...confirmed, notes: 'second' }));
         await open(confirmed);
         const notes = page.querySelector('textarea') as HTMLTextAreaElement;
-        for (const text of ['first', 'second']) {
+        for (const text of ['  first\n', 'second']) {
             notes.value = text;
             notes.dispatchEvent(new Event('change'));
+            expect(notes.value).toBe(text.trim());
         }
         await settle();
         expect(api.updateCard).toHaveBeenCalledTimes(1);

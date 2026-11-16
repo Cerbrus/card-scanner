@@ -186,7 +186,7 @@ export class CardService implements OnApplicationBootstrap {
         }
         card.language = changes.language === undefined ? card.language : changes.language;
         card.variant = changes.variant === undefined ? card.variant : changes.variant;
-        card.notes = changes.notes ?? card.notes;
+        card.notes = changes.notes?.trim() ?? card.notes;
         if (changes.ownPrice !== undefined && changes.ownPrice !== card.ownPrice) {
             card.ownPrice = changes.ownPrice;
             card.ownPriceAt = changes.ownPrice === null ? null : new Date();

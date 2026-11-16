@@ -114,8 +114,8 @@ function remember(key: string, value?: string): void {
         </div>
     `,
     styles: `
-        .keep { border-color: var(--ok); background: var(--ok); color: var(--accent-text); }
-        .discard { border-color: var(--danger); background: var(--danger); color: var(--accent-text); }
+        .keep { border-color: var(--ok); background: var(--ok); color: var(--mark-text); }
+        .discard { border-color: var(--danger); background: var(--danger); color: var(--mark-text); }
         .chosen img { width: 44px; aspect-ratio: 63 / 88; border-radius: 4px; object-fit: cover; }
         .choices { display: flex; flex-wrap: wrap; gap: 6px; }
         .choice { min-width: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 0.85rem; font-weight: 600; }

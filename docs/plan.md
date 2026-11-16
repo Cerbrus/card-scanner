@@ -121,6 +121,7 @@ Also open for the owner to decide:
 
 - [x] Review of 2026-11-16, findings 1 to 7: a stored card is never offered for saving again, a photo keeps the side it was taken for, the card page starts clean on another copy, a failed photo upload keeps the crop, the updater repeats a compose change that failed halfway, unknown values sort last in both directions, filter menus stay on a narrow screen (done 2026-11-16 17:45)
 - [x] Review of 2026-11-16, findings 8 to 28: the camera rests while paused and in the background, a photo that never comes falls back to the video frame, a failed price or note stays marked as not saved, changes go one after another, filter menus work from the keyboard, crossed crop corners are put in order, upright edges are found once, the step that dropped the "1st edition" sheet column is gone (done 2026-11-16 18:25)
+- [x] After the owner's check on the phone: white text on the "Next", "Stop" and "Discard" buttons in both themes, quick taps on the shutter no longer zoom the page, a note is stored without the white space around it (done 2026-11-16 18:55)
 - [x] Tests in a real browser (Playwright with the installed Chrome) in the build: scan with straightening, confirm, filters, copies, grading mark, log, delete (done 2026-11-15 17:20)
 - [x] Log page for the owner, from the Settings page (done 2026-11-15 17:20)
 
