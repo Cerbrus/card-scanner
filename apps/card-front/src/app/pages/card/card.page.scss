@@ -65,3 +65,23 @@
     border: 1px solid var(--line);
     border-radius: 999px;
 }
+
+.section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.cardmarket-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    i {
+        font-size: 15px;
+    }
+}

@@ -85,7 +85,7 @@
         "priceNote": "Prijstrend van Cardmarket, bekeken op {date}.",
         "noPriceLong": "De prijsbron heeft geen bedrag voor deze kaart.",
         "priceAfterConfirm": "De prijs volgt zodra je de kaart hebt gekozen.",
-        "cardmarket": "Aanbod voor dit exemplaar op Cardmarket",
+        "cardmarket": "Bekijk op Cardmarket",
         "details": "Dit exemplaar",
         "condition": "Conditie",
         "notSet": "Niet ingevuld",
@@ -107,7 +107,6 @@
             "trend": "Algemene prijstrend, niet voor deze conditie of taal"
         },
         "ownPrice": "Prijs voor dit exemplaar (EUR)",
-        "ownPriceHint": "Open Cardmarket hieronder: het aanbod is gefilterd op de taal en conditie van dit exemplaar. Typ hier de prijs die je vindt. Maak het veld leeg om terug te gaan naar de prijstrend.",
         "copies": "{count} exemplaren van deze kaart. De andere:",
         "worthGrading": "Misschien het graderen waard: dit exemplaar is {minimum} of meer waard en near mint of beter.",
         "photo": {

@@ -8,6 +8,7 @@ import { Observable, Subject, catchError, exhaustMap, finalize, from, map, merge
 import { CandidateListComponent } from '../../components/candidate-list/candidate-list.component';
 import { cardState } from '../../components/card-tile/card-tile.component';
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
+import { FilterMenuComponent } from '../../components/filter-menu/filter-menu.component';
 import { PhotoViewerComponent, ViewedPhoto } from '../../components/photo-viewer/photo-viewer.component';
 import { CONDITIONS, Candidate, CardChanges, CardDetail, FINISHES, LANGUAGES, PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
@@ -37,7 +38,7 @@ const GRADING_MIN_VALUE = 50;
 @Component({
     selector: 'app-card-page',
     standalone: true,
-    imports: [CurrencyPipe, DatePipe, RouterLink, TranslatePipe, CandidateListComponent, CropEditorComponent, PhotoViewerComponent],
+    imports: [CurrencyPipe, DatePipe, RouterLink, TranslatePipe, CandidateListComponent, CropEditorComponent, FilterMenuComponent, PhotoViewerComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './card.page.html',
     styleUrl: './card.page.scss'

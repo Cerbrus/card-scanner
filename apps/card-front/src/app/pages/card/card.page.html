@@ -105,7 +105,64 @@
             }
         </div>
 
-        <h2 class="section-title">{{ 'card.value' | translate }}</h2>
+        <h2 class="section-title">{{ 'card.details' | translate }}</h2>
+        <div class="card">
+            <span class="field-label !mt-0">{{ 'card.condition' | translate }}</span>
+            <app-filter-menu
+                class="detail-condition"
+                kind="condition"
+                emptyLabel="card.notSet"
+                [labelled]="true"
+                [options]="conditions"
+                [value]="card.condition ?? ''"
+                (chosen)="change({ condition: $any($event) || null })"
+            />
+            @if (card.conditionSource === 'model') {
+                <p class="muted mt-1 text-xs">{{ 'card.conditionByModel' | translate }} {{ card.conditionNotes }}</p>
+            }
+
+            <div class="flex gap-2">
+                <div class="min-w-0 flex-1">
+                    <span class="field-label">{{ 'card.variant' | translate }}</span>
+                    <app-filter-menu
+                        class="detail-finish"
+                        kind="finish"
+                        emptyLabel="card.notSet"
+                        [labelled]="true"
+                        [options]="finishes"
+                        [value]="card.variant ?? ''"
+                        (chosen)="change({ variant: $any($event) || null })"
+                    />
+                </div>
+                <div class="min-w-0 flex-1">
+                    <span class="field-label">{{ 'card.language' | translate }}</span>
+                    <app-filter-menu
+                        class="detail-language"
+                        kind="language"
+                        emptyLabel="card.notSet"
+                        [labelled]="true"
+                        [options]="languages"
+                        [value]="card.language ?? ''"
+                        (chosen)="change({ language: $any($event) || null })"
+                    />
+                </div>
+            </div>
+
+            <label>
+                <span class="field-label">{{ 'card.notes' | translate }}</span>
+                <textarea class="field" rows="2" [value]="card.notes" (change)="change({ notes: $any($event.target).value })"></textarea>
+            </label>
+        </div>
+
+        <div class="section-head">
+            <h2 class="section-title">{{ 'card.value' | translate }}</h2>
+            @if (card.cardmarketUrl; as url) {
+                <a class="cardmarket-link" [href]="url" target="_blank" rel="noopener">
+                    {{ 'card.cardmarket' | translate }}
+                    <i class="material-symbols-outlined">open_in_new</i>
+                </a>
+            }
+        </div>
         <div class="card">
             @if (card.valueSource; as source) {
                 <div class="flex flex-wrap items-end gap-x-6 gap-y-2">
@@ -159,13 +216,6 @@
                         (change)="setOwnPrice($any($event.target).value)"
                     />
                 </label>
-                <p class="muted mt-1 text-xs">{{ 'card.ownPriceHint' | translate }}</p>
-            }
-            @if (card.cardmarketUrl; as url) {
-                <a class="btn mt-3" [href]="url" target="_blank" rel="noopener">
-                    <i class="material-symbols-outlined">open_in_new</i>
-                    {{ 'card.cardmarket' | translate }}
-                </a>
             }
             @if (history().length > 1) {
                 <table class="mt-3 w-full text-sm">
@@ -177,48 +227,6 @@
                     }
                 </table>
             }
-        </div>
-
-        <h2 class="section-title">{{ 'card.details' | translate }}</h2>
-        <div class="card">
-            <label>
-                <span class="field-label !mt-0">{{ 'card.condition' | translate }}</span>
-                <select class="field" (change)="change({ condition: $any($event.target).value || null })">
-                    <option value="" [selected]="!card.condition">{{ 'card.notSet' | translate }}</option>
-                    @for (condition of conditions; track condition) {
-                        <option [value]="condition" [selected]="condition === card.condition">{{ 'condition.' + condition | translate }}</option>
-                    }
-                </select>
-            </label>
-            @if (card.conditionSource === 'model') {
-                <p class="muted mt-1 text-xs">{{ 'card.conditionByModel' | translate }} {{ card.conditionNotes }}</p>
-            }
-
-            <div class="flex gap-2">
-                <label class="grow">
-                    <span class="field-label">{{ 'card.variant' | translate }}</span>
-                    <select class="field" (change)="change({ variant: $any($event.target).value || null })">
-                        <option value="" [selected]="!card.variant">{{ 'card.notSet' | translate }}</option>
-                        @for (finish of finishes; track finish) {
-                            <option [value]="finish" [selected]="finish === card.variant">{{ 'variant.' + finish | translate }}</option>
-                        }
-                    </select>
-                </label>
-                <label class="grow">
-                    <span class="field-label">{{ 'card.language' | translate }}</span>
-                    <select class="field" (change)="change({ language: $any($event.target).value || null })">
-                        <option value="" [selected]="!card.language">{{ 'card.notSet' | translate }}</option>
-                        @for (language of languages; track language) {
-                            <option [value]="language" [selected]="language === card.language">{{ 'language.' + language | translate }}</option>
-                        }
-                    </select>
-                </label>
-            </div>
-
-            <label>
-                <span class="field-label">{{ 'card.notes' | translate }}</span>
-                <textarea class="field" rows="2" [value]="card.notes" (change)="change({ notes: $any($event.target).value })"></textarea>
-            </label>
         </div>
 
         <div class="mt-6 flex justify-end gap-2">

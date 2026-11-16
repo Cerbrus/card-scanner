@@ -241,8 +241,14 @@ describe('CardPage', () => {
 
         expect(page.textContent).toContain('White edges.');
 
-        choose(page, 'select', 'played', 0);
-        choose(page, 'select', '', 1);
+        expect(texts(page, '.detail-condition .toggle')).toEqual(['conditionShort.goodcondition.goodarrow_drop_down']);
+        click(page, '.detail-condition .toggle');
+        fixture.detectChanges();
+        click(page, '.detail-condition .option[data-value="played"]');
+        await settle();
+        click(page, '.detail-finish .toggle');
+        fixture.detectChanges();
+        click(page, '.detail-finish .option');
         await settle();
 
         expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ condition: 'played' }, { variant: null }]);
@@ -310,7 +316,9 @@ describe('CardPage', () => {
         fixture.destroy();
         api.updateCard.mockReturnValue(throwError(() => new Error('down')));
         await open(confirmed);
-        choose(page, 'select', 'poor', 0);
+        click(page, '.detail-condition .toggle');
+        fixture.detectChanges();
+        click(page, '.detail-condition .option[data-value="poor"]');
         await settle();
 
         expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['common.failed']);

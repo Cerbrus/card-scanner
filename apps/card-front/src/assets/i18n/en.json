@@ -85,7 +85,7 @@
         "priceNote": "Price trend from Cardmarket, checked {date}.",
         "noPriceLong": "The price source has no figure for this card.",
         "priceAfterConfirm": "The price follows once you have picked the card.",
-        "cardmarket": "Offers for this copy on Cardmarket",
+        "cardmarket": "Browse on Cardmarket",
         "details": "This copy",
         "condition": "Condition",
         "notSet": "Not set",
@@ -107,7 +107,6 @@
             "trend": "General price trend, not for this condition or language"
         },
         "ownPrice": "Price for this copy (EUR)",
-        "ownPriceHint": "Open Cardmarket below: the offers are filtered on the language and condition of this copy. Type the price you find here. Empty the field to go back to the price trend.",
         "copies": "{count} copies of this card. The others:",
         "worthGrading": "Maybe worth grading: this copy is worth {minimum} or more and is near mint or better.",
         "photo": {
