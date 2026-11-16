@@ -8,6 +8,7 @@ interface PhotoTaker {
 type PhotoTakerType = new (track: MediaStreamTrack) => PhotoTaker;
 
 const FRAME_QUALITY = 0.92;
+export const PHOTO_WAIT_MILLISECONDS = 5000;
 
 @Injectable({ providedIn: 'root' })
 export class Camera {
@@ -26,7 +27,8 @@ export class Camera {
     public async takePhoto(stream: MediaStream, video: HTMLVideoElement): Promise<Blob> {
         const PhotoTaker = this.photoTaker();
         const [track] = stream.getVideoTracks();
-        const photo = PhotoTaker && track ? await new PhotoTaker(track).takePhoto().catch(() => undefined) : undefined;
+        const waited = new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), PHOTO_WAIT_MILLISECONDS));
+        const photo = PhotoTaker && track ? await Promise.race([new PhotoTaker(track).takePhoto().catch(() => undefined), waited]) : undefined;
 
         return photo?.size ? photo : this.frame(video);
     }
@@ -38,7 +40,19 @@ export class Camera {
         canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         return new Promise((resolve, reject) =>
-            canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The camera gave no picture'))), 'image/jpeg', FRAME_QUALITY)
+            canvas.toBlob(
+                (blob) => {
+                    canvas.width = 0;
+                    canvas.height = 0;
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('The camera gave no picture'));
+                    }
+                },
+                'image/jpeg',
+                FRAME_QUALITY
+            )
         );
     }
 

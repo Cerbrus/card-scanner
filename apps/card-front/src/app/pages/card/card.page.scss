@@ -91,3 +91,14 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
 }
+
+.field.unsaved {
+    border-color: var(--danger);
+}
+
+.unsaved-note {
+    display: block;
+    margin-top: 2px;
+    color: var(--danger);
+    font-size: 0.75rem;
+}

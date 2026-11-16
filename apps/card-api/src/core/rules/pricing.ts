@@ -57,7 +57,7 @@ const CARDMARKET_CONDITIONS: Record<Condition, number> = { mint: 1, near_mint: 2
 export const GRADING_MIN_VALUE = 50;
 const GRADABLE_CONDITIONS: Array<Condition> = ['mint', 'near_mint'];
 
-const amount =(value?: number | null): number | undefined => (typeof value === 'number' && value > 0 ? value : undefined);
+const amount = (value?: number | null): number | undefined => (typeof value === 'number' && value > 0 ? value : undefined);
 
 function figures(price: SourcePrice): PriceFigures {
     return {

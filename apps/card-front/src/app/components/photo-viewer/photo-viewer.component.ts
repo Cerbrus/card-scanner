@@ -68,12 +68,13 @@ export class PhotoViewerComponent {
     public readonly start = input(0);
     public readonly closed = output<void>();
 
-    protected readonly index = linkedSignal(() => Math.min(this.start(), this.photos().length - 1));
+    protected readonly chosen = linkedSignal(() => this.start());
+    protected readonly index = computed(() => Math.max(0, Math.min(this.chosen(), this.photos().length - 1)));
     protected readonly current = computed(() => this.photos()[this.index()]);
     protected swipeFrom?: number;
 
     protected go(step: number): void {
-        this.index.update((index) => Math.min(this.photos().length - 1, Math.max(0, index + step)));
+        this.chosen.set(Math.min(this.photos().length - 1, Math.max(0, this.index() + step)));
     }
 
     protected swipe(to: number): void {

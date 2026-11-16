@@ -42,16 +42,22 @@ export class PhotoScaler {
 
             const size = straightSize(scaled, PHOTO_SIDE);
             const card = canvasOf(size);
-            const cardContext = context(card);
-            const target = cardContext.createImageData(size.width, size.height);
-            warp(sourceContext.getImageData(0, 0, source.width, source.height), scaled, size, target);
-            cardContext.putImageData(target, 0, 0);
+            try {
+                const cardContext = context(card);
+                const target = cardContext.createImageData(size.width, size.height);
+                warp(sourceContext.getImageData(0, 0, source.width, source.height), scaled, size, target);
+                empty(source);
+                cardContext.putImageData(target, 0, 0);
 
-            return {
-                photo: await draw(card, size.width, size.height, PHOTO_SIDE, PHOTO_QUALITY),
-                thumb: await draw(card, size.width, size.height, THUMB_SIDE, THUMB_QUALITY),
-                source: await draw(image, image.naturalWidth, image.naturalHeight, PHOTO_SIDE, PHOTO_QUALITY)
-            };
+                return {
+                    photo: await draw(card, size.width, size.height, PHOTO_SIDE, PHOTO_QUALITY),
+                    thumb: await draw(card, size.width, size.height, THUMB_SIDE, THUMB_QUALITY),
+                    source: await draw(image, image.naturalWidth, image.naturalHeight, PHOTO_SIDE, PHOTO_QUALITY)
+                };
+            } finally {
+                empty(source);
+                empty(card);
+            }
         });
     }
 
@@ -78,6 +84,11 @@ function canvasOf(size: { width: number; height: number }): HTMLCanvasElement {
     return canvas;
 }
 
+function empty(canvas: HTMLCanvasElement): void {
+    canvas.width = 0;
+    canvas.height = 0;
+}
+
 function context(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
     const found = canvas.getContext('2d', { willReadFrequently: true });
     if (!found) {
@@ -92,6 +103,17 @@ function draw(source: Drawable, sourceWidth: number, sourceHeight: number, maxSi
     context(canvas).drawImage(source, 0, 0, canvas.width, canvas.height);
 
     return new Promise((resolve, reject) =>
-        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('The photo could not be made smaller'))), 'image/jpeg', quality)
+        canvas.toBlob(
+            (blob) => {
+                empty(canvas);
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error('The photo could not be made smaller'));
+                }
+            },
+            'image/jpeg',
+            quality
+        )
     );
 }

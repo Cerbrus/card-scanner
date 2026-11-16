@@ -38,6 +38,17 @@ describe('taking the photo by itself', () => {
         expect(trigger.see({ corners: card(), colour: blue, time: 5100 + STEADY_MILLISECONDS })).toBe(true);
     });
 
+    it('does not take a side again when taking by itself is switched on after it was taken by hand', () => {
+        const trigger = new CaptureTrigger();
+        trigger.taken(yellow);
+        trigger.startOver();
+
+        expect(trigger.see({ corners: card(), colour: yellow, time: 0 })).toBe(false);
+        expect(trigger.see({ corners: card(), colour: yellow, time: STEADY_MILLISECONDS * 3 })).toBe(false);
+        expect(trigger.see({ corners: card(), colour: blue, time: STEADY_MILLISECONDS * 3 + 100 })).toBe(false);
+        expect(trigger.see({ corners: card(), colour: blue, time: STEADY_MILLISECONDS * 4 + 100 })).toBe(true);
+    });
+
     it('takes the next side after the card was out of sight for a moment', () => {
         const trigger = new CaptureTrigger();
         trigger.taken(yellow);

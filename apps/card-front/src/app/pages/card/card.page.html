@@ -142,7 +142,10 @@
 
             <label>
                 <span class="field-label">{{ 'card.notes' | translate }}</span>
-                <textarea class="field" rows="2" [value]="card.notes" (change)="change({ notes: $any($event.target).value })"></textarea>
+                <textarea class="field" rows="2" [class.unsaved]="unsaved().notes" [value]="card.notes" (change)="change({ notes: $any($event.target).value })"></textarea>
+                @if (unsaved().notes) {
+                    <span class="unsaved-note">{{ 'card.unsaved' | translate }}</span>
+                }
             </label>
         </div>
 
@@ -204,9 +207,13 @@
                         inputmode="decimal"
                         autocomplete="off"
                         placeholder="0.00"
+                        [class.unsaved]="unsaved().ownPrice"
                         [value]="card.ownPrice ?? ''"
                         (change)="setOwnPrice($any($event.target).value)"
                     />
+                    @if (unsaved().ownPrice) {
+                        <span class="unsaved-note">{{ 'card.unsaved' | translate }}</span>
+                    }
                 </label>
             }
             @if (history().length > 1) {

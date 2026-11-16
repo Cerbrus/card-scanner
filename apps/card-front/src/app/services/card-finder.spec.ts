@@ -1,4 +1,4 @@
-import { Pixels, findCard, refineCard } from './card-finder';
+import { Pixels, findCard, findLines, refineCard } from './card-finder';
 import { Corners, Point } from './perspective';
 
 type Colour = [number, number, number];
@@ -46,6 +46,19 @@ const distance = (left: Point, right: Point): number => Math.hypot(left.x - righ
 
 describe('finding the card in a photo', () => {
     const card = turned({ x: 160, y: 210 }, 180, 252, 8);
+
+    it.each([0, -1, 1])('finds each upright edge of a card turned %i degrees once, also where the angle wraps around', (degrees) => {
+        const upright = findLines(photo(320, 427, turned({ x: 160, y: 210 }, 180, 252, degrees), YELLOW_BORDER)).filter((line) => line.angle <= 4 || line.angle >= 176);
+        const strongest = Math.max(...upright.map((line) => line.votes));
+        const places = upright
+            .filter((line) => line.votes > strongest / 2)
+            .map((line) => Math.abs(line.distance))
+            .sort((left, right) => left - right);
+
+        expect(places.length).toBe(2);
+        expect(Math.abs(places[0] - 70)).toBeLessThan(6);
+        expect(Math.abs(places[1] - 250)).toBeLessThan(6);
+    });
 
     it('puts the corners on a yellow card that lies a little turned on a dark table', () => {
         const found = findCard(photo(320, 427, card, YELLOW_BORDER)) as Corners;

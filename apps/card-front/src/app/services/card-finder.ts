@@ -14,7 +14,7 @@ interface Edges {
     threshold: number;
 }
 
-interface Line {
+export interface Line {
     angle: number;
     distance: number;
     votes: number;
@@ -32,7 +32,6 @@ const MIN_SIDE_SUPPORT = 0.55;
 const SAMPLES = 48;
 const CORNER_SKIP = 0.1;
 const MIN_RATIO = CARD_RATIO * 0.7;
-const MAX_RATIO = CARD_RATIO / 0.7;
 const OUTSIDE_SLACK = 0.01;
 const REFINE_REACH = 0.025;
 const REFINE_SAMPLES = 60;
@@ -58,6 +57,10 @@ export function findCard(pixels: Pixels): Corners | undefined {
     }
 
     return best ? portrait(best.corners) : undefined;
+}
+
+export function findLines(pixels: Pixels): Array<Line> {
+    return strongestLines(findEdges(pixels));
 }
 
 export function refineCard(pixels: Pixels, corners: Corners): Corners {
@@ -238,10 +241,17 @@ function strongestLines({ strength, direction, width, height, threshold }: Edges
 function isPeak(votes: Float32Array, span: number, angle: number, distance: number): boolean {
     const count = votes[angle * span + distance];
     for (let da = -PEAK_RADIUS; da <= PEAK_RADIUS; da++) {
-        const other = (angle + da + ANGLES) % ANGLES;
+        const turned = angle + da;
+        const other = (turned + ANGLES) % ANGLES;
+        const mirrored = turned < 0 || turned >= ANGLES;
         for (let dd = -PEAK_RADIUS; dd <= PEAK_RADIUS; dd++) {
-            const near = distance + dd;
-            if ((da || dd) && near >= 0 && near < span && votes[other * span + near] > count) {
+            const near = mirrored ? span - 1 - distance - dd : distance + dd;
+            if (!(da || dd) || near < 0 || near >= span) {
+                continue;
+            }
+            const rival = votes[other * span + near];
+            const earlier = other < angle || (other === angle && near < distance);
+            if (rival > count || (rival === count && earlier)) {
                 return false;
             }
         }
@@ -294,7 +304,7 @@ function judge(corners: Corners, edges: Edges): number {
     const down = (distance(topLeft, bottomLeft) + distance(topRight, bottomRight)) / 2;
     const ratio = Math.min(across, down) / Math.max(across, down);
     const area = Math.abs(corners.reduce((total, point, index) => total + point.x * corners[(index + 1) % 4].y - corners[(index + 1) % 4].x * point.y, 0)) / 2;
-    if (ratio < MIN_RATIO || ratio > MAX_RATIO || area < width * height * MIN_AREA_SHARE) {
+    if (ratio < MIN_RATIO || area < width * height * MIN_AREA_SHARE) {
         return 0;
     }
 

@@ -42,6 +42,37 @@ describe('FilterMenuComponent', () => {
         expect(menu.style.maxWidth).toBe('251px');
     });
 
+    it('works from the keyboard: arrows walk the options, Escape closes and gives the focus back', async () => {
+        document.body.append(host);
+        const toggle = host.querySelector('.toggle') as HTMLElement;
+        const press = (key: string): void => {
+            document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+            fixture.detectChanges();
+        };
+        const focused = (): string => (document.activeElement?.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+        fixture.componentRef.setInput('value', 'nl');
+        fixture.detectChanges();
+        expect(toggle.getAttribute('aria-label')).toBe('collection.filter.language: language.nl');
+
+        openAt(16, 77);
+        await fixture.whenStable();
+        expect(focused()).toBe('🇳🇱 language.nl');
+
+        press('ArrowUp');
+        expect(focused()).toBe('🇬🇧 language.en');
+        press('Home');
+        expect(focused()).toBe('translate collection.filter.all.language');
+        press('ArrowUp');
+        press('End');
+        expect(focused()).toBe('🇳🇱 language.nl');
+
+        press('Escape');
+        expect(host.querySelector('.menu')).toBeNull();
+        expect(document.activeElement).toBe(toggle);
+        host.remove();
+    });
+
     it('closes on a second tap and on a choice', () => {
         openAt(16, 77);
         click(host, '.toggle');

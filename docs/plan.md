@@ -119,12 +119,13 @@ Also open for the owner to decide:
 ### Milestone 8: upkeep
 
 - [x] Review of 2026-11-16, findings 1 to 7: a stored card is never offered for saving again, a photo keeps the side it was taken for, the card page starts clean on another copy, a failed photo upload keeps the crop, the updater repeats a compose change that failed halfway, unknown values sort last in both directions, filter menus stay on a narrow screen (done 2026-11-16 17:45)
+- [x] Review of 2026-11-16, findings 8 to 28: the camera rests while paused and in the background, a photo that never comes falls back to the video frame, a failed price or note stays marked as not saved, changes go one after another, filter menus work from the keyboard, crossed crop corners are put in order, upright edges are found once, the step that dropped the "1st edition" sheet column is gone (done 2026-11-16 18:25)
 - [x] Tests in a real browser (Playwright with the installed Chrome) in the build: scan with straightening, confirm, filters, copies, grading mark, log, delete (done 2026-11-15 17:20)
 - [x] Log page for the owner, from the Settings page (done 2026-11-15 17:20)
 
 ## Open
 
-- The findings of the review of 2026-11-16, in [review-2026-11-16.md](review-2026-11-16.md): the seven to fix first are fixed (done 2026-11-16 17:45); findings 8 to 29, the tests and the leftovers are open.
+- The findings of the review of 2026-11-16, in [review-2026-11-16.md](review-2026-11-16.md): all fixed or dropped (done 2026-11-16 18:25), except finding 29, the rights of the Dependabot reviewer, which is decided in the barcode scanner first.
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - If the photos from the camera in the page disappoint: back to the phone's camera app, and open it by itself for the front when the scan page opens and for the back after the front is cropped. A browser only opens a file input from a tap, so the back can follow the crop button's tap; the front on page open needs checking on the phone.
 

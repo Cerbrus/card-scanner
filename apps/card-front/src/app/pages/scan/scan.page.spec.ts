@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { FakeStore, card, click, detail, fakeStore, texts } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
 import { LiveCameraComponent } from '../../components/live-camera/live-camera.component';
-import { PhotoSide } from '../../models';
+import { CardSummary, PhotoSide } from '../../models';
 import { ApiService } from '../../services/api.service';
 import { Camera } from '../../services/camera';
 import { CardTextReader } from '../../services/card-text-reader';
@@ -283,6 +283,34 @@ describe('ScanPage', () => {
         expect(page.querySelector('button.save')).toBeNull();
         expect(page.querySelector('app-card-details')).toBeNull();
         expect(texts(page, 'p.muted.mt-4')[0]).toContain('scan.count');
+    });
+
+    it('drops a photo that is still being made smaller when the page is left', async () => {
+        let finish: (scaled: { photo: Blob; thumb: Blob }) => void = () => undefined;
+        scaler.scale.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+        pick(0);
+        click(page, 'app-crop-editor .whole');
+        fixture.destroy();
+        const previews = vi.mocked(URL.createObjectURL).mock.calls.length;
+
+        finish({ photo: new Blob(['photo']), thumb: new Blob(['thumb']) });
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(URL.createObjectURL).toHaveBeenCalledTimes(previews);
+    });
+
+    it('still tells the collection about a card that was stored after the page was left', async () => {
+        const stored = new Subject<CardSummary>();
+        api.createCard.mockReturnValue(stored);
+        await photograph(0);
+        await photograph(1);
+        fixture.destroy();
+
+        stored.next(card(7, { status: 'new' }));
+
+        expect(store.put).toHaveBeenCalledWith(card(7, { status: 'new' }));
+        expect(api.getCard).not.toHaveBeenCalled();
     });
 
     it('says so when a chosen file is not a usable photo', async () => {

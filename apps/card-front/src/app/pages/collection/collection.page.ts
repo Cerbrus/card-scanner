@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CardTileComponent } from '../../components/card-tile/card-tile.component';
@@ -250,6 +250,12 @@ export class CollectionPage {
 
     constructor() {
         effect(() => storeView({ filter: this.filter(), sort: this.sort(), descending: this.descending() }));
+        effect(() => {
+            const { sets, conditions, languages, finishes } = this.options();
+            if (this.store.loaded()) {
+                untracked(() => this.dropGone({ set: sets, condition: conditions, language: languages, finish: finishes }));
+            }
+        });
     }
 
     protected sortBy(sort: Sort): void {
@@ -265,5 +271,13 @@ export class CollectionPage {
 
     protected narrow<K extends keyof CardFilter>(key: K, value: CardFilter[K]): void {
         this.filter.update((filter) => ({ ...filter, [key]: value }));
+    }
+
+    private dropGone(offered: Record<'set' | 'condition' | 'language' | 'finish', Array<string>>): void {
+        const filter = this.filter();
+        const gone = (Object.keys(offered) as Array<keyof typeof offered>).filter((key) => filter[key] && !offered[key].includes(filter[key]));
+        if (gone.length) {
+            this.filter.set({ ...filter, ...Object.fromEntries(gone.map((key) => [key, ''])) });
+        }
     }
 }

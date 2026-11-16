@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable, Subject, catchError, exhaustMap, filter, finalize, from, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
+import { Observable, Subject, catchError, concatMap, exhaustMap, filter, finalize, from, map, merge, of, switchMap, takeWhile, tap, timer } from 'rxjs';
 
 import { CandidateListComponent } from '../../components/candidate-list/candidate-list.component';
 import { cardState } from '../../components/card-tile/card-tile.component';
@@ -34,6 +34,14 @@ const POLL_MILLISECONDS = 2500;
 const SIDES: Array<PhotoSide> = ['front', 'back'];
 const HISTORY_LENGTH = 8;
 const GRADING_MIN_VALUE = 50;
+const PRICE = /^\d+(?:[.,]\d+)?$/;
+
+type Unsaved = Partial<Record<keyof CardChanges, boolean>>;
+
+interface Change {
+    id: number;
+    changes: CardChanges;
+}
 
 @Component({
     selector: 'app-card-page',
@@ -59,6 +67,7 @@ export class CardPage {
     protected readonly viewing = signal<number | undefined>(undefined);
     protected readonly editing = signal<Editing | undefined>(undefined);
     protected readonly savingPhoto = signal(false);
+    protected readonly unsaved = signal<Unsaved>({});
     protected readonly strip = computed(() => {
         const card = this.card();
         if (!card) {
@@ -101,11 +110,31 @@ export class CardPage {
     private readonly router = inject(Router);
     private readonly destroyRef = inject(DestroyRef);
     private readonly reload$ = new Subject<void>();
+    private readonly changes$ = new Subject<Change>();
 
     constructor() {
         merge(toObservable(this.id).pipe(tap(() => this.reset())), this.reload$.pipe(map(() => this.id())))
             .pipe(
                 switchMap((id) => this.follow(Number(id))),
+                takeUntilDestroyed()
+            )
+            .subscribe();
+
+        this.changes$
+            .pipe(
+                concatMap(({ id, changes }) =>
+                    this.api.updateCard(id, changes).pipe(
+                        tap((card) => {
+                            this.show(card);
+                            this.mark(id, changes, false);
+                        }),
+                        catchError(() => {
+                            this.mark(id, changes, true);
+
+                            return this.fail();
+                        })
+                    )
+                ),
                 takeUntilDestroyed()
             )
             .subscribe();
@@ -184,18 +213,18 @@ export class CardPage {
     }
 
     protected change(changes: CardChanges): void {
-        this.run(this.api.updateCard(Number(this.id()), changes));
+        this.changes$.next({ id: Number(this.id()), changes });
     }
 
     protected setOwnPrice(text: string): void {
-        const entered = text.trim().replace(',', '.');
-        const price = Number(entered);
-        if (entered && !(price >= 0)) {
+        const entered = text.trim();
+        if (entered && !PRICE.test(entered)) {
+            this.mark(Number(this.id()), { ownPrice: null }, true);
             this.fail();
             return;
         }
 
-        this.change({ ownPrice: entered ? Math.round(price * 100) / 100 : null });
+        this.change({ ownPrice: entered ? Math.round(Number(entered.replace(',', '.')) * 100) / 100 : null });
     }
 
     protected confirm(candidate: Candidate): void {
@@ -284,8 +313,15 @@ export class CardPage {
         }
     }
 
+    private mark(id: number, changes: CardChanges, unsaved: boolean): void {
+        if (id === Number(this.id())) {
+            this.unsaved.update((known) => ({ ...known, ...Object.fromEntries(Object.keys(changes).map((field) => [field, unsaved])) }));
+        }
+    }
+
     private reset(): void {
         this.stopEditing();
+        this.unsaved.set({});
         this.card.set(undefined);
         this.results.set(undefined);
         this.viewing.set(undefined);

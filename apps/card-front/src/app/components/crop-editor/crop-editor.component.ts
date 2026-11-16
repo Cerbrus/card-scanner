@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output, si
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CropSource, CropStart } from '../../services/crop-start';
-import { Corners, Point, startCorners } from '../../services/perspective';
+import { Corners, Point, startCorners, untangled } from '../../services/perspective';
 
 const HANDLE_SHARE = 0.018;
 const TOUCH_SHARE = 0.07;
@@ -169,10 +169,12 @@ export class CropEditorComponent {
 
     protected use(): void {
         const size = this.size();
+        const corners = untangled(this.corners());
+        this.corners.set(corners);
         if (size) {
-            this.cropStart.remember(this.corners(), size.width, size.height);
+            this.cropStart.remember(corners, size.width, size.height);
         }
-        this.done.emit(this.corners());
+        this.done.emit(corners);
     }
 
     protected magnify(point: Point): string {

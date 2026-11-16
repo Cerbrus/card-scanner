@@ -1,4 +1,4 @@
-import { Corners, homography, project, rectangle, startCorners, straightSize, warp } from './perspective';
+import { Corners, homography, project, rectangle, startCorners, straightSize, untangled, warp } from './perspective';
 
 describe('straightening a photographed card', () => {
     const tilted: Corners = [
@@ -32,6 +32,14 @@ describe('straightening a photographed card', () => {
         expect([topLeft.y, bottomRight.y]).toEqual([400, 3600]);
         expect(topLeft.x + topRight.x).toBeCloseTo(3000);
         expect((topRight.x - topLeft.x) / (bottomRight.y - topRight.y)).toBeCloseTo(63 / 88);
+    });
+
+    it('puts corners that were dragged across each other back in order, and leaves a proper outline alone', () => {
+        const [topLeft, topRight, bottomRight, bottomLeft] = tilted;
+
+        expect(untangled(tilted)).toBe(tilted);
+        expect(untangled([topLeft, bottomRight, topRight, bottomLeft])).toEqual(tilted);
+        expect(untangled([topRight, topLeft, bottomRight, bottomLeft])).toEqual(tilted);
     });
 
     it('copies the pixels inside the corners into the upright picture', () => {

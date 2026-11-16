@@ -2,7 +2,7 @@ import { Signal, WritableSignal, computed, signal } from '@angular/core';
 import { of } from 'rxjs';
 
 import { CardDetail, CardSummary, SystemState } from '../app/models';
-import { countCopies } from '../app/services/collection.store';
+import { copyKey, countCopies } from '../app/services/collection.store';
 
 export function card(id: number, changes: Partial<CardSummary> = {}): CardSummary {
     return {
@@ -65,7 +65,7 @@ export function fakeStore(cards: Array<CardSummary> = []): FakeStore {
         totalValue: computed(() => confirmed().reduce((total, known) => total + (known.value ?? 0), 0)),
         ownPricedCount: computed(() => confirmed().filter((known) => known.valueSource === 'own').length),
         copies: computed(() => countCopies(confirmed())),
-        copiesOf: (wanted: CardSummary) => (wanted.catalogCardId ? confirmed().filter((known) => known.catalogCardId === wanted.catalogCardId) : []),
+        copiesOf: (wanted: CardSummary) => (copyKey(wanted) ? confirmed().filter((known) => copyKey(known) === copyKey(wanted)) : []),
         refresh: vi.fn(() => of(list())),
         followReadings: vi.fn(() => of(list())),
         put: vi.fn(),

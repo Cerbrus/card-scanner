@@ -20,7 +20,7 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 **The details step starts from the previous card.** Language and condition are preset to those of the previous card, as most of a stack is in the same language and about the same state; the finish starts at normal. Added on 2026-11-16.
 
-**No 1st edition mark.** The owner does not want it: the field, the checkbox, the sheet and CSV column and the question to the model are gone (2026-11-16). The catalogue still knows which price variants are 1st edition prints, only to leave them out. The sync removes the old "1st edition" column from the owner's table in the sheet before it writes, so the columns after it keep their formatting.
+**No 1st edition mark.** The owner does not want it: the field, the checkbox, the sheet and CSV column and the question to the model are gone (2026-11-16). The catalogue still knows which price variants are 1st edition prints, only to leave them out. The sync removed the old "1st edition" column from the owner's table in the sheet once; that step is gone again since the column is (2026-11-16).
 
 **Two copies of a card are two rows.** Each physical card has its own photos, condition and price history.
 

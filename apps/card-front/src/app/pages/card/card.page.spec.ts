@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Subject, of, throwError } from 'rxjs';
 
-import { FakeStore, choose, click, detail, fakeStore, system, texts } from '../../../testing/fakes';
+import { FakeStore, click, detail, fakeStore, system, texts } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
 import { Candidate, CardDetail } from '../../models';
 import { ApiService } from '../../services/api.service';
@@ -203,7 +203,8 @@ describe('CardPage', () => {
         store.cards.set([
             detail(7, { catalogCardId: 'base1-4' }),
             detail(8, { catalogCardId: 'base1-4', condition: 'poor', value: 40 }),
-            detail(9, { catalogCardId: 'base1-58' })
+            detail(9, { catalogCardId: 'base1-58' }),
+            detail(10, { catalogCardId: 'base1-4', language: 'nl' })
         ]);
         await open({ ...confirmed, condition: 'near_mint', worthGrading: true });
 
@@ -238,6 +239,70 @@ describe('CardPage', () => {
 
         expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ ownPrice: 120.5 }, { ownPrice: null }]);
         expect(TestBed.inject(ToastService).toasts().map((toast) => toast.text)).toEqual(['common.failed']);
+    });
+
+    it('takes only plain amounts as a price, and marks a price or note that was not saved while keeping what was typed', async () => {
+        api.updateCard.mockReturnValueOnce(throwError(() => new Error('offline'))).mockReturnValue(of({ ...confirmed, notes: 'sleeved' }));
+        await open(confirmed);
+        const price = page.querySelector('.own-price') as HTMLInputElement;
+        const notes = page.querySelector('textarea') as HTMLTextAreaElement;
+        const enter = async (field: HTMLInputElement | HTMLTextAreaElement, text: string): Promise<void> => {
+            field.value = text;
+            field.dispatchEvent(new Event('change'));
+            await settle();
+        };
+
+        await enter(price, '1e999');
+        await enter(price, '0x1F');
+        expect(api.updateCard).not.toHaveBeenCalled();
+        expect(price.classList.contains('unsaved')).toBe(true);
+        expect(price.value).toBe('0x1F');
+
+        await enter(notes, 'sleeved');
+        expect(notes.classList.contains('unsaved')).toBe(true);
+        expect(notes.value).toBe('sleeved');
+        expect(texts(page, '.unsaved-note')).toEqual(['card.unsaved', 'card.unsaved']);
+
+        await enter(notes, 'sleeved');
+        expect(notes.classList.contains('unsaved')).toBe(false);
+        expect(texts(page, '.unsaved-note')).toEqual(['card.unsaved']);
+    });
+
+    it('sends changes one after another, so the last one made is the last one stored', async () => {
+        const first = new Subject<CardDetail>();
+        api.updateCard.mockReturnValueOnce(first).mockReturnValue(of({ ...confirmed, notes: 'second' }));
+        await open(confirmed);
+        const notes = page.querySelector('textarea') as HTMLTextAreaElement;
+        for (const text of ['first', 'second']) {
+            notes.value = text;
+            notes.dispatchEvent(new Event('change'));
+        }
+        await settle();
+        expect(api.updateCard).toHaveBeenCalledTimes(1);
+
+        first.next({ ...confirmed, notes: 'first' });
+        first.complete();
+        await settle();
+
+        expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ notes: 'first' }, { notes: 'second' }]);
+        expect(store.put).toHaveBeenLastCalledWith({ ...confirmed, notes: 'second' });
+    });
+
+    it('stays on the photo that was stepped to when the card is fetched again', async () => {
+        api.updateCard.mockReturnValue(of({ ...confirmed, notes: 'again' }));
+        await open(confirmed);
+        click(page, '.photo-open');
+        fixture.detectChanges();
+        click(page, 'app-photo-viewer .next');
+        fixture.detectChanges();
+        expect(texts(page, 'app-photo-viewer .label')).toEqual(['scan.back · 2 / 2']);
+
+        const notes = page.querySelector('textarea') as HTMLTextAreaElement;
+        notes.value = 'again';
+        notes.dispatchEvent(new Event('change'));
+        await settle();
+
+        expect(texts(page, 'app-photo-viewer .label')).toEqual(['scan.back · 2 / 2']);
     });
 
     it('tells when the price is the card\'s general one, and why', async () => {
@@ -304,7 +369,6 @@ describe('CardPage', () => {
         await settle();
 
         expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ condition: 'played' }, { variant: null }]);
-        expect(page.querySelector('input[type=checkbox]')).toBeNull();
         expect(page.textContent).not.toContain('White edges.');
     });
 

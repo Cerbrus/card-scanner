@@ -180,6 +180,13 @@ describe('the pages around the collection', () => {
         expect(page.querySelector('button.direction i.flipped')).toBeNull();
         expect((page.querySelector('input[type=search]') as HTMLInputElement).value).toBe('');
 
+        localStorage.setItem('collection-view', '{"filter":{"set":"Sold Set","condition":"poor"},"sort":"name"}');
+        fixture.destroy();
+        open(CollectionPage);
+        expect(texts(page, '.tile-name')).toEqual(['Card 2']);
+        expect(texts(page, '.filter-set .toggle')).toEqual(['collections_bookmarkarrow_drop_down']);
+        expect(JSON.parse(localStorage.getItem('collection-view') ?? '{}').filter.set).toBe('');
+
         localStorage.setItem('collection-view', '{"filter":{"condition":7,"grading":"yes"},"sort":"nonsense"}');
         fixture.destroy();
         open(CollectionPage);
@@ -282,7 +289,7 @@ describe('the pages around the collection', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
         fixture.detectChanges();
 
-        expect(texts(page, '.message')).toEqual(['started', 'sync failed']);
+        expect(texts(page, '.message')).toEqual(['sync failed', 'started']);
         expect(page.querySelector('.line.warning')).not.toBeNull();
 
         api.getLogs.mockReturnValue(throwError(() => new Error('forbidden')));

@@ -25,8 +25,6 @@ export interface CollectionRow {
 
 export type Cell = string | number;
 
-export const RETIRED_COLUMNS: Array<string> = ['1st edition'];
-
 export const COLLECTION_HEADER: Array<string> = [
     'Id',
     'Name',

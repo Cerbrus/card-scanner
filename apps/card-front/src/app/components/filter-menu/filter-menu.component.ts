@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, afterNextRender, inject, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { Language } from '../../models';
@@ -23,13 +23,14 @@ const ICONS: Record<FilterKind, string> = {
     standalone: true,
     imports: [NgTemplateOutlet, TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    host: { '(document:click)': 'closeOutside($event)', '(document:keydown.escape)': 'open.set(false)' },
+    host: { '(document:click)': 'closeOutside($event)', '(document:keydown.escape)': 'close()' },
     template: `
         <button
             type="button"
             class="toggle"
             [class.active]="value() && highlight()"
-            [attr.aria-label]="'collection.filter.' + kind() | translate"
+            [attr.aria-label]="('collection.filter.' + kind() | translate) + (value() ? ': ' + (text(value()) | translate) : '')"
+            aria-haspopup="listbox"
             [attr.aria-expanded]="open()"
             [title]="'collection.filter.' + kind() | translate"
             (click)="toggle()"
@@ -45,7 +46,7 @@ const ICONS: Record<FilterKind, string> = {
             <i class="material-symbols-outlined caret">arrow_drop_down</i>
         </button>
         @if (open()) {
-            <div class="menu" role="listbox" [class.end]="place().end" [style.max-width.px]="place().room">
+            <div class="menu" role="listbox" [class.end]="place().end" [style.max-width.px]="place().room" (keydown)="step($event)">
                 <button type="button" class="option" role="option" [attr.aria-selected]="!value()" (click)="choose('')">
                     <i class="material-symbols-outlined">{{ icons[kind()] }}</i>
                     {{ emptyLabel() ?? 'collection.filter.all.' + kind() | translate }}
@@ -126,23 +127,51 @@ export class FilterMenuComponent {
     protected readonly unknownMark = UNKNOWN_MARK;
 
     private readonly host = inject(ElementRef<HTMLElement>);
+    private readonly injector = inject(Injector);
+
+    private get element(): HTMLElement {
+        return this.host.nativeElement as HTMLElement;
+    }
 
     protected toggle(): void {
         if (!this.open()) {
-            const box = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
+            const box = this.element.getBoundingClientRect();
             const end = box.left + box.width / 2 > window.innerWidth / 2;
             this.place.set({ end, room: Math.round(end ? box.right - PAGE_EDGE : window.innerWidth - box.left - PAGE_EDGE) });
         }
         this.open.update((open) => !open);
+        if (this.open()) {
+            afterNextRender(() => this.focusOn('.option[aria-selected="true"]'), { injector: this.injector });
+        }
+    }
+
+    protected close(): void {
+        if (this.open()) {
+            this.open.set(false);
+            if (this.element.contains(this.element.ownerDocument.activeElement)) {
+                this.focusOn('.toggle');
+            }
+        }
+    }
+
+    protected step(event: KeyboardEvent): void {
+        const options = Array.from(this.element.querySelectorAll<HTMLElement>('.option'));
+        const at = options.indexOf(event.target as HTMLElement);
+        const last = options.length - 1;
+        const to = { ArrowDown: Math.min(at + 1, last), ArrowUp: Math.max(at - 1, 0), Home: 0, End: last }[event.key];
+        if (to !== undefined) {
+            event.preventDefault();
+            options[to].focus();
+        }
     }
 
     protected choose(option: string): void {
-        this.open.set(false);
+        this.close();
         this.chosen.emit(option);
     }
 
     protected closeOutside(event: Event): void {
-        if (this.open() && !(this.host.nativeElement as HTMLElement).contains(event.target as Node)) {
+        if (this.open() && !this.element.contains(event.target as Node)) {
             this.open.set(false);
         }
     }
@@ -158,5 +187,9 @@ export class FilterMenuComponent {
         const keys: Record<FilterKind, string> = { set: '', condition: 'condition.', language: 'language.', finish: 'variant.' };
 
         return keys[this.kind()] + option;
+    }
+
+    private focusOn(selector: string): void {
+        this.element.querySelector<HTMLElement>(selector)?.focus();
     }
 }

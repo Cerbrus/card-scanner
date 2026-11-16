@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -25,7 +25,7 @@ const POLL_MILLISECONDS = 5000;
 
             @if (failed()) {
                 <p class="empty">{{ 'log.failed' | translate }}</p>
-            } @else if (lines(); as lines) {
+            } @else if (newestFirst(); as lines) {
                 <ol class="log card">
                     @for (line of lines; track line.id) {
                         <li class="line" [class]="line.level">
@@ -42,7 +42,7 @@ const POLL_MILLISECONDS = 5000;
         </div>
     `,
     styles: `
-        .log { display: flex; flex-direction: column-reverse; gap: 2px; padding: 10px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.74rem; }
+        .log { display: flex; flex-direction: column; gap: 2px; padding: 10px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.74rem; }
         .line { display: flex; gap: 8px; white-space: pre-wrap; word-break: break-word; }
         .time { flex: 0 0 auto; color: var(--text-muted); }
         .message { flex: 1 1 auto; min-width: 0; }
@@ -54,6 +54,7 @@ const POLL_MILLISECONDS = 5000;
 export class LogPage {
     protected readonly lines = signal<Array<LogLine> | undefined>(undefined);
     protected readonly failed = signal(false);
+    protected readonly newestFirst = computed(() => this.lines()?.slice().reverse());
 
     private readonly api = inject(ApiService);
 

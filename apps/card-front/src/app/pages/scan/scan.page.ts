@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable, catchError, finalize, from, of, switchMap, tap } from 'rxjs';
+import { Observable, catchError, filter, finalize, from, of, switchMap, tap } from 'rxjs';
 
 import { CardDetailsComponent, SavedDetails } from '../../components/card-details/card-details.component';
 import { CropEditorComponent } from '../../components/crop-editor/crop-editor.component';
@@ -19,7 +18,6 @@ import { ToastService } from '../../services/toast.service';
 
 interface Shot extends ScaledPhoto {
     preview: string;
-    file: Blob;
 }
 
 interface TextReading {
@@ -78,9 +76,11 @@ export class ScanPage {
     private readonly translate = inject(TranslateService);
     private readonly destroyRef = inject(DestroyRef);
     private readonly router = inject(Router);
+    private left = false;
 
     constructor() {
         this.destroyRef.onDestroy(() => {
+            this.left = true;
             this.forget();
             this.stopCropping();
         });
@@ -179,6 +179,7 @@ export class ScanPage {
                     this.store.put(card);
                     this.forget();
                 }),
+                filter(() => !this.left),
                 switchMap((card) => this.api.getCard(card.id).pipe(catchError(() => this.storedWithoutDetails()))),
                 tap((card) => this.details.set(card)),
                 catchError(() => {
@@ -186,8 +187,7 @@ export class ScanPage {
 
                     return of(undefined);
                 }),
-                finalize(() => this.busy.set(undefined)),
-                takeUntilDestroyed(this.destroyRef)
+                finalize(() => this.busy.set(undefined))
             )
             .subscribe();
     }
@@ -234,8 +234,11 @@ export class ScanPage {
         this.busy.set(side);
         try {
             const scaled = corners ? await this.scaler.straighten(file, corners) : await this.scaler.scale(file);
+            if (this.left) {
+                return;
+            }
             this.release(this.shots()[side]);
-            this.shots.update((shots) => ({ ...shots, [side]: { ...scaled, file, preview: URL.createObjectURL(scaled.thumb) } }));
+            this.shots.update((shots) => ({ ...shots, [side]: { ...scaled, preview: URL.createObjectURL(scaled.thumb) } }));
             if (side === 'front') {
                 this.readText(corners ? scaled.photo : undefined);
             }
@@ -245,7 +248,7 @@ export class ScanPage {
             this.busy.set(undefined);
         }
 
-        if (this.complete()) {
+        if (this.complete() && !this.left) {
             this.save();
         }
     }

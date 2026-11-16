@@ -56,8 +56,7 @@
         "unknown": "Niet herkend",
         "reading": "Wordt gelezen…",
         "failed": "Lezen mislukt",
-        "identified": "Controleer de kaart",
-        "confirmed": "Bevestigd"
+        "identified": "Controleer de kaart"
     },
     "card": {
         "unknown": "Onbekende kaart",
@@ -70,8 +69,7 @@
             "unknown": "Zoek in de catalogus en kies de kaart.",
             "reading": "De foto's worden gelezen.",
             "failed": "Zoek zelf in de catalogus, of lees opnieuw.",
-            "identified": "Tik op de kaart die bij je foto past.",
-            "confirmed": ""
+            "identified": "Tik op de kaart die bij je foto past."
         },
         "notACard": "Op de foto's lijkt geen Pokémon-kaart te staan.",
         "searchName": "Naam",
@@ -94,6 +92,7 @@
         "variant": "Afwerking",
         "language": "Taal",
         "notes": "Notities",
+        "unsaved": "Niet opgeslagen. Wijzig het opnieuw om het nog eens te proberen.",
         "delete": "Kaart verwijderen",
         "deleteSure": "Ja, verwijderen",
         "missing": "Deze kaart bestaat niet (meer).",

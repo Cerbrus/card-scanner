@@ -10,7 +10,7 @@ describe('LiveCameraComponent', () => {
     let fixture: ComponentFixture<LiveCameraComponent>;
     let host: HTMLElement;
     let photo: (file: Blob) => void;
-    const track = { stop: vi.fn() };
+    const track = { stop: vi.fn(), addEventListener: vi.fn() };
     const camera = {
         open: vi.fn(() => Promise.resolve(Object.assign(new MediaStream(), { getTracks: () => [track] as unknown as Array<MediaStreamTrack> }))),
         takePhoto: vi.fn(() => new Promise<Blob>((resolve) => (photo = resolve)))
@@ -53,6 +53,63 @@ describe('LiveCameraComponent', () => {
 
         fixture.destroy();
         expect(track.stop).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops looking for the card while it is paused, and looks again after', async () => {
+        const frames = vi.spyOn(window, 'requestAnimationFrame');
+        const cancelled = vi.spyOn(window, 'cancelAnimationFrame');
+        const timers = vi.spyOn(window, 'clearTimeout');
+
+        fixture.componentRef.setInput('paused', true);
+        await settle();
+        expect(cancelled).toHaveBeenCalled();
+        expect(timers).toHaveBeenCalled();
+        frames.mockClear();
+        await new Promise((resolve) => setTimeout(resolve, 60));
+        expect(frames).not.toHaveBeenCalled();
+        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(true);
+
+        fixture.componentRef.setInput('paused', false);
+        await settle();
+        expect(frames).toHaveBeenCalled();
+        expect(track.stop).not.toHaveBeenCalled();
+    });
+
+    it('lets go of the camera when the app goes to the background, and opens it again on return', async () => {
+        const hide = async (hidden: boolean): Promise<void> => {
+            Object.defineProperty(document, 'hidden', { configurable: true, value: hidden });
+            document.dispatchEvent(new Event('visibilitychange'));
+            await settle();
+        };
+
+        await hide(true);
+        expect(track.stop).toHaveBeenCalledTimes(1);
+        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(true);
+
+        await hide(false);
+        expect(camera.open).toHaveBeenCalledTimes(2);
+        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(false);
+        Reflect.deleteProperty(document, 'hidden');
+    });
+
+    it('opens the camera again when another app took it', async () => {
+        const ended = track.addEventListener.mock.calls[0][1] as () => void;
+        ended();
+        await settle();
+
+        expect(camera.open).toHaveBeenCalledTimes(2);
+        expect((host.querySelector('.shutter') as HTMLButtonElement).disabled).toBe(false);
+    });
+
+    it('remembers whether the photo is taken by itself', () => {
+        const auto = host.querySelector('.auto') as HTMLButtonElement;
+        expect(auto.getAttribute('aria-pressed')).toBe('false');
+
+        auto.click();
+        fixture.detectChanges();
+
+        expect(auto.getAttribute('aria-pressed')).toBe('true');
+        expect(localStorage.getItem('scan-auto-photo')).toBe('on');
     });
 
     it('hands a photo over for the side it was started for, also when the side changes while it is taken', async () => {

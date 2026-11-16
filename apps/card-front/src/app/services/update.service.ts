@@ -12,6 +12,24 @@ const BUSY_PARTS = 'app-crop-editor, app-photo-viewer, dialog[open]';
 const SCAN_ROUTE = '#/scan';
 const CHECK_EVERY_MILLISECONDS = 60_000;
 
+function reloadedFor(): string | null {
+    try {
+        return sessionStorage.getItem(RELOADED_FOR_KEY);
+    } catch {
+        return null;
+    }
+}
+
+function rememberReload(signature: string): boolean {
+    try {
+        sessionStorage.setItem(RELOADED_FOR_KEY, signature);
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 @Injectable({ providedIn: 'root' })
 export class UpdateService {
     private readonly router = inject(Router);
@@ -44,7 +62,7 @@ export class UpdateService {
         }
 
         const signature = [...published].sort().join();
-        if (sessionStorage.getItem(RELOADED_FOR_KEY) === signature) {
+        if (reloadedFor() === signature) {
             console.warn('A newer version is published, but reloading did not load it.');
             return;
         }
@@ -53,8 +71,9 @@ export class UpdateService {
             return;
         }
 
-        sessionStorage.setItem(RELOADED_FOR_KEY, signature);
-        this.document.location.reload();
+        if (rememberReload(signature)) {
+            this.document.location.reload();
+        }
     }
 
     private publishedFiles(): Observable<Array<string>> {

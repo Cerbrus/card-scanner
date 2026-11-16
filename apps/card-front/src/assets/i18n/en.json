@@ -56,8 +56,7 @@
         "unknown": "Not identified",
         "reading": "Reading…",
         "failed": "Reading failed",
-        "identified": "Check the match",
-        "confirmed": "Confirmed"
+        "identified": "Check the match"
     },
     "card": {
         "unknown": "Unknown card",
@@ -70,8 +69,7 @@
             "unknown": "Search the catalogue and pick the card.",
             "reading": "The photos are being read.",
             "failed": "Search the catalogue yourself, or read again.",
-            "identified": "Tap the card that matches your photo.",
-            "confirmed": ""
+            "identified": "Tap the card that matches your photo."
         },
         "notACard": "The photos do not seem to show a Pokémon card.",
         "searchName": "Name",
@@ -94,6 +92,7 @@
         "variant": "Finish",
         "language": "Language",
         "notes": "Notes",
+        "unsaved": "Not saved. Change it again to retry.",
         "delete": "Delete card",
         "deleteSure": "Yes, delete",
         "missing": "This card does not exist (any more).",

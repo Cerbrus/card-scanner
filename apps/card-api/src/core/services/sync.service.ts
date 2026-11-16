@@ -7,7 +7,7 @@ import { DataSource } from 'typeorm';
 import { AppConfig } from '../../config/app.config';
 import { PhotoEntity } from '../../data/entities';
 import { GoogleClient } from '../connectors/google.client';
-import { Cell, RETIRED_COLUMNS, collectionTable } from '../rules/collection-table';
+import { Cell, collectionTable } from '../rules/collection-table';
 import { CardService } from './card.service';
 import { PriceService } from './price.service';
 import { SettingService } from './setting.service';
@@ -119,7 +119,7 @@ export class SyncService {
 
         await this.google.useTabs(places.sheet, [CARDS_TAB, PRICES_TAB]);
         const rows = await this.cards.rows((photo) => this.photoLink(photo));
-        await this.google.writeTab(places.sheet, CARDS_TAB, collectionTable(rows), RETIRED_COLUMNS);
+        await this.google.writeTab(places.sheet, CARDS_TAB, collectionTable(rows));
         await this.google.writeTab(places.sheet, PRICES_TAB, await this.priceTable(new Map(rows.map((row) => [row.id, row.name]))));
 
         if (withBackup) {

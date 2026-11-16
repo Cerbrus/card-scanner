@@ -68,6 +68,38 @@ describe('UpdateService', () => {
         expect(reload).toHaveBeenCalledTimes(1);
     });
 
+    it('never reloads on the scan page, and reloads once another page is opened', async () => {
+        document.location.hash = '#/scan';
+        await comeBack();
+        expect(reload).not.toHaveBeenCalled();
+
+        document.location.hash = '#/collection';
+        routerEvents$.next(new NavigationEnd(2, '/collection', '/collection'));
+        await settle();
+        expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('never reloads while a field has the focus', async () => {
+        document.body.innerHTML = '<textarea></textarea>';
+        document.querySelector('textarea')?.focus();
+        await comeBack();
+        expect(reload).not.toHaveBeenCalled();
+
+        document.querySelector('textarea')?.blur();
+        await comeBack();
+        expect(reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays, without failing, where the browser blocks the storage that guards against a reload loop', async () => {
+        const blocked = (): never => {
+            throw new Error('storage is blocked');
+        };
+        vi.stubGlobal('sessionStorage', { getItem: blocked, setItem: blocked });
+        await comeBack();
+
+        expect(reload).not.toHaveBeenCalled();
+    });
+
     it('does not reload in a loop when the reload did not bring the new files', async () => {
         await comeBack();
         await comeBack();

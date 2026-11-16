@@ -239,6 +239,7 @@ test('view the photos full screen, then crop the front again with the magnifier'
     const [card] = await cards(request);
     await page.goto(`/#/cards/${card.id}`);
     const before = await page.locator('.photos img').first().getAttribute('src');
+    expect(before).toBeTruthy();
 
     await page.locator('.photo-open').first().click();
     const viewer = page.locator('app-photo-viewer');
@@ -288,6 +289,16 @@ test('the camera in the app takes the front on a tap, the back by itself, straig
     await expect(camera.locator('.auto')).toHaveAttribute('aria-pressed', 'false');
 
     await expect(camera.locator('.edge:not(.lost)')).toHaveCount(1, { timeout: 20_000 });
+    await page.waitForFunction(() => {
+        const video = document.querySelector('app-live-camera video') as HTMLVideoElement;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 1;
+        const context = canvas.getContext('2d');
+        context?.drawImage(video, video.videoWidth / 2, video.videoHeight / 2, 1, 1, 0, 0, 1, 1);
+        const [red, , blue] = context?.getImageData(0, 0, 1, 1).data ?? [0, 0, 0];
+
+        return red > blue + 60;
+    });
     await camera.locator('button.shutter').click();
     await expect(page.locator('.side.filled')).toHaveCount(1, { timeout: 20_000 });
     await expect(page.locator('app-crop-editor')).toHaveCount(0);
@@ -306,4 +317,19 @@ test('the camera in the app takes the front on a tap, the back by itself, straig
         const { width, height } = jpegSize(await (await request.get(`/api/v1/photos/${id}`)).body());
         expect(width / height).toBeCloseTo(63 / 88, 1);
     }
+    const yellow = (id: number): Promise<boolean> =>
+        page.evaluate(async (url) => {
+            const image = new Image();
+            image.src = url;
+            await image.decode();
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 1;
+            const context = canvas.getContext('2d');
+            context?.drawImage(image, image.naturalWidth / 2, image.naturalHeight / 2, 1, 1, 0, 0, 1, 1);
+            const [red, , blue] = context?.getImageData(0, 0, 1, 1).data ?? [0, 0, 0];
+
+            return red > blue + 60;
+        }, `/api/v1/photos/${id}`);
+    expect(await yellow(detail.photos.front)).toBe(true);
+    expect(await yellow(detail.photos.back)).toBe(false);
 });

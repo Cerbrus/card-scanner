@@ -51,6 +51,25 @@ export function startCorners(width: number, height: number): Corners {
     ];
 }
 
+export function untangled(corners: Corners): Corners {
+    const [first, second, third, fourth] = corners;
+    if (!cross(first, second, third, fourth) && !cross(second, third, fourth, first)) {
+        return corners;
+    }
+
+    const centre = { x: corners.reduce((total, { x }) => total + x, 0) / 4, y: corners.reduce((total, { y }) => total + y, 0) / 4 };
+    const around = [...corners].sort((left, right) => Math.atan2(left.y - centre.y, left.x - centre.x) - Math.atan2(right.y - centre.y, right.x - centre.x));
+    const start = around.reduce((best, point, index) => (point.x + point.y < around[best].x + around[best].y ? index : best), 0);
+
+    return around.map((_, index) => around[(start + index) % 4]) as Corners;
+}
+
+function cross(from: Point, to: Point, otherFrom: Point, otherTo: Point): boolean {
+    const side = (start: Point, end: Point, point: Point): number => Math.sign((end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x));
+
+    return side(from, to, otherFrom) !== side(from, to, otherTo) && side(otherFrom, otherTo, from) !== side(otherFrom, otherTo, to);
+}
+
 export function warp(source: ImageData, corners: Corners, size: { width: number; height: number }, target: ImageData): void {
     const toSource = homography(rectangle(size.width, size.height), corners);
     const { data: input, width: sourceWidth, height: sourceHeight } = source;

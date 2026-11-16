@@ -60,7 +60,11 @@ containers_current() {
     ! grep -qv ' Running *$' <<<"$plan"
 }
 
-image=$(docker compose config --images 2>/dev/null | head -n 1)
+if ! images=$(docker compose config --images); then
+    echo "Docker Compose cannot read the compose file or .env; no container was changed" >&2
+    exit 1
+fi
+image=$(head -n 1 <<<"$images")
 if [ ! -e "$COMPOSE_PENDING" ] && [[ "$image" == ghcr.io/* ]]; then
     remote=$(remote_digest "$image" || true)
     local_digests=$(docker image inspect --format '{{join .RepoDigests " "}}' "$image" 2>/dev/null || true)

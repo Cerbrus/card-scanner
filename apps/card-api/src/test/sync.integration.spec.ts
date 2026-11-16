@@ -162,19 +162,6 @@ describe('copying the collection to Google Drive', () => {
         assert.equal((await state()).lastError, undefined);
     });
 
-    it('removes a column the app no longer writes from the table of the owner, so the columns after it keep their layout', async () => {
-        const cards = google.tab('Cards');
-        assert.ok(cards);
-        const header = google.table('Cards')[0].map(String);
-        cards.values = [[...header.slice(0, 7), '1st edition', ...header.slice(7)]];
-        cards.tables = [{ tableId: 'table-1', range: { sheetId: cards.sheetId, startRowIndex: 0, endRowIndex: 2, startColumnIndex: 0, endColumnIndex: header.length + 1 } }];
-        await sync.run(true);
-
-        assert.deepEqual(cards.columnsDropped, [7]);
-        assert.deepEqual(google.table('Cards')[0], header);
-        assert.equal(cards.tables[0].range.endColumnIndex, header.length);
-    });
-
     it('copies the original photo too, and moves it to the Drive trash with the card', async () => {
         const created = (await (await call('/cards', OWNER, { method: 'POST', body: photoForm(undefined, undefined, { backSource: Buffer.from(JPEG) }) })).json()) as { id: number };
         await sync.run();

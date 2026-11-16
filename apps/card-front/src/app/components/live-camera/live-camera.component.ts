@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { PhotoSide } from '../../models';
@@ -56,6 +57,7 @@ function distance(from: Point, to: Point): number {
     standalone: true,
     imports: [TranslatePipe],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: { '(document:visibilitychange)': 'seen()' },
     template: `
         <div class="stage">
             <div class="frame">
@@ -125,6 +127,7 @@ export class LiveCameraComponent {
     private readonly video = viewChild.required<ElementRef<HTMLVideoElement>>('video');
     private readonly camera = inject(Camera);
     private readonly cropStart = inject(CropStart);
+    private readonly document = inject(DOCUMENT);
     private readonly trigger = new CaptureTrigger();
     private readonly longest = computed(() => Math.max(this.size()?.width ?? 1, this.size()?.height ?? 1));
     private stream?: MediaStream;
@@ -136,16 +139,22 @@ export class LiveCameraComponent {
     private colour?: [number, number, number];
     private lostSince = 0;
     private lastFrame = 0;
+    private opening = false;
+    private looking = false;
     private stopped = false;
 
     constructor() {
         afterNextRender(() => void this.start());
+        effect(() => {
+            const awake = this.ready() && !this.paused();
+            untracked(() => (awake ? this.wake() : this.rest()));
+        });
         inject(DestroyRef).onDestroy(() => this.stop());
     }
 
     protected toggleAuto(): void {
         this.auto.update((auto) => !auto);
-        this.trigger.reset();
+        this.trigger.startOver();
         try {
             localStorage.setItem(AUTO_KEY, this.auto() ? 'on' : 'off');
         } catch {
@@ -173,34 +182,74 @@ export class LiveCameraComponent {
         }
     }
 
+    protected seen(): void {
+        if (this.document.hidden) {
+            this.release();
+        } else {
+            void this.start();
+        }
+    }
+
     private async start(): Promise<void> {
-        try {
-            this.stream = await this.camera.open();
-        } catch {
+        if (this.stopped || this.opening || this.stream) {
+            return;
+        }
+
+        this.opening = true;
+        const stream = await this.camera.open().catch(() => undefined);
+        this.opening = false;
+        if (!stream) {
             this.unavailable.emit();
 
             return;
         }
-        if (this.stopped) {
-            this.stop();
+        if (this.stopped || this.document.hidden) {
+            stream.getTracks().forEach((track) => track.stop());
 
             return;
         }
 
+        this.stream = stream;
+        stream.getTracks().forEach((track) => track.addEventListener('ended', () => this.taken(stream)));
         const video = this.video().nativeElement;
-        video.srcObject = this.stream;
+        video.srcObject = stream;
         await video.play().catch(() => undefined);
-        this.ready.set(true);
-        this.look();
-        this.frameRequest = requestAnimationFrame((time) => this.follow(time));
+        this.ready.set(this.stream === stream);
+    }
+
+    private taken(stream: MediaStream): void {
+        if (this.stream === stream) {
+            this.release();
+            this.seen();
+        }
+    }
+
+    private wake(): void {
+        if (!this.looking) {
+            this.looking = true;
+            this.look();
+            this.frameRequest = requestAnimationFrame((time) => this.follow(time));
+        }
+    }
+
+    private rest(): void {
+        this.looking = false;
+        clearTimeout(this.timer);
+        if (this.frameRequest !== undefined) {
+            cancelAnimationFrame(this.frameRequest);
+        }
+        this.target = undefined;
+        this.lastFrame = 0;
+        this.lostSince = performance.now();
+        this.lost.set(true);
     }
 
     private look(): void {
-        if (this.stopped) {
+        if (!this.looking) {
             return;
         }
 
-        const found = this.paused() || this.capturing() ? undefined : this.findInFrame();
+        const found = this.capturing() ? undefined : this.findInFrame();
         const now = performance.now();
         if (!found && this.target) {
             this.lostSince = now;
@@ -209,7 +258,7 @@ export class LiveCameraComponent {
             this.shown = found;
         }
         this.target = found;
-        if (this.auto() && !this.paused() && !this.capturing() && this.trigger.see({ corners: this.relative(found), colour: this.colour, time: now })) {
+        if (this.auto() && !this.capturing() && this.trigger.see({ corners: this.relative(found), colour: this.colour, time: now })) {
             void this.capture();
         }
         this.timer = setTimeout(() => this.look(), LOOK_EVERY_MILLISECONDS);
@@ -222,7 +271,7 @@ export class LiveCameraComponent {
     }
 
     private follow(time: number): void {
-        if (this.stopped) {
+        if (!this.looking) {
             return;
         }
 
@@ -250,9 +299,13 @@ export class LiveCameraComponent {
             this.size.set({ width: video.videoWidth, height: video.videoHeight });
         }
         const scale = FRAME_SIDE / Math.max(video.videoWidth, video.videoHeight);
-        this.canvas ??= document.createElement('canvas');
-        this.canvas.width = Math.round(video.videoWidth * scale);
-        this.canvas.height = Math.round(video.videoHeight * scale);
+        this.canvas ??= this.document.createElement('canvas');
+        const width = Math.round(video.videoWidth * scale);
+        const height = Math.round(video.videoHeight * scale);
+        if (this.canvas.width !== width || this.canvas.height !== height) {
+            this.canvas.width = width;
+            this.canvas.height = height;
+        }
         const context = this.canvas.getContext('2d', { willReadFrequently: true });
         if (!context) {
             return undefined;
@@ -266,13 +319,16 @@ export class LiveCameraComponent {
         return found?.map(({ x, y }) => ({ x: x * factor, y: y * factor })) as Corners | undefined;
     }
 
+    private release(): void {
+        const stream = this.stream;
+        this.stream = undefined;
+        this.ready.set(false);
+        this.rest();
+        stream?.getTracks().forEach((track) => track.stop());
+    }
+
     private stop(): void {
         this.stopped = true;
-        clearTimeout(this.timer);
-        if (this.frameRequest !== undefined) {
-            cancelAnimationFrame(this.frameRequest);
-        }
-        this.stream?.getTracks().forEach((track) => track.stop());
-        this.stream = undefined;
+        this.release();
     }
 }

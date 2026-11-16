@@ -48,9 +48,7 @@ export class CaptureTrigger {
         this.previous = undefined;
     }
 
-    public reset(): void {
-        this.armed = true;
-        this.lastColour = undefined;
+    public startOver(): void {
         this.previous = undefined;
         this.misses = 0;
     }
