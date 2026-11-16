@@ -56,7 +56,6 @@ export interface CardSummary {
     image?: string;
     language?: Language;
     variant?: Finish;
-    firstEdition: boolean;
     condition?: Condition;
     conditionSource?: 'model' | 'user';
     priceTrend?: number;
@@ -92,7 +91,6 @@ export interface CardDetail extends CardSummary {
 export interface CardChanges {
     language?: Language | null;
     variant?: Finish | null;
-    firstEdition?: boolean;
     condition?: Condition | null;
     ownPrice?: number | null;
     notes?: string;

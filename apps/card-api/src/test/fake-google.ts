@@ -21,9 +21,10 @@ interface FakeTab {
     title: string;
     values: Array<Array<string | number>>;
     tables?: Array<{ tableId: string; range: FakeRange }>;
+    columnsDropped?: Array<number>;
 }
 
-type Request = { properties?: { sheetId?: number; title: string }; table?: { tableId: string; range: FakeRange } };
+type Request = { properties?: { sheetId?: number; title: string }; table?: { tableId: string; range: FakeRange }; range?: { sheetId: number; startIndex: number } };
 type Body = { trashed?: boolean; requests?: Array<Record<string, Request>>; values?: Array<Array<string | number>>; name?: string; mimeType?: string; parents?: Array<string> };
 
 const GOOGLE_HOSTS = ['oauth2.googleapis.com', 'www.googleapis.com', 'sheets.googleapis.com'];
@@ -148,12 +149,21 @@ export class FakeGoogle {
             return this.json({ sheets: tabs.map(({ sheetId, title, tables }) => ({ properties: { sheetId, title }, tables })) });
         }
 
+        if (method === 'GET') {
+            const read = tabs.find((candidate) => candidate.title === /^\/values\/'([^']+)'/.exec(rest)?.[1]);
+
+            return this.json({ values: read?.values.slice(0, 1) ?? [] });
+        }
         const body = JSON.parse(String(init.body)) as Body;
         if (rest === ':batchUpdate') {
             for (const request of body.requests ?? []) {
                 const renamed = request['updateSheetProperties']?.properties;
                 const added = request['addSheet']?.properties;
                 const resized = request['updateTable']?.table;
+                const removed = request['deleteDimension']?.range;
+                if (removed) {
+                    this.dropColumn(tabs.find((tab) => tab.sheetId === removed.sheetId) as FakeTab, removed.startIndex);
+                }
                 if (resized) {
                     const known = tabs.flatMap((tab) => tab.tables ?? []).find((table) => table.tableId === resized.tableId);
                     if (!known) {
@@ -180,6 +190,14 @@ export class FakeGoogle {
         tab.values = method === 'PUT' ? (body.values ?? []) : [];
 
         return this.json({});
+    }
+
+    private dropColumn(tab: FakeTab, index: number): void {
+        tab.values = tab.values.map((row) => row.filter((_, column) => column !== index));
+        tab.columnsDropped = [...(tab.columnsDropped ?? []), index];
+        for (const table of tab.tables ?? []) {
+            table.range = { ...table.range, endColumnIndex: table.range.endColumnIndex - 1 };
+        }
     }
 
     private add(name: string, parent: string, mimeType: string): FakeFile {

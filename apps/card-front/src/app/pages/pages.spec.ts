@@ -11,6 +11,7 @@ import { AuthService } from '../services/auth.service';
 import { CollectionStore } from '../services/collection.store';
 import { ToastService } from '../services/toast.service';
 import { CollectionPage, NO_FILTER, filterOptions, visibleCards } from './collection/collection.page';
+import { HelpPage } from './help/help.page';
 import { LogPage } from './log/log.page';
 import { LoginPage } from './login/login.page';
 import { SettingsPage } from './settings/settings.page';
@@ -50,6 +51,7 @@ describe('the pages around the collection', () => {
 
     beforeEach(() => {
         owner.value = true;
+        localStorage.clear();
         store = fakeStore([
             card(1, { name: 'Pikachu', value: 2.5, valueSource: 'own' }),
             card(2, { name: 'Charizard', value: 385.83, valueSource: 'trend', setName: 'Jungle' }),
@@ -79,6 +81,8 @@ describe('the pages around the collection', () => {
         expect(ids(visibleCards(cards, NO_FILTER, 'name'))).toEqual([3, 2, 1]);
         expect(ids(visibleCards(cards, NO_FILTER, 'value'))).toEqual([2, 1, 3]);
         expect(ids(visibleCards(cards, NO_FILTER, 'set'))).toEqual([1, 3, 2]);
+        expect(ids(visibleCards(cards, NO_FILTER, 'name', true))).toEqual([1, 2, 3]);
+        expect(ids(visibleCards(cards, NO_FILTER, 'newest', false))).toEqual([1, 2, 3]);
         expect(ids(visibleCards(cards, searching(' jungle '), 'newest'))).toEqual([2]);
         expect(ids(visibleCards(cards, searching('PIKA'), 'newest'))).toEqual([1]);
     });
@@ -145,6 +149,39 @@ describe('the pages around the collection', () => {
         click(page, '.grading-filter');
         fixture.detectChanges();
         expect(texts(page, '.tile-name')).toEqual(['Card 1']);
+    });
+
+    it('keeps the filters and the sort for the next visit, but not the search', () => {
+        store.cards.set([card(1, { condition: 'mint' }), card(2, { condition: 'poor' })]);
+        let fixture = open(CollectionPage);
+        click(page, '.filter-condition .toggle');
+        fixture.detectChanges();
+        click(page, '.filter-condition .option[data-value="poor"]');
+        choose(page, 'select.sort', 'name');
+        fixture.detectChanges();
+        expect(texts(page, 'button.direction')).toEqual(['arrow_upward']);
+        click(page, 'button.direction');
+        type(page, 'input[type=search]', 'Card');
+        fixture.detectChanges();
+        fixture.destroy();
+
+        fixture = open(CollectionPage);
+        expect(texts(page, '.tile-name')).toEqual(['Card 2']);
+        expect((page.querySelector('select.sort') as HTMLSelectElement).value).toBe('name');
+        expect(texts(page, 'button.direction')).toEqual(['arrow_downward']);
+        expect((page.querySelector('input[type=search]') as HTMLInputElement).value).toBe('');
+
+        localStorage.setItem('collection-view', '{"filter":{"condition":7,"grading":"yes"},"sort":"nonsense"}');
+        fixture.destroy();
+        open(CollectionPage);
+        expect(page.querySelectorAll('app-card-tile').length).toBe(2);
+    });
+
+    it('explains every condition with its pill and every finish', () => {
+        open(HelpPage);
+
+        expect(texts(page, '.condition dt .pill')).toEqual(['conditionShort.mint', 'conditionShort.near_mint', 'conditionShort.excellent', 'conditionShort.good', 'conditionShort.light_played', 'conditionShort.played', 'conditionShort.poor']);
+        expect(texts(page, '.finish dd')).toEqual(['help.finish.normal', 'help.finish.holo', 'help.finish.reverse']);
     });
 
     it('marks cards worth grading and counts the copies of the same catalogue card', () => {

@@ -20,11 +20,13 @@ Choices that are settled, with the reasoning. Change a decision here first, then
 
 **The details step starts from the previous card.** Language and condition are preset to those of the previous card, as most of a stack is in the same language and about the same state; the finish starts at normal. Added on 2026-11-16.
 
+**No 1st edition mark.** The owner does not want it: the field, the checkbox, the sheet and CSV column and the question to the model are gone (2026-11-16). The catalogue still knows which price variants are 1st edition prints, only to leave them out. The sync removes the old "1st edition" column from the owner's table in the sheet before it writes, so the columns after it keep their formatting.
+
 **Two copies of a card are two rows.** Each physical card has its own photos, condition and price history.
 
 ## Prices
 
-**One figure per print, not per condition or language.** The source gives a trend, a 30-day average and a lowest price per card. Where it lists print variants separately (1st edition, holo, reverse holo), the app takes the figure of the variant that matches the card's finish and 1st edition mark; otherwise the card's general figure. Condition and language are not in any figure; the owner's own price, below, covers those. Shadowless prints are not told apart.
+**One figure per print, not per condition or language.** The source gives a trend, a 30-day average and a lowest price per card. Where it lists print variants separately (holo, reverse holo), the app takes the figure of the variant that matches the card's finish, never that of a 1st edition print; otherwise the card's general figure. Condition and language are not in any figure; the owner's own price, below, covers those. Shadowless prints are not told apart.
 
 **The value of a copy is what the owner looked up for it; otherwise the general price trend.** Cardmarket's product page can be filtered on language and condition and then shows what a copy like the owner's really costs. The app cannot read that page: Cardmarket refuses requests from programs, its API is closed, and getting around its bot check is not something this app does. So the owner does the looking: the card page links to the product with the copy's language and condition in the filter, and has a field for the price found there. That figure is the copy's value. A copy without one is valued at the source's general trend and marked with ≈ in the collection, so the total shows which part is real and which is rough.
 
@@ -32,7 +34,7 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **Worth grading: €50 or more, Near Mint or better.** Grading a card costs some tens of euros with shipping, and only cards in top condition get a grade that adds value. The mark is a pointer to look closer, not advice; the threshold is fixed in the code (`GRADING_MIN_VALUE`) until the owner wants it different.
 
-**Copies are counted, not merged.** Two copies of the same card stay two rows (see above); the collection shows how many copies of a catalogue card there are, and the card page links to the others.
+**Copies are counted, not merged.** Two copies of the same card stay two rows (see above); the collection shows how many copies of a catalogue card there are in the same language, and the card page links to the others. A Dutch and an English copy are different cards to the owner (2026-11-16).
 
 **The source's figures are stored with the owned card, with a snapshot per day**, next to the owner's own price. The history shows how the source's price moved.
 
@@ -48,7 +50,7 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 ## Identification
 
-**Claude vision through the Anthropic API, with the official SDK.** The model reads both photos and returns name, number, set, language, 1st edition mark, finish and condition in a fixed structure. The server then looks those up in the local catalogue. The model never invents a catalogue entry: it reads, the catalogue decides, the user confirms.
+**Claude vision through the Anthropic API, with the official SDK.** The model reads both photos and returns name, number, set, language, finish and condition in a fixed structure. The server then looks those up in the local catalogue. The model never invents a catalogue entry: it reads, the catalogue decides, the user confirms.
 
 **One reading per card for identity and condition together.** Both need the same two photos; one call is simpler and cheaper than two.
 

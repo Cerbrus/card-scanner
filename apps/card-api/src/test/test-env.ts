@@ -31,7 +31,7 @@ const DETAILS: Record<string, object> = {
         rarity: 'Rare',
         pricing: { cardmarket: { idProduct: 273699, trend: 385.83, avg30: 407.53, low: 90, updated: '2026-11-13T22:24:06.052Z' } },
         variants_detailed: [
-            { type: 'holo', subtype: 'unlimited', pricing: { cardmarket: { idProduct: 273699, trend: 385.83, avg30: 407.53, low: 90 } } },
+            { type: 'holo', subtype: 'unlimited', pricing: { cardmarket: { idProduct: 273700, trend: 412.5, avg30: 430.1, low: 95 } } },
             { type: 'holo', subtype: 'shadowless', stamp: ['1st-edition'], pricing: { cardmarket: { idProduct: 660224, trend: 3489.25, avg30: 2445.05, low: 979 } } }
         ]
     },

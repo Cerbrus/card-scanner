@@ -12,7 +12,6 @@ export function card(id: number, changes: Partial<CardSummary> = {}): CardSummar
         name: `Card ${id}`,
         setName: 'Base Set',
         number: String(id),
-        firstEdition: false,
         worthGrading: false,
         createdAt: `2026-11-${String(id).padStart(2, '0')}T10:00:00.000Z`,
         photos: { front: id * 10, back: id * 10 + 1 },

@@ -31,9 +31,6 @@ export class OwnedCardEntity {
     @Column({ type: 'varchar', nullable: true })
     public variant?: Finish | null;
 
-    @Column({ type: 'boolean', default: false })
-    public firstEdition: boolean;
-
     @Column({ type: 'varchar', nullable: true })
     public condition?: Condition | null;
 

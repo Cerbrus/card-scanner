@@ -51,7 +51,7 @@ Imports point inward: `api` to `core` to `data`. Lint enforces it.
 | `reading_state` | `none`, `pending`, `done`, `failed` |
 | `reading`, `reading_error` | What the model returned, or why it failed |
 | `candidates` | The catalogue cards offered to the user, best first |
-| `language`, `variant`, `first_edition` | The print: language, finish (`normal`, `holo`, `reverse`), 1st edition mark |
+| `language`, `variant` | The print: language, finish (`normal`, `holo`, `reverse`) |
 | `condition`, `condition_source`, `condition_notes` | A step on Cardmarket's scale, who set it (`model` or `user`), what the model saw |
 | `notes` | Free text |
 | `price_trend`, `price_avg30`, `price_low`, `price_product_id`, `price_checked_at` | The current price figures in EUR, Cardmarket's product id, when checked |
@@ -74,7 +74,7 @@ Schema changes go through migrations; `synchronize` is off.
 2. The card is looked for again in the full photo. When found, the web app cuts it out and straightens it to 63 by 88 (`services/perspective.ts`) without asking. Otherwise, and for photos from the camera app, the page shows four corners to drag onto the corners of the card (`services/crop-start.ts`), or keeps the whole photo. With the camera in the page, a tap on a side's thumbnail drops it, so the camera takes that side again. The corners found on a 400-pixel copy are then fitted to the card's edges on a 1200-pixel copy (`refineCard`). A straightened front is read at once in the background (`services/card-text-reader.ts`, rules in `card-text.ts`): name, number and language, shown under the photos.
 3. As soon as both sides are there, the web app scales each photo to 2400 pixels, makes a 480-pixel thumbnail, and uploads the files without a tap; a failed upload keeps the photos and shows a Save button. The server checks that they are JPEGs, stores them as `<id>-front.jpg`, `<id>-front-thumb.jpg` and so on, and creates an `owned_card` with status `new`.
 4. With reading switched on, the card is queued for the model. The upload answers at once; the next card can be scanned.
-5. The reading fills in language, finish, 1st edition and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.
+5. The reading fills in language, finish and condition, and the server looks for catalogue cards that fit. With candidates the status becomes `identified`.
 6. Right after the upload the scan page shows the details step (`components/card-details`): the candidates with the best one chosen, a catalogue search, condition, finish and language (the language read, otherwise the one of the previous card; the condition of the previous card). "Next" stores the details and confirms the chosen card (status `confirmed`) and goes back to the camera; "Stop" does the same and opens the collection; without a chosen card both store the details and leave the card unconfirmed, behind a filter in the collection. "Discard" deletes the card and goes back to the camera.
 7. Confirming fetches the card's details and sets the price.
 8. Twenty seconds after the last change the sync copies what is new to Google, when connected.
@@ -95,7 +95,7 @@ The pool is every catalogue card with that number or with the name as part of it
 
 `core/rules/pricing.ts` turns a TCGdex card into the stored `pricing` and picks the figure for a print:
 
-1. the print variant with the same finish and the same 1st edition mark, preferring the plain (unlimited) one;
+1. the print variant with the same finish, never a 1st edition one, preferring the plain (unlimited) one;
 2. for a reverse holo without its own variant: the card's foil figures;
 3. otherwise the card's general figure.
 
@@ -107,7 +107,7 @@ A daily job asks the price of every confirmed card again and writes a snapshot. 
 
 ## Reading photos
 
-`CardReader` sends both photos to Claude with the instructions in `core/connectors/card.reader.ts` and gets back a fixed structure: is it a Pokémon card, name, number, set name, language, 1st edition, finish, confidence, condition, condition notes. Readings run one at a time. With no API key the reader is off: uploads are stored with `reading_state` `none`.
+`CardReader` sends both photos to Claude with the instructions in `core/connectors/card.reader.ts` and gets back a fixed structure: is it a Pokémon card, name, number, set name, language, finish, confidence, condition, condition notes. Readings run one at a time. With no API key the reader is off: uploads are stored with `reading_state` `none`.
 
 ## Google sync
 
@@ -159,10 +159,11 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 
 | Page | Content |
 |---|---|
-| Collection | Total value (own prices, the rest at the trend and marked ≈), search, sort (newest, name, card number, value, set; on number the cards are grouped by set, smaller sets first (`setTotal` in the summary), and sorted by number within a set), filter menus with an icon each on set, condition, language and finish, showing the condition pills, flags and stars (`components/filter-menu`), and a filter on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies |
+| Collection | Total value (own prices, the rest at the trend and marked ≈), search on name, number, set and rarity (the field says name or number), sort (date added, name, card number, value, set) with a button that turns the direction around (date added and value start descending, the rest ascending; on number the cards are grouped by set, smaller sets first (`setTotal` in the summary), and sorted by number within a set), filter menus with an icon each on set, condition, language and finish, showing the condition pills, flags and stars (`components/filter-menu`), and a filter on the cards worth grading, a tile per card: a flag for the language, a coloured pill for the condition (a dashed `?` when unknown), a star on holo and reverse holo cards, a rosette on cards worth grading, `×2` when there are more copies of the same catalogue card in the same language. Filters, sort and direction are kept in `localStorage` (`collection-view`), the search is not |
 | Scan | Live camera that takes front and back by itself and straightens them, or the phone's camera app with four corners to drag; saved by itself, then the details step: which card, condition, finish, language; then the next card |
 | Card | Photos and catalogue picture, opened full screen with previous and next; crop a photo again or take a new one; candidates, catalogue search, the other copies, value, the grading mark, the field for the owner's own price, the source's price with history, the print and condition, delete |
-| Settings | What is on and off and why, Google connection, catalogue and prices, the log, export, theme, language, log out |
+| Settings | What is on and off and why, Google connection, catalogue and prices, the log, help, export, theme, language, log out |
+| Help | The conditions with their pills and the finishes, explained, with how to tell holo from reverse holo on old cards |
 | Log | The latest lines of the app's log, newest first, refreshed every 5 seconds (owner) |
 | Login | The Google button |
 

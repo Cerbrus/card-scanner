@@ -91,13 +91,12 @@
         "conditionByModel": "Geschat op basis van de foto's.",
         "variant": "Afwerking",
         "language": "Taal",
-        "firstEdition": "1st edition-stempel",
         "notes": "Notities",
         "delete": "Kaart verwijderen",
         "deleteSure": "Ja, verwijderen",
         "missing": "Deze kaart bestaat niet (meer).",
         "basis": {
-            "print": "De eigen prijs van de bron voor deze druk (afwerking en editie).",
+            "print": "De eigen prijs van de bron voor deze afwerking.",
             "foil": "De folieprijs van de kaart, gebruikt voor de reverse holo.",
             "general": "Algemene prijs van deze kaart: de bron heeft geen eigen bedrag voor deze afwerking, dus andere afwerkingen krijgen dezelfde prijs.",
             "finishUnknown": "Algemene prijs van deze kaart: de afwerking is niet ingevuld. Vul die in voor de prijs van de juiste druk."
@@ -141,10 +140,10 @@
         "title": "Collectie",
         "valueOf": "{own} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} door jou geprijsd, de rest tegen de algemene prijstrend (≈)",
         "waiting": "{count} nog te bevestigen",
-        "search": "Zoek op naam, set of nummer",
+        "search": "Naam of nummer",
         "sort": "Sorteren",
         "sortBy": {
-            "newest": "Nieuwste",
+            "newest": "Toegevoegd",
             "name": "Naam",
             "number": "Nummer",
             "value": "Waarde",
@@ -166,7 +165,9 @@
                 "language": "Alle talen",
                 "finish": "Elke afwerking"
             }
-        }
+        },
+        "ascending": "Oplopend",
+        "descending": "Aflopend"
     },
     "settings": {
         "title": "Instellingen",
@@ -263,5 +264,25 @@
         "discard": "Weggooien",
         "next": "Volgende",
         "stop": "Stop"
+    },
+    "help": {
+        "title": "Uitleg",
+        "open": "Conditie en afwerking uitgelegd",
+        "condition": {
+            "intro": "De conditie volgt de schaal van Cardmarket. Kijk vooral naar de randen en hoeken van de achterkant (witte slijtage), krassen op de voorkant en de folie, en vouwen of deuken. Twijfel je tussen twee, kies dan de laagste. Alleen Near Mint en Mint komen in aanmerking voor graderen.",
+            "mint": "Perfect, zoals net uit een booster. Ook van dichtbij geen enkel gebrek: scherpe hoeken, geen wit op de randen, geen krassen.",
+            "near_mint": "Bijna als nieuw. Hooguit een piepklein gebrek, zoals een stipje wit op één hoek, dat je pas ziet als je zoekt.",
+            "excellent": "Licht gespeeld. Wat wit op een paar randen of hoeken, of een lichte kras, maar geen vouwen of deuken.",
+            "good": "Duidelijk gespeeld. Wit op de meeste randen en hoeken, krassen op het oppervlak, eventueel een heel lichte buiging. Ziet er nog netjes uit.",
+            "light_played": "Flink gebruikt. Veel wit langs de randen, zichtbare krassen, een kleine vouw of deuk.",
+            "played": "Zwaar gebruikt. Vouwen, sterke buigingen, een versleten oppervlak, maar nog heel.",
+            "poor": "Beschadigd: scheuren, grote vouwen, waterschade, vlekken, pen of stukjes die ontbreken."
+        },
+        "finish": {
+            "intro": "De afwerking bepaalt welke prijs de kaart krijgt. Bekijk de kaart schuin onder een lamp: folie glimt en verandert van kleur.",
+            "normal": "Geen folie. Op de oude sets heeft een gewone kaart een cirkel, ruit of ster zonder glans als zeldzaamheid; ook een ster-kaart kan normaal zijn (een rare zonder holo).",
+            "holo": "De afbeelding zelf is folie en glimt, zoals bij de Charizard uit de Base Set. Op de oude sets heeft een holo een ster als zeldzaamheid, net als een gewone rare; het verschil zie je alleen aan de glans van de afbeelding.",
+            "reverse": "Alles om de afbeelding heen glimt, de afbeelding zelf niet. Bestaat pas vanaf Legendary Collection (2002); Base Set, Jungle, Fossil en Team Rocket hebben geen reverse holo."
+        }
     }
 }

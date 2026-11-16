@@ -243,10 +243,10 @@ describe('CardPage', () => {
 
         choose(page, 'select', 'played', 0);
         choose(page, 'select', '', 1);
-        (page.querySelector('input[type=checkbox]') as HTMLInputElement).click();
         await settle();
 
-        expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ condition: 'played' }, { variant: null }, { firstEdition: true }]);
+        expect(api.updateCard.mock.calls.map((call) => call[1])).toEqual([{ condition: 'played' }, { variant: null }]);
+        expect(page.querySelector('input[type=checkbox]')).toBeNull();
         expect(page.textContent).not.toContain('White edges.');
     });
 

@@ -6,7 +6,6 @@ export interface CollectionRow {
     rarity: string;
     language: string;
     variant: string;
-    firstEdition: boolean;
     condition: string;
     conditionSource: string;
     priceTrend?: number | null;
@@ -26,6 +25,8 @@ export interface CollectionRow {
 
 export type Cell = string | number;
 
+export const RETIRED_COLUMNS: Array<string> = ['1st edition'];
+
 export const COLLECTION_HEADER: Array<string> = [
     'Id',
     'Name',
@@ -34,7 +35,6 @@ export const COLLECTION_HEADER: Array<string> = [
     'Rarity',
     'Language',
     'Variant',
-    '1st edition',
     'Condition',
     'Condition by',
     'Trend (EUR)',
@@ -67,7 +67,6 @@ export function collectionCells(row: CollectionRow): Array<Cell> {
         row.rarity,
         row.language,
         row.variant,
-        row.firstEdition ? 'yes' : 'no',
         row.condition,
         row.conditionSource,
         money(row.priceTrend),

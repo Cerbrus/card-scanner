@@ -52,15 +52,22 @@ export class CollectionStore {
     }
 
     public copiesOf(card: CardSummary): Array<CardSummary> {
-        return card.catalogCardId ? this.confirmed().filter((known) => known.catalogCardId === card.catalogCardId) : [];
+        const key = copyKey(card);
+
+        return key ? this.confirmed().filter((known) => copyKey(known) === key) : [];
     }
+}
+
+export function copyKey(card: Pick<CardSummary, 'catalogCardId' | 'language'>): string | undefined {
+    return card.catalogCardId ? `${card.catalogCardId}|${card.language ?? ''}` : undefined;
 }
 
 export function countCopies(cards: Array<CardSummary>): Map<string, number> {
     const counts = new Map<string, number>();
     for (const card of cards) {
-        if (card.catalogCardId) {
-            counts.set(card.catalogCardId, (counts.get(card.catalogCardId) ?? 0) + 1);
+        const key = copyKey(card);
+        if (key) {
+            counts.set(key, (counts.get(key) ?? 0) + 1);
         }
     }
 

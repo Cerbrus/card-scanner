@@ -201,8 +201,11 @@ export class GoogleClient {
         }
     }
 
-    public async writeTab(spreadsheetId: string, title: string, table: Array<Array<Cell>>): Promise<void> {
+    public async writeTab(spreadsheetId: string, title: string, table: Array<Array<Cell>>, retiredColumns: Array<string> = []): Promise<void> {
         const tab = encodeURIComponent(`'${title}'`);
+        if (retiredColumns.length) {
+            await this.dropColumns(spreadsheetId, title, retiredColumns);
+        }
         await this.json(`${SHEETS_URL}/${spreadsheetId}/values/${tab}:clear`, { method: 'POST', body: '{}' });
         await this.json(`${SHEETS_URL}/${spreadsheetId}/values/${tab}!A1?valueInputOption=RAW`, {
             method: 'PUT',
@@ -211,10 +214,28 @@ export class GoogleClient {
         await this.fitTables(spreadsheetId, title, table);
     }
 
-    private async fitTables(spreadsheetId: string, title: string, table: Array<Array<Cell>>): Promise<void> {
+    private async dropColumns(spreadsheetId: string, title: string, headers: Array<string>): Promise<void> {
+        const tab = encodeURIComponent(`'${title}'`);
+        const answer = await this.json<{ values?: Array<Array<string>> }>(`${SHEETS_URL}/${spreadsheetId}/values/${tab}!1:1`);
+        const doomed = (answer.values?.[0] ?? []).flatMap((header, index) => (headers.includes(header) ? [index] : [])).reverse();
+        const sheet = doomed.length ? await this.sheet(spreadsheetId, title) : undefined;
+        if (!sheet) {
+            return;
+        }
+
+        const requests = doomed.map((index) => ({ deleteDimension: { range: { sheetId: sheet.properties.sheetId, dimension: 'COLUMNS', startIndex: index, endIndex: index + 1 } } }));
+        await this.json(`${SHEETS_URL}/${spreadsheetId}:batchUpdate`, { method: 'POST', body: JSON.stringify({ requests }) });
+    }
+
+    private async sheet(spreadsheetId: string, title: string): Promise<SheetTables | undefined> {
         const fields = encodeURIComponent('sheets(properties(sheetId,title),tables(tableId))');
         const answer = await this.json<{ sheets: Array<SheetTables> }>(`${SHEETS_URL}/${spreadsheetId}?fields=${fields}`);
-        const sheet = answer.sheets.find((candidate) => candidate.properties.title === title);
+
+        return answer.sheets.find((candidate) => candidate.properties.title === title);
+    }
+
+    private async fitTables(spreadsheetId: string, title: string, table: Array<Array<Cell>>): Promise<void> {
+        const sheet = await this.sheet(spreadsheetId, title);
         const range = {
             sheetId: sheet?.properties.sheetId,
             startRowIndex: 0,

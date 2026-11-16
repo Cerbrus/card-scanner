@@ -115,7 +115,7 @@ describe('copying the collection to Google Drive', () => {
 
         assert.deepEqual(cards[0].slice(0, 4), ['Id', 'Name', 'Set', 'Number']);
         assert.equal(cards.length, 2);
-        assert.equal(cards[1][20], `https://drive.google.com/file/d/${front?.id}/view`);
+        assert.equal(cards[1][19], `https://drive.google.com/file/d/${front?.id}/view`);
         assert.deepEqual(google.table('Prices')[0].slice(0, 2), ['Day', 'Card id']);
     });
 
@@ -160,6 +160,19 @@ describe('copying the collection to Google Drive', () => {
         assert.deepEqual(cards.tables[0].range, { sheetId: cards.sheetId, startRowIndex: 0, endRowIndex: written.length, startColumnIndex: 0, endColumnIndex: written[0].length });
         assert.equal(written.length, 5);
         assert.equal((await state()).lastError, undefined);
+    });
+
+    it('removes a column the app no longer writes from the table of the owner, so the columns after it keep their layout', async () => {
+        const cards = google.tab('Cards');
+        assert.ok(cards);
+        const header = google.table('Cards')[0].map(String);
+        cards.values = [[...header.slice(0, 7), '1st edition', ...header.slice(7)]];
+        cards.tables = [{ tableId: 'table-1', range: { sheetId: cards.sheetId, startRowIndex: 0, endRowIndex: 2, startColumnIndex: 0, endColumnIndex: header.length + 1 } }];
+        await sync.run(true);
+
+        assert.deepEqual(cards.columnsDropped, [7]);
+        assert.deepEqual(google.table('Cards')[0], header);
+        assert.equal(cards.tables[0].range.endColumnIndex, header.length);
     });
 
     it('copies the original photo too, and moves it to the Drive trash with the card', async () => {

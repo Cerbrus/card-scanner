@@ -45,7 +45,6 @@ export interface ScanText {
 export interface CardChanges {
     language?: Language | null;
     variant?: Finish | null;
-    firstEdition?: boolean;
     condition?: Condition | null;
     ownPrice?: number | null;
     notes?: string;
@@ -64,7 +63,6 @@ export interface CardSummary {
     image?: string;
     language?: Language;
     variant?: Finish;
-    firstEdition: boolean;
     condition?: Condition;
     conditionSource?: OwnedCardEntity['conditionSource'];
     priceTrend?: number;
@@ -134,7 +132,6 @@ export class CardService implements OnApplicationBootstrap {
             this.cards.create({
                 status: 'new',
                 readingState: this.reader.enabled ? 'pending' : 'none',
-                firstEdition: false,
                 language: text.language ?? null,
                 notes: '',
                 createdAt: now,
@@ -174,16 +171,14 @@ export class CardService implements OnApplicationBootstrap {
             conditionNotes: card.conditionNotes ?? undefined,
             notes: card.notes,
             cardmarketUrl: summary.name ? cardmarketUrl(card.priceProductId, summary.name, card) : undefined,
-            priceBasis: card.priceTrend == null ? undefined : pickPrice(known?.pricing, { variant: card.variant, firstEdition: card.firstEdition })?.basis,
+            priceBasis: card.priceTrend == null ? undefined : pickPrice(known?.pricing, { variant: card.variant })?.basis,
             priceHistory: (await this.prices.history(id)).map(({ day, trend, avg30, low }) => ({ day, trend, avg30, low }))
         };
     }
 
     public async update(id: number, changes: CardChanges): Promise<CardDetail> {
         const card = await this.find(id);
-        const printChanged =
-            (changes.variant !== undefined && changes.variant !== card.variant) ||
-            (changes.firstEdition !== undefined && changes.firstEdition !== card.firstEdition);
+        const printChanged = changes.variant !== undefined && changes.variant !== card.variant;
 
         if (changes.condition !== undefined && changes.condition !== card.condition) {
             card.condition = changes.condition;
@@ -191,7 +186,6 @@ export class CardService implements OnApplicationBootstrap {
         }
         card.language = changes.language === undefined ? card.language : changes.language;
         card.variant = changes.variant === undefined ? card.variant : changes.variant;
-        card.firstEdition = changes.firstEdition ?? card.firstEdition;
         card.notes = changes.notes ?? card.notes;
         if (changes.ownPrice !== undefined && changes.ownPrice !== card.ownPrice) {
             card.ownPrice = changes.ownPrice;
@@ -335,7 +329,6 @@ export class CardService implements OnApplicationBootstrap {
                 rarity: summary.rarity ?? '',
                 language: card.language ?? '',
                 variant: card.variant ?? '',
-                firstEdition: card.firstEdition,
                 condition: card.condition ?? '',
                 conditionSource: card.conditionSource ?? '',
                 priceTrend: card.priceTrend,
@@ -372,7 +365,7 @@ export class CardService implements OnApplicationBootstrap {
     }
 
     private async applyPrice(card: OwnedCardEntity): Promise<boolean> {
-        const quote = await this.prices.quote(card.catalogCardId as string, { variant: card.variant, firstEdition: card.firstEdition });
+        const quote = await this.prices.quote(card.catalogCardId as string, { variant: card.variant });
         if (!quote.reachedSource) {
             return false;
         }
@@ -448,7 +441,7 @@ export class CardService implements OnApplicationBootstrap {
     private async applyScanText(card: OwnedCardEntity, text: ScanText): Promise<void> {
         const name = text.name?.trim() || null;
         const number = text.number?.trim() || null;
-        card.reading = { isPokemonCard: true, name, number, setName: null, language: null, firstEdition: false, finish: null, confidence: 'low', condition: null, conditionNotes: '' };
+        card.reading = { isPokemonCard: true, name, number, setName: null, language: null, finish: null, confidence: 'low', condition: null, conditionNotes: '' };
         card.candidates = await this.catalog.search({ name, number, setName: null });
         card.status = card.candidates.length ? 'identified' : 'new';
         await this.cards.save(card);
@@ -470,7 +463,6 @@ export class CardService implements OnApplicationBootstrap {
 
         card.language = reading.language;
         card.variant = reading.finish;
-        card.firstEdition = reading.firstEdition;
         card.candidates = await this.catalog.search({ name: reading.name, number: reading.number, setName: reading.setName });
         card.status = card.candidates.length ? 'identified' : 'new';
     }
@@ -504,7 +496,6 @@ export class CardService implements OnApplicationBootstrap {
             image: known?.image ?? undefined,
             language: card.language ?? undefined,
             variant: card.variant ?? undefined,
-            firstEdition: card.firstEdition,
             condition: card.condition ?? undefined,
             conditionSource: card.conditionSource ?? undefined,
             priceTrend: card.priceTrend ?? undefined,

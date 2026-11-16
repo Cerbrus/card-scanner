@@ -31,6 +31,10 @@ export const appRoutes: Array<Route> = [
                 loadComponent: () => import('../pages/settings/settings.page').then((m) => m.SettingsPage)
             },
             {
+                path: 'help',
+                loadComponent: () => import('../pages/help/help.page').then((m) => m.HelpPage)
+            },
+            {
                 path: 'log',
                 loadComponent: () => import('../pages/log/log.page').then((m) => m.LogPage)
             }

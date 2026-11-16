@@ -73,7 +73,7 @@ Also open for the owner to decide:
 - [x] Name read from four strips at different heights, keeping the one the engine is surest of, so Stage cards with the "Evolves from" line and the stage icon are read as well as Basic cards; on the owner's 42 fronts 37 names right, was 31 (done 2026-11-16 01:59)
 - [x] Name strips at 50 pixels instead of 140, and number strips with more room on the left and a speckle filter; Fossil numbers are read now (done 2026-11-16 02:25)
 - [x] The Pi checks for a new image every minute and only pulls when the registry's digest differs from the running one (done 2026-11-16 01:25)
-- [x] Reading photos with Claude: name, number, set, language, 1st edition, finish; candidates offered. Off until a key is set; the owner will not set one (done 2026-11-14 15:55)
+- [x] Reading photos with Claude: name, number, set, language, finish; candidates offered. Off until a key is set; the owner will not set one (done 2026-11-14 15:55)
 - [x] Reading name and number on the phone with Tesseract.js from fixed strips of the straightened front; the details step after the scan starts with the catalogue cards that fit, and the search fields filled in (done 2026-11-15 20:40)
 
 ### Milestone 4: prices
@@ -101,6 +101,10 @@ Also open for the owner to decide:
 ### Milestone 7: comfort
 
 - [x] Search and sort in the collection (done 2026-11-14 15:55)
+- [x] Filters, sort and direction kept for the next visit; a button for the sort direction; the search field with an icon (done 2026-11-16 02:47)
+- [x] Copies counted per catalogue card and language (done 2026-11-16 02:47)
+- [x] Help page for conditions and finishes, from the Settings page (done 2026-11-16 02:47)
+- [x] The 1st edition mark removed everywhere, with a migration that drops the column and a sync that drops the sheet column (done 2026-11-16 02:47)
 - [x] Filter on finish, the filters as icon menus with pills, flags and stars, and a sort on card number, grouped by set with the smaller sets first (done 2026-11-16 02:30)
 - [x] Markers on each card in the collection: flag for the language, coloured pill for the condition, a mark when unknown, a star for holo and reverse holo (done 2026-11-14 23:29)
 - [x] The card page says whether the price is the print's own, the foil figure or the card's general one (done 2026-11-14 23:29)

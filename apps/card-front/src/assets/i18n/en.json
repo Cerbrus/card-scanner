@@ -91,13 +91,12 @@
         "conditionByModel": "Estimated from the photos.",
         "variant": "Finish",
         "language": "Language",
-        "firstEdition": "1st edition stamp",
         "notes": "Notes",
         "delete": "Delete card",
         "deleteSure": "Yes, delete",
         "missing": "This card does not exist (any more).",
         "basis": {
-            "print": "The source's own price for this print (finish and edition).",
+            "print": "The source's own price for this finish.",
             "foil": "The card's foil price, used for the reverse holo.",
             "general": "General price of this card: the source has no own figure for this finish, so other finishes get the same price.",
             "finishUnknown": "General price of this card: the finish is not set. Set it to get the price of the right print."
@@ -141,10 +140,10 @@
         "title": "Collection",
         "valueOf": "{own} of {count, plural, one {# confirmed card} other {# confirmed cards}} priced by you, the rest at the general price trend (≈)",
         "waiting": "{count} still to confirm",
-        "search": "Search name, set or number",
+        "search": "Name or number",
         "sort": "Sort",
         "sortBy": {
-            "newest": "Newest",
+            "newest": "Date added",
             "name": "Name",
             "number": "Number",
             "value": "Value",
@@ -166,7 +165,9 @@
                 "language": "All languages",
                 "finish": "Any finish"
             }
-        }
+        },
+        "ascending": "Ascending",
+        "descending": "Descending"
     },
     "settings": {
         "title": "Settings",
@@ -263,5 +264,25 @@
         "discard": "Discard",
         "next": "Next",
         "stop": "Stop"
+    },
+    "help": {
+        "title": "Help",
+        "open": "Condition and finish explained",
+        "condition": {
+            "intro": "Condition follows Cardmarket's scale. Look mainly at the edges and corners of the back (whitening), scratches on the front and the foil, and creases or dents. When in doubt between two, pick the lower. Only Near Mint and Mint count for grading.",
+            "mint": "Perfect, as if fresh from a booster. No flaw even up close: sharp corners, no whitening on the edges, no scratches.",
+            "near_mint": "Almost like new. At most one tiny flaw, such as a speck of whitening on one corner, that you only see when you look for it.",
+            "excellent": "Lightly played. Some whitening on a few edges or corners, or a light scratch, but no creases or dents.",
+            "good": "Clearly played. Whitening on most edges and corners, scratches on the surface, perhaps a very light bend. Still looks tidy.",
+            "light_played": "Well used. Lots of whitening along the edges, visible scratches, a small crease or dent.",
+            "played": "Heavily used. Creases, strong bends, a worn surface, but still whole.",
+            "poor": "Damaged: tears, large creases, water damage, stains, pen marks or missing pieces."
+        },
+        "finish": {
+            "intro": "The finish decides which price the card gets. Tilt the card under a lamp: foil shines and changes colour.",
+            "normal": "No foil. On the old sets a plain card has a circle, diamond or star without shine as its rarity; a star card can be normal too (a rare without holo).",
+            "holo": "The artwork itself is foil and shines, as on the Base Set Charizard. On the old sets a holo has a star as its rarity, just like a plain rare; only the shine of the artwork tells them apart.",
+            "reverse": "Everything around the artwork shines, the artwork itself does not. Only exists from Legendary Collection (2002) on; Base Set, Jungle, Fossil and Team Rocket have no reverse holo."
+        }
     }
 }

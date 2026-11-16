@@ -25,7 +25,6 @@ export interface CardReading {
     number: string | null;
     setName: string | null;
     language: Language | null;
-    firstEdition: boolean;
     finish: Finish;
     confidence: Confidence;
     condition: Condition | null;

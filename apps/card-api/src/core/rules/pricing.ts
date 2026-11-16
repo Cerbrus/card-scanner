@@ -2,7 +2,6 @@ import { CardPricing, Condition, Finish, Language, PriceFigures, VariantPrice } 
 
 export interface PrintChoice {
     variant?: Finish | null;
-    firstEdition: boolean;
 }
 
 export type PriceBasis = 'print' | 'foil' | 'general';
@@ -112,14 +111,11 @@ export function pickPrice(pricing: CardPricing | null | undefined, print: PrintC
         return undefined;
     }
 
-    const sameEdition = pricing.variants.filter((variant) => variant.firstEdition === print.firstEdition);
-    const sameFinish = sameEdition.filter((variant) => !print.variant || variant.type === print.variant);
+    const unstamped = pricing.variants.filter((variant) => !variant.firstEdition);
+    const sameFinish = unstamped.filter((variant) => !print.variant || variant.type === print.variant);
     const exact = sameFinish.find((variant) => PLAIN_SUBTYPES.includes(variant.subtype)) ?? sameFinish[0];
-    if (exact && (print.variant || print.firstEdition)) {
+    if (exact && print.variant) {
         return { price: exact.price, basis: 'print' };
-    }
-    if (print.firstEdition && sameEdition.length) {
-        return { price: sameEdition[0].price, basis: 'print' };
     }
     if (print.variant === 'reverse' && pricing.reverse) {
         return { price: pricing.reverse, basis: 'foil' };

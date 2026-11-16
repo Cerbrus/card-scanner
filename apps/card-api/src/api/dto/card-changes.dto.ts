@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateIf } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, Max, MaxLength, Min, ValidateIf } from 'class-validator';
 
 import { CONDITIONS, Condition, FINISHES, Finish, LANGUAGES, Language } from '../../data/entities/types';
 
@@ -15,10 +15,6 @@ export class CardChangesDto {
     @ValidateIf((_, value) => value !== null)
     @IsIn(FINISHES)
     public variant?: Finish | null;
-
-    @IsOptional()
-    @IsBoolean()
-    public firstEdition?: boolean;
 
     @IsOptional()
     @ValidateIf((_, value) => value !== null)

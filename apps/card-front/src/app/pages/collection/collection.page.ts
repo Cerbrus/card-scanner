@@ -1,11 +1,11 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { CardTileComponent } from '../../components/card-tile/card-tile.component';
 import { FilterMenuComponent, UNKNOWN_OPTION } from '../../components/filter-menu/filter-menu.component';
 import { CONDITIONS, CardSummary, FINISHES, LANGUAGES } from '../../models';
-import { CollectionStore } from '../../services/collection.store';
+import { CollectionStore, copyKey } from '../../services/collection.store';
 
 export const SORTS = ['newest', 'name', 'number', 'value', 'set'] as const;
 export type Sort = (typeof SORTS)[number];
@@ -32,12 +32,14 @@ export interface FilterOptions {
 export const NO_FILTER: CardFilter = { search: '', set: '', condition: '', language: '', finish: '', grading: false, unconfirmed: false };
 
 const SORTERS: Record<Sort, (left: CardSummary, right: CardSummary) => number> = {
-    newest: (left, right) => right.createdAt.localeCompare(left.createdAt) || right.id - left.id,
+    newest: (left, right) => left.createdAt.localeCompare(right.createdAt) || left.id - right.id,
     name: (left, right) => (left.name ?? '').localeCompare(right.name ?? ''),
-    value: (left, right) => (right.value ?? -1) - (left.value ?? -1),
+    value: (left, right) => (left.value ?? -1) - (right.value ?? -1),
     number: (left, right) => (left.setTotal ?? Infinity) - (right.setTotal ?? Infinity) || (left.setName ?? '').localeCompare(right.setName ?? '') || byNumber(left, right),
     set: (left, right) => (left.setName ?? '').localeCompare(right.setName ?? '') || (left.number ?? '').localeCompare(right.number ?? '', undefined, { numeric: true })
 };
+
+const DESCENDING_FIRST: Record<Sort, boolean> = { newest: true, name: false, number: false, value: true, set: false };
 
 function byNumber(left: CardSummary, right: CardSummary): number {
     if (!left.number || !right.number) {
@@ -45,6 +47,39 @@ function byNumber(left: CardSummary, right: CardSummary): number {
     }
 
     return left.number.localeCompare(right.number, undefined, { numeric: true });
+}
+
+const VIEW_KEY = 'collection-view';
+
+interface View {
+    filter: CardFilter;
+    sort: Sort;
+    descending: boolean;
+}
+
+export function storedView(): View {
+    try {
+        const stored = JSON.parse(localStorage.getItem(VIEW_KEY) ?? '{}') as { filter?: Partial<Record<keyof CardFilter, unknown>>; sort?: unknown; descending?: unknown };
+        const sort = SORTS.find((known) => known === stored.sort) ?? 'newest';
+        const text = (key: 'set' | 'condition' | 'language' | 'finish'): string => (typeof stored.filter?.[key] === 'string' ? (stored.filter[key] as string) : '');
+        const flag = (key: 'grading' | 'unconfirmed'): boolean => stored.filter?.[key] === true;
+
+        return {
+            filter: { ...NO_FILTER, set: text('set'), condition: text('condition'), language: text('language'), finish: text('finish'), grading: flag('grading'), unconfirmed: flag('unconfirmed') },
+            sort,
+            descending: typeof stored.descending === 'boolean' ? stored.descending : DESCENDING_FIRST[sort]
+        };
+    } catch {
+        return { filter: NO_FILTER, sort: 'newest', descending: true };
+    }
+}
+
+function storeView({ filter, sort, descending }: View): void {
+    try {
+        localStorage.setItem(VIEW_KEY, JSON.stringify({ filter: { ...filter, search: '' }, sort, descending }));
+    } catch {
+        return;
+    }
 }
 
 const sameAs = (wanted: string, value?: string): boolean => !wanted || (wanted === UNKNOWN ? !value : wanted === value);
@@ -64,8 +99,10 @@ function fits(card: CardSummary, filter: CardFilter): boolean {
     );
 }
 
-export function visibleCards(cards: Array<CardSummary>, filter: CardFilter, sort: Sort): Array<CardSummary> {
-    return cards.filter((card) => fits(card, filter)).sort(SORTERS[sort]);
+export function visibleCards(cards: Array<CardSummary>, filter: CardFilter, sort: Sort, descending = DESCENDING_FIRST[sort]): Array<CardSummary> {
+    const sorted = cards.filter((card) => fits(card, filter)).sort(SORTERS[sort]);
+
+    return descending ? sorted.reverse() : sorted;
 }
 
 export function filterOptions(cards: Array<CardSummary>): FilterOptions {
@@ -107,18 +144,24 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
             </div>
 
             <div class="mb-2 flex gap-2">
-                <input
-                    class="field"
-                    type="search"
-                    [placeholder]="'collection.search' | translate"
-                    [value]="filter().search"
-                    (input)="narrow('search', $any($event.target).value)"
-                />
-                <select class="sort field !w-auto" [attr.aria-label]="'collection.sort' | translate" (change)="sort.set($any($event.target).value)">
+                <label class="search">
+                    <i class="material-symbols-outlined">search</i>
+                    <input class="field" type="search" [placeholder]="'collection.search' | translate" [value]="filter().search" (input)="narrow('search', $any($event.target).value)" />
+                </label>
+                <select class="sort field !w-auto" [attr.aria-label]="'collection.sort' | translate" (change)="sortBy($any($event.target).value)">
                     @for (option of sorts; track option) {
                         <option [value]="option" [selected]="option === sort()">{{ 'collection.sortBy.' + option | translate }}</option>
                     }
                 </select>
+                <button
+                    type="button"
+                    class="direction field !w-auto"
+                    [attr.aria-label]="(descending() ? 'collection.descending' : 'collection.ascending') | translate"
+                    [title]="(descending() ? 'collection.descending' : 'collection.ascending') | translate"
+                    (click)="descending.set(!descending())"
+                >
+                    <i class="material-symbols-outlined">{{ descending() ? 'arrow_downward' : 'arrow_upward' }}</i>
+                </button>
             </div>
 
             <div class="filters mb-2">
@@ -161,6 +204,11 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
         </div>
     `,
     styles: `
+        .search { position: relative; flex: 1 1 auto; min-width: 0; }
+        .search i { position: absolute; top: 50%; left: 10px; color: var(--text-muted); font-size: 20px; transform: translateY(-50%); pointer-events: none; }
+        .search .field { padding-left: 36px; }
+        .direction { display: grid; place-items: center; padding: 0 10px; }
+        .direction i { font-size: 20px; }
         .filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
         .filter-actions { display: flex; flex-wrap: wrap; gap: 6px; }
         .filter-actions .btn { font-size: 0.8rem; }
@@ -171,9 +219,10 @@ export class CollectionPage {
     protected readonly store = inject(CollectionStore);
     protected readonly sorts = SORTS;
     protected readonly none = NO_FILTER;
-    protected readonly filter = signal<CardFilter>(NO_FILTER);
-    protected readonly sort = signal<Sort>('newest');
-    protected readonly visible = computed(() => visibleCards(this.store.cards(), this.filter(), this.sort()));
+    protected readonly filter = signal<CardFilter>(storedView().filter);
+    protected readonly sort = signal<Sort>(storedView().sort);
+    protected readonly descending = signal(storedView().descending);
+    protected readonly visible = computed(() => visibleCards(this.store.cards(), this.filter(), this.sort(), this.descending()));
     protected readonly options = computed(() => filterOptions(this.store.cards()));
     protected readonly gradingCount = computed(() => this.store.cards().filter((card) => card.worthGrading).length);
     protected readonly filtered = computed(() => {
@@ -182,8 +231,19 @@ export class CollectionPage {
         return set || condition || language || finish || grading || unconfirmed;
     });
 
+    constructor() {
+        effect(() => storeView({ filter: this.filter(), sort: this.sort(), descending: this.descending() }));
+    }
+
+    protected sortBy(sort: Sort): void {
+        this.sort.set(sort);
+        this.descending.set(DESCENDING_FIRST[sort]);
+    }
+
     protected copiesOf(card: CardSummary): number {
-        return card.status === 'confirmed' && card.catalogCardId ? (this.store.copies().get(card.catalogCardId) ?? 1) : 1;
+        const key = copyKey(card);
+
+        return card.status === 'confirmed' && key ? (this.store.copies().get(key) ?? 1) : 1;
     }
 
     protected narrow<K extends keyof CardFilter>(key: K, value: CardFilter[K]): void {

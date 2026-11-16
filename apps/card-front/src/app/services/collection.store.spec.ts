@@ -22,21 +22,23 @@ describe('the collection in the web app', () => {
     it('counts the confirmed copies of each catalogue card and finds the copies of a card', () => {
         api.getCards.mockReturnValue(
             of([
-                card(1, { catalogCardId: 'base1-4' }),
-                card(2, { catalogCardId: 'base1-4' }),
+                card(1, { catalogCardId: 'base1-4', language: 'en' }),
+                card(2, { catalogCardId: 'base1-4', language: 'en' }),
                 card(3, { catalogCardId: 'base1-58' }),
-                card(4, { catalogCardId: 'base1-4', status: 'identified' }),
-                card(5, { status: 'new' })
+                card(4, { catalogCardId: 'base1-4', language: 'en', status: 'identified' }),
+                card(5, { status: 'new' }),
+                card(6, { catalogCardId: 'base1-4', language: 'nl' })
             ])
         );
 
         store.refresh().subscribe();
 
         expect(Array.from(store.copies().entries())).toEqual([
-            ['base1-4', 2],
-            ['base1-58', 1]
+            ['base1-4|en', 2],
+            ['base1-58|', 1],
+            ['base1-4|nl', 1]
         ]);
-        expect(store.copiesOf(card(1, { catalogCardId: 'base1-4' })).map((known) => known.id)).toEqual([1, 2]);
+        expect(store.copiesOf(card(1, { catalogCardId: 'base1-4', language: 'en' })).map((known) => known.id)).toEqual([1, 2]);
         expect(store.copiesOf(card(5))).toEqual([]);
     });
 

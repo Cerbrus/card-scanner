@@ -16,7 +16,6 @@ const ReadingSchema = z.object({
     number: z.string().nullable(),
     setName: z.string().nullable(),
     language: z.enum(LANGUAGES).nullable(),
-    firstEdition: z.boolean(),
     finish: z.enum(FINISHES),
     confidence: z.enum(CONFIDENCES),
     condition: z.enum(CONDITIONS).nullable(),
@@ -31,7 +30,6 @@ Fill in:
 - number: the collector number exactly as printed, usually at the bottom, such as "4/102", "025/165" or "SWSH123". null when the card has none or it cannot be read.
 - setName: the English name of the set or expansion when you can tell it from the set symbol, the layout or the copyright line; null when you cannot tell.
 - language: the language the card is printed in; null when it is not English, Dutch, German or French.
-- firstEdition: true only when the "Edition 1" stamp is visible.
 - finish: "holo" when the artwork itself is holographic foil, "reverse" when the area around the artwork is foil and the artwork is not, otherwise "normal". Foil is hard to see in a photo; choose "normal" when nothing shows it.
 - confidence: how sure you are of name and number together.
 - condition: the card's condition on Cardmarket's scale (mint, near_mint, excellent, good, light_played, played, poor), judged from both photos: whitening on edges and corners of the back, scratches on the surface and the foil, creases, bends, stains. null when the photos are too unclear to judge. A phone photo hides fine scratches, so do not grade higher than near_mint.
