@@ -38,6 +38,7 @@ Also open for the owner to decide:
 - [x] Nx workspace with `card-api` and `card-front`, structure taken from the barcode scanner (done 2026-11-14 15:55)
 - [x] Health endpoint with version (done 2026-11-14 15:55)
 - [x] Login with Google for an allowlist; off until configured (done 2026-11-14 15:55)
+- [x] Accounts that may only look (`VIEWER_EMAILS`): the server refuses their changes, the web app leaves out the scan tab and what changes a card (done 2026-11-16 20:05)
 - [x] Dockerfile, compose file, build workflow, install, update and firewall scripts (done 2026-11-14 15:55)
 - [x] Running on the server Pi: installed with `install.sh`, the Pi pulled version 0.1.0 by itself, health check green, about 110 MB of memory in use (done 2026-11-14 16:05)
 - [x] Reachable on the home network at the Pi's address, port 3030: scan upload, catalogue search, confirm, price, CSV and the pages checked from a laptop (done 2026-11-14 16:05)

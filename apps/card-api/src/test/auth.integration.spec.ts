@@ -17,12 +17,14 @@ import { photoForm, testFolder } from './test-env';
 const SITE = 'https://cards.example.com';
 const OWNER = 'owner@example.com';
 const GUEST = 'guest@example.com';
+const VIEWER = 'viewer@example.com';
 
 process.env['GOOGLE_CLIENT_ID'] = 'test-client';
 process.env['GOOGLE_CLIENT_SECRET'] = 'test-secret';
 process.env['PUBLIC_URL'] = SITE;
 process.env['ALLOWED_EMAILS'] = `Guest@Example.com, ${OWNER}`;
 process.env['OWNER_EMAIL'] = OWNER;
+process.env['VIEWER_EMAILS'] = `Viewer@Example.com, ${OWNER}`;
 process.env['CATALOG_URL'] = 'http://127.0.0.1:9';
 
 describe('login guard over HTTP', () => {
@@ -79,6 +81,27 @@ describe('login guard over HTTP', () => {
         assert.equal(await status('/system/catalog/refresh', { method: 'POST', headers: { cookie: cookieFor(OWNER) } }), 202);
     });
 
+    it('lets a viewing account read everything and change nothing', async () => {
+        const headers = { cookie: cookieFor(VIEWER) };
+        const changes = [
+            ['PATCH', '/cards/1'],
+            ['DELETE', '/cards/1'],
+            ['POST', '/cards/1/confirm'],
+            ['POST', '/cards/1/read'],
+            ['PUT', '/cards/1/photos/front']
+        ];
+
+        for (const path of ['/cards', '/system', '/catalog/search?name=x', '/export/cards.csv']) {
+            assert.equal(await status(path, { headers }), 200, path);
+        }
+        assert.equal(await status('/cards', { method: 'POST', body: photoForm(), headers }), 403);
+        for (const [method, path] of changes) {
+            assert.equal(await status(path, { method, headers }), 403, `${method} ${path}`);
+        }
+        assert.equal(await status('/logs', { headers }), 403);
+        assert.equal(await status('/auth/logout', { method: 'POST', headers }), 204);
+    });
+
     it('refuses a change that comes from another site', async () => {
         const headers = { cookie: cookieFor(OWNER) };
 
@@ -88,10 +111,12 @@ describe('login guard over HTTP', () => {
 
     it('reports the login state', async () => {
         const anonymous = (await (await fetch(`${base}/auth/me`)).json()) as { enabled: boolean; authenticated: boolean };
-        const owner = (await (await fetch(`${base}/auth/me`, { headers: { cookie: cookieFor(OWNER) } })).json()) as { email?: string; owner: boolean };
+        const owner = (await (await fetch(`${base}/auth/me`, { headers: { cookie: cookieFor(OWNER) } })).json()) as { email?: string; owner: boolean; viewer: boolean };
+        const viewer = (await (await fetch(`${base}/auth/me`, { headers: { cookie: cookieFor(VIEWER) } })).json()) as { owner: boolean; viewer: boolean };
 
-        assert.deepEqual(anonymous, { enabled: true, authenticated: false, owner: false });
-        assert.deepEqual([owner.email, owner.owner], [OWNER, true]);
+        assert.deepEqual(anonymous, { enabled: true, authenticated: false, owner: false, viewer: false });
+        assert.deepEqual([owner.email, owner.owner, owner.viewer], [OWNER, true, false]);
+        assert.deepEqual([viewer.owner, viewer.viewer], [false, true]);
     });
 
     it('sends the browser to Google with a state cookie, and refuses a callback without it', async () => {

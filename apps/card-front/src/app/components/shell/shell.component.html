@@ -23,7 +23,7 @@
 </div>
 
 <nav class="tabs">
-    @for (link of links; track link.route) {
+    @for (link of links(); track link.route) {
         <a class="tab" [routerLink]="link.route" routerLinkActive="active">
             <span class="tab-icon">
                 <i class="material-symbols-outlined">{{ link.icon }}</i>

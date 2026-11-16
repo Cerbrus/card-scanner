@@ -17,13 +17,13 @@
                         <button type="button" class="photo-open" [attr.aria-label]="photo.label | translate" (click)="viewing.set(index)">
                             <img [src]="photo.thumb" [class.reference]="!photo.side" [alt]="photo.label | translate" />
                         </button>
-                        @if (photo.side; as side) {
+                        @if (!auth.viewer() && photo.side) {
                             <div class="photo-actions">
-                                <button type="button" class="recrop" [title]="'card.photo.crop' | translate" [disabled]="savingPhoto()" (click)="recrop(side)">
+                                <button type="button" class="recrop" [title]="'card.photo.crop' | translate" [disabled]="savingPhoto()" (click)="recrop(photo.side)">
                                     <i class="material-symbols-outlined">crop</i>
                                 </button>
                                 <label class="retake" [class.disabled]="savingPhoto()" [title]="'card.photo.replace' | translate">
-                                    <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="savingPhoto()" (change)="replace(side, $event)" />
+                                    <input class="sr-only" type="file" accept="image/*" capture="environment" [disabled]="savingPhoto()" (change)="replace(photo.side, $event)" />
                                     <i class="material-symbols-outlined">photo_camera</i>
                                 </label>
                             </div>
@@ -44,7 +44,9 @@
                         <span class="block font-semibold">{{ card.name }}</span>
                         <span class="muted block text-sm">{{ card.setName }} · {{ card.number }}{{ card.rarity ? ' · ' + card.rarity : '' }}</span>
                     </span>
-                    <button type="button" class="btn" (click)="searchOpen.set(!searchOpen())">{{ 'card.change' | translate }}</button>
+                    @if (!auth.viewer()) {
+                        <button type="button" class="change btn" (click)="searchOpen.set(!searchOpen())">{{ 'card.change' | translate }}</button>
+                    }
                 </div>
                 @if (otherCopies().length) {
                     <div class="copies mt-3 text-sm">
@@ -71,10 +73,12 @@
                     <p class="mb-2 text-sm">{{ 'card.notACard' | translate }}</p>
                 }
 
-                <app-candidate-list [candidates]="card.candidates" (chosen)="confirm($event)" />
+                @if (!auth.viewer()) {
+                    <app-candidate-list [candidates]="card.candidates" (chosen)="confirm($event)" />
+                }
             }
 
-            @if (searchOpen() || card.status !== 'confirmed') {
+            @if (!auth.viewer() && (searchOpen() || card.status !== 'confirmed')) {
                 <form class="mt-3 flex flex-wrap items-end gap-2" (submit)="$event.preventDefault(); search(name.value, number.value)">
                     <label class="min-w-0 grow basis-40">
                         <span class="field-label !mt-0">{{ 'card.searchName' | translate }}</span>
@@ -97,7 +101,7 @@
                 }
             }
 
-            @if (visionEnabled() && card.readingState !== 'pending') {
+            @if (!auth.viewer() && visionEnabled() && card.readingState !== 'pending') {
                 <button type="button" class="btn mt-3" (click)="readAgain()">
                     <i class="material-symbols-outlined">auto_awesome</i>
                     {{ 'card.readAgain' | translate }}
@@ -115,6 +119,7 @@
                     [highlight]="false"
                     [options]="conditions"
                     [value]="card.condition ?? ''"
+                    [locked]="auth.viewer()"
                     (chosen)="change({ condition: $any($event) || null })"
                 />
                 <app-filter-menu
@@ -124,6 +129,7 @@
                     [highlight]="false"
                     [options]="finishes"
                     [value]="card.variant ?? ''"
+                    [locked]="auth.viewer()"
                     (chosen)="change({ variant: $any($event) || null })"
                 />
                 <app-filter-menu
@@ -133,6 +139,7 @@
                     [highlight]="false"
                     [options]="languages"
                     [value]="card.language ?? ''"
+                    [locked]="auth.viewer()"
                     (chosen)="change({ language: $any($event) || null })"
                 />
             </div>
@@ -142,7 +149,7 @@
 
             <label>
                 <span class="field-label">{{ 'card.notes' | translate }}</span>
-                <textarea class="field" rows="2" [class.unsaved]="unsaved().notes" [value]="card.notes" (change)="setNotes($any($event.target))"></textarea>
+                <textarea class="field" rows="2" [readOnly]="auth.viewer()" [class.unsaved]="unsaved().notes" [value]="card.notes" (change)="setNotes($any($event.target))"></textarea>
                 @if (unsaved().notes) {
                     <span class="unsaved-note">{{ 'card.unsaved' | translate }}</span>
                 }
@@ -207,6 +214,7 @@
                         inputmode="decimal"
                         autocomplete="off"
                         placeholder="0.00"
+                        [readOnly]="auth.viewer()"
                         [class.unsaved]="unsaved().ownPrice"
                         [value]="card.ownPrice ?? ''"
                         (change)="setOwnPrice($any($event.target).value)"
@@ -228,20 +236,22 @@
             }
         </div>
 
-        <div class="mt-6 flex justify-end gap-2">
-            @if (deleteAsked()) {
-                <button type="button" class="btn" (click)="deleteAsked.set(false)">{{ 'common.cancel' | translate }}</button>
-                <button type="button" class="btn danger" (click)="remove()">
-                    <i class="material-symbols-outlined">delete</i>
-                    {{ 'card.deleteSure' | translate }}
-                </button>
-            } @else {
-                <button type="button" class="btn danger" (click)="deleteAsked.set(true)">
-                    <i class="material-symbols-outlined">delete</i>
-                    {{ 'card.delete' | translate }}
-                </button>
-            }
-        </div>
+        @if (!auth.viewer()) {
+            <div class="mt-6 flex justify-end gap-2">
+                @if (deleteAsked()) {
+                    <button type="button" class="btn" (click)="deleteAsked.set(false)">{{ 'common.cancel' | translate }}</button>
+                    <button type="button" class="btn danger" (click)="remove()">
+                        <i class="material-symbols-outlined">delete</i>
+                        {{ 'card.deleteSure' | translate }}
+                    </button>
+                } @else {
+                    <button type="button" class="btn danger" (click)="deleteAsked.set(true)">
+                        <i class="material-symbols-outlined">delete</i>
+                        {{ 'card.delete' | translate }}
+                    </button>
+                }
+            </div>
+        }
     } @else if (missing()) {
         <p class="empty">{{ 'card.missing' | translate }}</p>
     } @else {

@@ -20,6 +20,7 @@ describe('the pages around the collection', () => {
     let store: FakeStore;
     let page: HTMLElement;
     const owner = { value: true };
+    const viewer = { value: false };
     const api = {
         exportUrl: '/api/v1/export/cards.csv',
         googleConnectUrl: '/api/v1/google/connect',
@@ -31,7 +32,7 @@ describe('the pages around the collection', () => {
         runSync: vi.fn(() => of({})),
         disconnectGoogle: vi.fn(() => of({}))
     };
-    const auth = { loginUrl: '/api/v1/auth/google', owner: (): boolean => owner.value, state: () => ({ enabled: true, email: 'me@example.com' }), logout: vi.fn(() => of(undefined)) };
+    const auth = { loginUrl: '/api/v1/auth/google', owner: (): boolean => owner.value, viewer: (): boolean => viewer.value, state: () => ({ enabled: true, email: 'me@example.com' }), logout: vi.fn(() => of(undefined)) };
 
     const open = <T>(component: new () => T, inputs: Record<string, unknown> = {}): ComponentFixture<T> => {
         const fixture = TestBed.createComponent(component);
@@ -51,6 +52,7 @@ describe('the pages around the collection', () => {
 
     beforeEach(() => {
         owner.value = true;
+        viewer.value = false;
         localStorage.clear();
         store = fakeStore([
             card(1, { name: 'Pikachu', value: 2.5, valueSource: 'own' }),
@@ -328,6 +330,18 @@ describe('the pages around the collection', () => {
         expect(page.textContent).toContain('settings.google.notConfigured');
         expect(page.querySelector('a[href="/api/v1/google/connect"]')).toBeNull();
         expect(page.textContent).toContain('settings.version');
+    });
+
+    it('tells an account that may only look so, and offers it no actions', () => {
+        owner.value = false;
+        settings(system({ sync: { ...system().sync, configured: true } }));
+        expect(page.querySelector('.viewer')).toBeNull();
+
+        viewer.value = true;
+        settings(system({ sync: { ...system().sync, configured: true } }));
+
+        expect(texts(page, '.viewer')).toEqual(['settings.viewer']);
+        expect(page.querySelector('a[href="/api/v1/google/connect"]')).toBeNull();
     });
 
     it('offers the owner to connect Google Drive once the server is set up for it', () => {

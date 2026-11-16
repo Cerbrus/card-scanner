@@ -12,6 +12,7 @@ interface AuthState {
     enabled: boolean;
     authenticated: boolean;
     owner: boolean;
+    viewer: boolean;
     email?: string;
 }
 
@@ -43,7 +44,7 @@ export class AuthController {
     @Get('me')
     public me(@Req() request: HttpRequest, @Res({ passthrough: true }) response: HttpResponse): AuthState {
         if (!this.config.loginEnabled) {
-            return { enabled: false, authenticated: true, owner: true };
+            return { enabled: false, authenticated: true, owner: true, viewer: false };
         }
 
         const session = this.sessions.read(cookieHeader(request));
@@ -55,6 +56,7 @@ export class AuthController {
             enabled: true,
             authenticated: session !== undefined,
             owner: session !== undefined && this.sessions.isOwner(session.email),
+            viewer: session !== undefined && this.sessions.isViewer(session.email),
             email: session?.email
         };
     }
@@ -101,7 +103,7 @@ export class AuthController {
             return;
         }
         if (!this.sessions.isAllowed(email)) {
-            this.logger.warn(`login refused for ${email}: not in ALLOWED_EMAILS`);
+            this.logger.warn(`login refused for ${email}: not in ALLOWED_EMAILS or VIEWER_EMAILS`);
             response.redirect(`${LOGIN_PAGE}?error=not_allowed`);
             return;
         }

@@ -90,6 +90,8 @@ A factor per condition was tried for one evening (2026-11-14) and dropped: rules
 
 **Login with Google for an allowlist.** As in the barcode scanner. The site is reachable from outside the house, so it needs a login before it is put behind the reverse proxy.
 
+**An account can be let in to look only.** Accounts in `VIEWER_EMAILS` log in like the others and see the collection, the cards, their photos and the export, but change nothing. The server decides: for such an account the login guard refuses every request that is not a read (`GET`, `HEAD`, `OPTIONS`); only logging out stays possible. The web app hides the scan tab and what changes a card, as a courtesy on top of that. The owner is never a viewer, also when listed as one.
+
 ## Google sync
 
 **One way: the app writes, Google receives.** The SQLite database is the truth. The sheet and the Drive folder are a readable copy. Changes made in the sheet are overwritten at the next sync.

@@ -57,6 +57,7 @@ Nothing has to be set for a first start. Each optional part is off while its set
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | The Google OAuth client, for login and for Google Drive. An empty id switches both off. |
 | `PUBLIC_URL` | Address the site is reached at, such as `https://cards.example.com`, without a slash at the end |
 | `ALLOWED_EMAILS` | Google accounts that may log in, comma-separated |
+| `VIEWER_EMAILS` | Google accounts that may log in to look only: they see everything and change nothing. Comma-separated |
 | `OWNER_EMAIL` | The account that may connect Google Drive and start system actions. Empty: the first of `ALLOWED_EMAILS` |
 | `DRIVE_FOLDER` | Folder in the owner's Drive for photos, sheet and database copy. Default `Documents/~Hobby/Pokémon` |
 | `SHEET_NAME` | Name of the spreadsheet in that folder. Default `Pokémon cards` |
@@ -100,6 +101,7 @@ Notes:
 - The client secret, the session secret and the Google token exist only on the Pi.
 - Logging everyone out: delete `data/session-secret` and restart.
 - Stopping the Drive copy: **Disconnect** on the Settings page, or delete `data/google-token.json`.
+- While the consent screen is in "Testing", Google lets in only the accounts listed there as test user: add every account from `ALLOWED_EMAILS` and `VIEWER_EMAILS` on the Audience page.
 - Locked out after a typo in `ALLOWED_EMAILS`: fix `.env` over SSH and restart.
 - Moving the copy to another folder: change `DRIVE_FOLDER`, restart, and tap **Copy now**. When the old folder still exists the app keeps using it; delete or rename it first.
 

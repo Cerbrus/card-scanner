@@ -177,6 +177,7 @@
         "reload": "Vernieuwen",
         "version": "Versie {version}",
         "logout": "Uitloggen",
+        "viewer": "alleen kijken",
         "reading": {
             "title": "Foto's lezen",
             "on": "Foto's worden gelezen door {model}: kaart, druk en conditie worden voorgesteld.",

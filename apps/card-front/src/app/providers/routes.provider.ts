@@ -1,7 +1,7 @@
 import { Route } from '@angular/router';
 
 import { ShellComponent } from '../components/shell/shell.component';
-import { requireLogin } from '../services/auth.service';
+import { requireEditor, requireLogin } from '../services/auth.service';
 
 export const appRoutes: Array<Route> = [
     {
@@ -20,6 +20,7 @@ export const appRoutes: Array<Route> = [
             },
             {
                 path: 'scan',
+                canActivate: [requireEditor],
                 loadComponent: () => import('../pages/scan/scan.page').then((m) => m.ScanPage)
             },
             {

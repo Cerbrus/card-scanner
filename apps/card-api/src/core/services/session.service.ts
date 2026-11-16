@@ -23,7 +23,7 @@ export class SessionService {
         if (config.missingLoginSettings.length) {
             this.logger.warn(`login is on but these settings are empty: ${config.missingLoginSettings.join(', ')}`);
         }
-        this.logger.log(`login is on for ${config.allowedEmails.length} Google account(s)`);
+        this.logger.log(`login is on for ${config.allowedEmails.length} Google account(s), and for ${config.viewerEmails.length} that may only look`);
     }
 
     public get secret(): string {
@@ -45,7 +45,11 @@ export class SessionService {
     }
 
     public isAllowed(email: string): boolean {
-        return isAllowedEmail(email, this.config.allowedEmails);
+        return isAllowedEmail(email, [...this.config.allowedEmails, ...this.config.viewerEmails]);
+    }
+
+    public isViewer(email: string): boolean {
+        return this.config.loginEnabled && !this.isOwner(email) && isAllowedEmail(email, this.config.viewerEmails);
     }
 
     public isOwner(email: string): boolean {

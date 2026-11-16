@@ -32,6 +32,7 @@ const ICONS: Record<FilterKind, string> = {
             [attr.aria-label]="('collection.filter.' + kind() | translate) + (value() ? ': ' + (text(value()) | translate) : '')"
             aria-haspopup="listbox"
             [attr.aria-expanded]="open()"
+            [attr.aria-disabled]="locked()"
             [title]="'collection.filter.' + kind() | translate"
             (click)="toggle()"
         >
@@ -43,7 +44,9 @@ const ICONS: Record<FilterKind, string> = {
             } @else {
                 <i class="material-symbols-outlined">{{ icons[kind()] }}</i>
             }
-            <i class="material-symbols-outlined caret">arrow_drop_down</i>
+            @if (!locked()) {
+                <i class="material-symbols-outlined caret">arrow_drop_down</i>
+            }
         </button>
         @if (open()) {
             <div class="menu" role="listbox" [class.end]="place().end" [style.max-width.px]="place().room" (keydown)="step($event)">
@@ -118,6 +121,7 @@ export class FilterMenuComponent {
     public readonly value = input('');
     public readonly emptyLabel = input<string>();
     public readonly highlight = input(true);
+    public readonly locked = input(false);
     public readonly chosen = output<string>();
 
     protected readonly open = signal(false);
@@ -134,6 +138,9 @@ export class FilterMenuComponent {
     }
 
     protected toggle(): void {
+        if (this.locked()) {
+            return;
+        }
         if (!this.open()) {
             const box = this.element.getBoundingClientRect();
             const end = box.left + box.width / 2 > window.innerWidth / 2;

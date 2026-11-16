@@ -144,6 +144,9 @@
             @if (auth.state()?.email; as email) {
                 · {{ email }}
             }
+            @if (auth.viewer()) {
+                · <span class="viewer">{{ 'settings.viewer' | translate }}</span>
+            }
         </span>
         @if (auth.state()?.enabled) {
             <button type="button" class="btn" (click)="logout()">

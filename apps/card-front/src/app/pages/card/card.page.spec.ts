@@ -33,6 +33,7 @@ describe('CardPage', () => {
         getPhoto: vi.fn(),
         replacePhoto: vi.fn()
     };
+    const viewer = { value: false };
     const scaled = { photo: new Blob(['photo']), thumb: new Blob(['thumb']) };
     const scaler = { scale: vi.fn(() => Promise.resolve(scaled)), straighten: vi.fn(() => Promise.resolve(scaled)) };
 
@@ -53,6 +54,7 @@ describe('CardPage', () => {
     beforeEach(() => {
         vi.useFakeTimers();
         vi.clearAllMocks();
+        viewer.value = false;
         URL.createObjectURL = vi.fn(() => 'blob:editing');
         URL.revokeObjectURL = vi.fn();
         store = fakeStore();
@@ -62,7 +64,7 @@ describe('CardPage', () => {
                 provideRouter([]),
                 { provide: ApiService, useValue: api },
                 { provide: CollectionStore, useValue: store },
-                { provide: AuthService, useValue: { owner: () => true } },
+                { provide: AuthService, useValue: { owner: () => true, viewer: (): boolean => viewer.value } },
                 { provide: PhotoScaler, useValue: scaler }
             ]
         });
@@ -402,6 +404,28 @@ describe('CardPage', () => {
 
         expect(api.readCard).toHaveBeenCalledWith(7);
         expect(api.getCard).toHaveBeenCalledTimes(3);
+    });
+
+    it('shows a card to an account that may only look, without anything to change it with', async () => {
+        viewer.value = true;
+        await open(confirmed, true);
+
+        expect(texts(page, 'h1')).toEqual(['Charizard']);
+        expect(texts(page, '.value')).toEqual(['€385.83']);
+        expect(page.querySelectorAll('.photos img').length).toBe(2);
+        expect(page.querySelector('.photo-actions, .change, form, button.danger, .caret')).toBeNull();
+        expect((page.querySelector('textarea') as HTMLTextAreaElement).readOnly).toBe(true);
+        expect((page.querySelector('.own-price') as HTMLInputElement).readOnly).toBe(true);
+
+        click(page, '.detail-condition .toggle');
+        fixture.detectChanges();
+        expect(page.querySelector('.menu')).toBeNull();
+
+        fixture.destroy();
+        await open(waiting, true);
+
+        expect(texts(page, '.badge')).toEqual(['state.identified']);
+        expect(page.querySelector('app-candidate-list, form, button.btn')).toBeNull();
     });
 
     it('deletes only after a second tap, then goes back to the collection', async () => {

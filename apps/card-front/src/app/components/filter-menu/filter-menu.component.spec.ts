@@ -73,6 +73,17 @@ describe('FilterMenuComponent', () => {
         host.remove();
     });
 
+    it('shows its value without a menu when it is locked', () => {
+        fixture.componentRef.setInput('value', 'nl');
+        fixture.componentRef.setInput('locked', true);
+        fixture.detectChanges();
+
+        expect(openAt(16, 77)).toBeNull();
+        expect(host.querySelector('.toggle')?.getAttribute('aria-disabled')).toBe('true');
+        expect(host.querySelector('.caret')).toBeNull();
+        expect(host.querySelector('.flag')).not.toBeNull();
+    });
+
     it('closes on a second tap and on a choice', () => {
         openAt(16, 77);
         click(host, '.toggle');

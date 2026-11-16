@@ -37,8 +37,13 @@ export class AuthGuard implements CanActivate {
             throw new ForbiddenException('Only for the owner');
         }
 
+        const changes = !READ_METHODS.includes(request.method);
+        if (changes && this.sessions.isViewer(session.email)) {
+            throw new ForbiddenException('This account may only look');
+        }
+
         const origin = request.headers['origin'];
-        if (!READ_METHODS.includes(request.method) && origin && origin !== this.config.publicUrl) {
+        if (changes && origin && origin !== this.config.publicUrl) {
             throw new ForbiddenException('Request from another site');
         }
 

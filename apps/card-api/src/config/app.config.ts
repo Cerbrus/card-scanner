@@ -36,6 +36,7 @@ export class AppConfig {
     public readonly googleClientSecret = setting('GOOGLE_CLIENT_SECRET') ?? '';
     public readonly publicUrl = (setting('PUBLIC_URL') ?? '').replace(/\/+$/, '');
     public readonly allowedEmails = list(setting('ALLOWED_EMAILS') ?? '').map((email) => email.toLowerCase());
+    public readonly viewerEmails = list(setting('VIEWER_EMAILS') ?? '').map((email) => email.toLowerCase());
     public readonly ownerEmail = (setting('OWNER_EMAIL') ?? this.allowedEmails[0] ?? '').toLowerCase();
     public readonly loginEnabled = this.googleClientId !== '';
     public readonly contentPolicyMode = setting('CSP_MODE');

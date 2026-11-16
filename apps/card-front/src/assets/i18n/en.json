@@ -177,6 +177,7 @@
         "reload": "Reload",
         "version": "Version {version}",
         "logout": "Log out",
+        "viewer": "view only",
         "reading": {
             "title": "Reading photos",
             "on": "Photos are read by {model}: card, print and condition are proposed.",

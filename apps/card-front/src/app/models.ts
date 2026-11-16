@@ -22,6 +22,7 @@ export interface AuthState {
     enabled: boolean;
     authenticated: boolean;
     owner: boolean;
+    viewer?: boolean;
     email?: string;
 }
 

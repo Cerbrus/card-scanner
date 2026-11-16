@@ -11,6 +11,8 @@ Photograph a Pokémon card, front and back, with a phone. The app keeps the phot
 - **Google**: once connected, photos go to a Drive folder, the collection to a sheet, and a copy of the database follows nightly. Photos of a deleted card go to the Drive trash. One way: the app writes, Google receives.
 - **Phone**: installable on the home screen, light and dark theme, Dutch and English.
 
+With login on, an account can be let in to look only (`VIEWER_EMAILS`): it sees the collection and the cards, and can scan or change nothing.
+
 Three things are built but switched off until their settings exist on the server: login with Google, reading photos with Claude, and the Google Drive copy. The Settings page shows which are on. What is still needed for each is in [docs/plan.md](docs/plan.md).
 
 ## How it is built

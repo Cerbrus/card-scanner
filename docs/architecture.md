@@ -135,7 +135,7 @@ A failed run stores its error for the Settings page; the next run starts over an
 
 ## API
 
-All under `/api/v1`. With login on, every route needs a session except the ones marked public.
+All under `/api/v1`. With login on, every route needs a session except the ones marked public. An account from `VIEWER_EMAILS` gets `403` on every route that is not a `GET`, except logging out; `GET /auth/me` tells the web app so with `viewer`, and it then leaves out the scan tab and shows a card without anything to change it with.
 
 | Route | Purpose |
 |---|---|

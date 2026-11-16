@@ -8,6 +8,7 @@ import { SettingsService } from './settings/settings.service';
 
 const UNAUTHORIZED = 401;
 const LOGIN_ROUTE = '/login';
+const COLLECTION_ROUTE = '/collection';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly settings = inject(SettingsService);
 
     public readonly owner = computed(() => this.state()?.owner ?? false);
+    public readonly viewer = computed(() => this.state()?.viewer ?? false);
 
     public get loginUrl(): string {
         return `${this.baseUrl}/auth/google`;
@@ -58,6 +60,14 @@ export const requireLogin: CanActivateFn = () => {
     return inject(AuthService)
         .load()
         .pipe(map((state) => state.authenticated || router.parseUrl(LOGIN_ROUTE)));
+};
+
+export const requireEditor: CanActivateFn = () => {
+    const router = inject(Router);
+
+    return inject(AuthService)
+        .load()
+        .pipe(map((state) => !state.viewer || router.parseUrl(COLLECTION_ROUTE)));
 };
 
 export const redirectOnUnauthorized: HttpInterceptorFn = (request, next) => {

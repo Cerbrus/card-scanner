@@ -5,13 +5,14 @@ import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/ro
 import { Observable } from 'rxjs';
 
 import { AuthState } from '../models';
-import { AuthService, redirectOnUnauthorized, requireLogin } from './auth.service';
+import { AuthService, redirectOnUnauthorized, requireEditor, requireLogin } from './auth.service';
 import { SettingsService } from './settings/settings.service';
 
 type GuardResult = boolean | { redirect: string };
 
 const owner: AuthState = { enabled: true, authenticated: true, owner: true, email: 'owner@example.com' };
 const guest: AuthState = { enabled: true, authenticated: true, owner: false, email: 'guest@example.com' };
+const viewer: AuthState = { enabled: true, authenticated: true, owner: false, viewer: true, email: 'viewer@example.com' };
 const anonymous: AuthState = { enabled: true, authenticated: false, owner: false };
 
 describe('login in the web app', () => {
@@ -19,9 +20,9 @@ describe('login in the web app', () => {
     let http: HttpClient;
     const navigate = vi.fn();
 
-    const run = (state: AuthState | 'unreachable'): GuardResult => {
+    const run = (state: AuthState | 'unreachable', guard = requireLogin): GuardResult => {
         let result: GuardResult = false;
-        const outcome = TestBed.runInInjectionContext(() => requireLogin({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)) as Observable<GuardResult>;
+        const outcome = TestBed.runInInjectionContext(() => guard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)) as Observable<GuardResult>;
         outcome.subscribe((value) => (result = value));
 
         const request = server.match('/api/v1/auth/me')[0];
@@ -68,6 +69,16 @@ describe('login in the web app', () => {
         TestBed.inject(AuthService).state.set(guest);
 
         expect(TestBed.inject(AuthService).owner()).toBe(false);
+    });
+
+    it('keeps an account that may only look away from the scan page', () => {
+        expect(run(viewer, requireEditor)).toEqual({ redirect: '/collection' });
+        expect(TestBed.inject(AuthService).viewer()).toBe(true);
+
+        TestBed.inject(AuthService).state.set(undefined);
+
+        expect(run(guest, requireEditor)).toBe(true);
+        expect(TestBed.inject(AuthService).viewer()).toBe(false);
     });
 
     it('lets the app start when the login state cannot be fetched, without owner rights', () => {
