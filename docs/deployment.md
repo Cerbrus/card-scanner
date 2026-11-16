@@ -123,6 +123,6 @@ Every build of `master` gets a version `major.minor.patch`, worked out by `.gith
 
 ### Dependency updates
 
-Dependabot (`.github/dependabot.yml`) opens pull requests every Monday, grouped as in the barcode scanner. A pull request runs the checks and builds the image without publishing. A push that only changes the Dependabot set-up starts no build.
+Dependabot (`.github/dependabot.yml`) opens pull requests every Monday, grouped as in the barcode scanner and, like there, without major versions of npm packages. A pull request runs the checks and builds the image without publishing. A push that only changes the Dependabot set-up starts no build.
 
 **Reviewer.** As in the barcode scanner: `.github/workflows/dependabot-helper.yml` runs every morning, lists the Dependabot pull requests that are at least 24 hours old, have finished their checks and were not reviewed yet for their current commit, and starts a Claude agent for each (at most 3 per run). The agent reads what changed, finds where this app uses it, runs the checks, repairs what is small and clear, and leaves one comment with a verdict: safe to merge, merge with care, or do not merge. It never merges. Its rules are in `.github/dependabot-helper.md`. It needs the repository secret `CLAUDE_CODE_OAUTH_TOKEN` (a token made with `claude setup-token`, counted against the owner's Claude plan) and the Claude GitHub App on this repository; without them the review job fails and nothing else is affected. To review right away, start the workflow by hand with the age set to 0 or with one pull request number.
