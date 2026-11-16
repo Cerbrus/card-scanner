@@ -10,6 +10,8 @@ export interface TextWord {
     text: string;
     left: number;
     height: number;
+    right: number;
+    top: number;
     confidence: number;
 }
 
@@ -20,7 +22,7 @@ export interface Region {
     height: number;
 }
 
-export const NAME_REGION: Region = { left: 0.05, top: 0.062, width: 0.62, height: 0.058 };
+export const NAME_LINES: Array<Region> = [0.06, 0.07, 0.08, 0.09].map((top) => ({ left: 0.05, top, width: 0.61, height: 0.058 }));
 export const NUMBER_CORNERS: Array<Region> = [
     { left: 0.83, top: 0.926, width: 0.097, height: 0.038 },
     { left: 0.83, top: 0.936, width: 0.097, height: 0.038 },
@@ -42,10 +44,12 @@ const CARD_NUMBER = /([A-Z]{0,3})(\d+)\s*[/|]\s*([A-Z]{0,3})(\d{2,3})(?!\d)/g;
 const SECRET_RARE_ROOM = 1.3;
 const MAX_NUMBER_DIGITS = 3;
 const NAME_WORD = /^[A-ZÀ-Ý][A-Za-zÀ-ÿ.'’♀♂-]*$/;
-const NOT_NAME = new Set(['basic', 'stage', 'pokemon', 'pokémon', 'evolves', 'from', 'put', 'hp', 'lv', 'level', 'trainer', 'energy', 'item', 'supporter', 'ex', 'gx', 'v']);
+const NOT_NAME = new Set(['basic', 'stage', 'pokemon', 'pokémon', 'evolves', 'from', 'put', 'hp', 'lv', 'level', 'trainer', 'energy', 'item', 'supporter', 'ex', 'gx', 'v', 'leg', 'ontwikkeld', 'uit', 'basis', 'fase']);
 const MIN_NAME_LETTERS = 3;
 const NAME_SIZE_SHARE = 0.7;
 const MIN_WORD_CONFIDENCE = 50;
+const FRAGMENT_SIZE_SHARE = 0.5;
+const JOIN_GAP_SHARE = 0.15;
 const ALL_CAPITALS = /^[A-ZÀ-Ý]{2,}$/;
 
 export function readNumber(text: string): string | undefined {
@@ -139,18 +143,47 @@ export function readName(text: string): string | undefined {
     return lines.sort((left, right) => letters(right) - letters(left))[0];
 }
 
-export function nameFromWords(words: Array<TextWord>): string | undefined {
-    const usable = words
-        .map((word) => ({ ...word, text: word.text.replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ.'’♀♂]+$/g, '') }))
-        .filter((word) => word.confidence >= MIN_WORD_CONFIDENCE && NAME_WORD.test(word.text) && !NOT_NAME.has(word.text.toLowerCase()) && !ALL_CAPITALS.test(word.text));
-    const tallest = Math.max(0, ...usable.map((word) => word.height));
-    const name = usable
-        .filter((word) => word.height >= tallest * NAME_SIZE_SHARE)
-        .sort((left, right) => left.left - right.left)
-        .map((word) => word.text)
-        .join(' ');
+export interface NameReading {
+    name: string;
+    confidence: number;
+}
 
-    return readName(name);
+export function nameFromWords(words: Array<TextWord>): NameReading | undefined {
+    const cleaned = words.map((word) => ({ ...word, text: word.text.replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ.'’♀♂]+$/g, '') })).filter((word) => letters(word.text));
+    const anchor = cleaned
+        .filter((word) => word.confidence >= MIN_WORD_CONFIDENCE && isNameWord(word.text))
+        .sort((left, right) => right.height - left.height)[0];
+    if (!anchor) {
+        return undefined;
+    }
+
+    const row = cleaned
+        .filter((word) => word.height >= anchor.height * FRAGMENT_SIZE_SHARE && Math.abs(middle(word) - middle(anchor)) <= anchor.height / 2)
+        .sort((left, right) => left.left - right.left);
+    const joined: Array<TextWord> = [];
+    for (const word of row) {
+        const previous = joined.at(-1);
+        const gap = previous ? word.left - previous.right : Infinity;
+        if (previous && gap < -anchor.height * JOIN_GAP_SHARE) {
+            joined[joined.length - 1] = word.confidence > previous.confidence ? word : previous;
+        } else if (previous && gap <= anchor.height * JOIN_GAP_SHARE && /^[a-zà-ÿ]/.test(word.text)) {
+            joined[joined.length - 1] = { ...previous, text: previous.text + word.text, right: word.right, height: Math.max(previous.height, word.height), confidence: Math.min(previous.confidence, word.confidence) };
+        } else {
+            joined.push(word);
+        }
+    }
+    const kept = joined.filter((word) => word.height >= anchor.height * NAME_SIZE_SHARE && word.confidence >= MIN_WORD_CONFIDENCE && isNameWord(word.text));
+    const name = readName(kept.map((word) => word.text).join(' '));
+
+    return name ? { name, confidence: kept.reduce((total, word) => total + word.confidence, 0) / kept.length } : undefined;
+}
+
+function isNameWord(text: string): boolean {
+    return NAME_WORD.test(text) && !NOT_NAME.has(text.toLowerCase()) && !ALL_CAPITALS.test(text);
+}
+
+function middle(word: TextWord): number {
+    return word.top + word.height / 2;
 }
 
 function nameIn(line: string): string | undefined {

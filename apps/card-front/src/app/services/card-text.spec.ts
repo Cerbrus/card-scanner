@@ -29,13 +29,21 @@ describe('reading name and number from the text on a card', () => {
     });
 
     it('takes the name from the tallest sure words on the name line, leaving out the small print around it', () => {
-        const word = (text: string, left: number, height: number, confidence = 90): TextWord => ({ text, left, height, confidence });
+        const word = (text: string, left: number, height: number, confidence = 90, top = 100 - height / 2): TextWord => ({ text, left, right: left + text.length * height * 0.5, top, height, confidence });
 
-        expect(nameFromWords([word('Evolves', 200, 20), word('STAGE', 10, 22), word('2', 70, 22), word('Dragonite', 260, 60), word('100', 600, 58), word('HP', 680, 50)])).toBe('Dragonite');
-        expect(nameFromWords([word('Mime', 140, 50), word('Mr.', 60, 48)])).toBe('Mr. Mime');
-        expect(nameFromWords([word('Fal', 20, 62, 30), word('Dragonite', 260, 60)])).toBe('Dragonite');
+        expect(nameFromWords([word('Evolves', 200, 20, 90, 40), word('STAGE', 10, 22, 90, 40), word('2', 70, 22), word('Dragonite', 260, 60), word('100', 600, 58), word('HP', 680, 50)])?.name).toBe('Dragonite');
+        expect(nameFromWords([word('Mime', 140, 50), word('Mr.', 60, 48)])?.name).toBe('Mr. Mime');
+        expect(nameFromWords([word('Fal', 20, 62, 30), word('Dragonite', 260, 60)])?.name).toBe('Dragonite');
         expect(nameFromWords([word('ENGI', 40, 60)])).toBeUndefined();
         expect(nameFromWords([])).toBeUndefined();
+        expect(nameFromWords([word('Yeh', 40, 58, 20), word('Marowak', 200, 60, 92)])).toEqual({ name: 'Marowak', confidence: 92 });
+    });
+
+    it('takes the name from the row of the tallest word, not from the evolves-from line above it, and joins a split name', () => {
+        const word = (text: string, left: number, right: number, top: number, height: number): TextWord => ({ text, left, right, top, height, confidence: 90 });
+
+        expect(nameFromWords([word('Evolves', 200, 300, 20, 40), word('Mankey', 330, 420, 22, 44), word('Primeape', 330, 520, 70, 60)])?.name).toBe('Primeape');
+        expect(nameFromWords([word('Ontwikkeld', 200, 340, 18, 46), word('Vilepl', 330, 470, 70, 62), word('ume', 472, 540, 82, 40)])?.name).toBe('Vileplume');
     });
 
     it('tells the language from the weakness line, also with a misread letter', () => {
