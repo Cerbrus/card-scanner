@@ -3,7 +3,7 @@ WORKDIR /repo
 
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/releases .yarn/releases
-RUN yarn install --immutable
+RUN cp .yarn/releases/yarn-*.cjs /usr/local/bin/yarn && chmod +x /usr/local/bin/yarn && yarn install --immutable
 
 COPY . .
 RUN yarn card-api:build && yarn card-front:build
