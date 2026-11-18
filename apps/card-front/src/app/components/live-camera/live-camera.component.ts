@@ -8,6 +8,7 @@ import { CaptureTrigger, middleColour } from '../../services/capture-trigger';
 import { findCard } from '../../services/card-finder';
 import { CropStart } from '../../services/crop-start';
 import { Corners, Point } from '../../services/perspective';
+import { ScanStatus, Sight, cameraStatus } from '../../services/scan-status';
 import { DASH_SHARE, LINE_SHARE } from '../crop-editor/crop-editor.component';
 
 export interface CameraShot {
@@ -75,6 +76,10 @@ function distance(from: Point, to: Point): number {
                     <i class="material-symbols-outlined">{{ auto() ? 'motion_photos_auto' : 'motion_photos_off' }}</i>
                     {{ 'scan.camera.auto' | translate }}
                 </button>
+                <p class="status" aria-live="polite">
+                    <i class="material-symbols-outlined">{{ status().icon }}</i>
+                    {{ status().text | translate: status().params }}
+                </p>
                 @if (capturing()) {
                     <span class="flash"></span>
                 }
@@ -104,6 +109,8 @@ function distance(from: Point, to: Point): number {
         .auto { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 999px; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; }
         .auto i { font-size: 20px; }
         .auto.on { background: var(--accent); color: var(--accent-text); }
+        .status { position: absolute; top: 46px; right: 8px; left: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 5px 10px; border-radius: 8px; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; pointer-events: none; }
+        .status i { font-size: 18px; }
         .flash { position: absolute; inset: 0; border-radius: 12px; background: var(--mark-text); opacity: 0.35; }
         .shutter { position: absolute; bottom: 14px; left: 50%; display: grid; place-items: center; width: 68px; height: 68px; transform: translateX(-50%); border: 4px solid var(--mark-text); border-radius: 50%; background: var(--crop-shade); color: var(--mark-text); }
         .shutter i { font-size: 30px; }
@@ -113,6 +120,7 @@ function distance(from: Point, to: Point): number {
 export class LiveCameraComponent {
     public readonly side = input.required<PhotoSide>();
     public readonly paused = input(false);
+    public readonly notice = input<ScanStatus | undefined>(undefined);
     public readonly captured = output<CameraShot>();
     public readonly unavailable = output<void>();
     public readonly failed = output<void>();
@@ -123,6 +131,8 @@ export class LiveCameraComponent {
     protected readonly outline = signal<string | undefined>(undefined);
     protected readonly lost = signal(true);
     protected readonly auto = signal(autoChosen());
+    protected readonly sight = signal<Sight>('none');
+    protected readonly status = computed(() => cameraStatus({ ready: this.ready(), capturing: this.capturing(), sight: this.sight(), notice: this.notice() }));
     protected readonly usable = computed(() => this.ready() && !this.capturing() && !this.paused());
     protected readonly line = computed(() => this.longest() * LINE_SHARE);
     protected readonly dash = computed(() => `${this.longest() * DASH_SHARE} ${this.longest() * DASH_SHARE * 0.7}`);
@@ -255,6 +265,7 @@ export class LiveCameraComponent {
         this.lastFrame = 0;
         this.lostSince = performance.now();
         this.lost.set(true);
+        this.sight.set('none');
     }
 
     private look(): void {
@@ -271,7 +282,11 @@ export class LiveCameraComponent {
             this.shown = found;
         }
         this.target = found;
-        if (this.auto() && !this.capturing() && this.trigger.see({ corners: this.relative(found), colour: this.colour, time: now })) {
+        const steady = this.auto() && !this.capturing() && this.trigger.see({ corners: this.relative(found), colour: this.colour, time: now });
+        if (!this.capturing()) {
+            this.sight.set(!found ? 'none' : !this.auto() ? 'manual' : this.trigger.ready() ? 'steadying' : 'waiting');
+        }
+        if (steady) {
             void this.capture();
         }
         this.timer = setTimeout(() => this.look(), LOOK_EVERY_MILLISECONDS);

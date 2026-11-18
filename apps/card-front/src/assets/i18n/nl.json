@@ -50,6 +50,16 @@
             "found": "Gelezen: {name} · {number}",
             "nothing": "Naam en nummer niet gevonden; je kiest de kaart na het opslaan."
         },
+        "status": {
+            "starting": "Camera starten…",
+            "looking": "Zoekt een kaart",
+            "steadying": "Houd stil",
+            "waiting": "Draai de kaart om of leg de volgende neer",
+            "manual": "Druk op de knop voor de foto",
+            "taking": "Foto maken…",
+            "processing": "Foto rechtzetten…",
+            "complete": "Beide kanten gemaakt"
+        },
         "discarded": "Kaart weggegooid"
     },
     "state": {

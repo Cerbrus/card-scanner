@@ -1,4 +1,4 @@
-import { TextWord, bestNumber, localThreshold, nameFromWords, readLanguage, readName, readNumber } from './card-text';
+import { NAME_LINES, NUMBER_LINES, bestName, nameSettled, readLanguage, readName, readNumber } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -26,24 +26,18 @@ describe('reading name and number from the text on a card', () => {
         expect(readName('80 HP\n')).toBeUndefined();
         expect(readName('ENGI')).toBeUndefined();
         expect(readName('')).toBeUndefined();
+        expect(readName('STAGENidorina 70 HP')).toBe('Nidorina');
     });
 
-    it('takes the name from the tallest sure words on the name line, leaving out the small print around it', () => {
-        const word = (text: string, left: number, height: number, confidence = 90, top = 100 - height / 2): TextWord => ({ text, left, right: left + text.length * height * 0.5, top, height, confidence });
+    it('settles on a name once a strip is sure of it or two strips agree, and prefers the name read most often', () => {
+        expect(nameSettled([{ name: 'Pikachu', confidence: 0.95 }])).toBe(true);
+        expect(nameSettled([{ name: 'Pilkachu', confidence: 0.9 }])).toBe(false);
+        expect(nameSettled([{ name: 'Pikachu', confidence: 0.6 }, { name: 'Pilkachu', confidence: 0.9 }, { name: 'Pikachu', confidence: 0.7 }])).toBe(true);
+        expect(nameSettled([])).toBe(false);
 
-        expect(nameFromWords([word('Evolves', 200, 20, 90, 40), word('STAGE', 10, 22, 90, 40), word('2', 70, 22), word('Dragonite', 260, 60), word('100', 600, 58), word('HP', 680, 50)])?.name).toBe('Dragonite');
-        expect(nameFromWords([word('Mime', 140, 50), word('Mr.', 60, 48)])?.name).toBe('Mr. Mime');
-        expect(nameFromWords([word('Fal', 20, 62, 30), word('Dragonite', 260, 60)])?.name).toBe('Dragonite');
-        expect(nameFromWords([word('ENGI', 40, 60)])).toBeUndefined();
-        expect(nameFromWords([])).toBeUndefined();
-        expect(nameFromWords([word('Yeh', 40, 58, 20), word('Marowak', 200, 60, 92)])).toEqual({ name: 'Marowak', confidence: 92 });
-    });
-
-    it('takes the name from the row of the tallest word, not from the evolves-from line above it, and joins a split name', () => {
-        const word = (text: string, left: number, right: number, top: number, height: number): TextWord => ({ text, left, right, top, height, confidence: 90 });
-
-        expect(nameFromWords([word('Evolves', 200, 300, 20, 40), word('Mankey', 330, 420, 22, 44), word('Primeape', 330, 520, 70, 60)])?.name).toBe('Primeape');
-        expect(nameFromWords([word('Ontwikkeld', 200, 340, 18, 46), word('Vilepl', 330, 470, 70, 62), word('ume', 472, 540, 82, 40)])?.name).toBe('Vileplume');
+        expect(bestName([{ name: 'Buttertree', confidence: 0.92 }, { name: 'Butterfree', confidence: 0.8 }, { name: 'Butterfree', confidence: 0.85 }])).toBe('Butterfree');
+        expect(bestName([{ name: 'Yenonat', confidence: 0.6 }, { name: 'Venonat', confidence: 0.9 }])).toBe('Venonat');
+        expect(bestName([])).toBeUndefined();
     });
 
     it('tells the language from the weakness line, also with a misread letter', () => {
@@ -56,33 +50,13 @@ describe('reading name and number from the text on a card', () => {
         expect(readLanguage('')).toBeUndefined();
     });
 
-    it('prefers a number that two readings agree on, otherwise the first one found', () => {
-        expect(bestNumber(['4/64', undefined, '54/64', '54/64'])).toBe('54/64');
-        expect(bestNumber([undefined, '12/102'])).toBe('12/102');
-        expect(bestNumber([undefined, undefined])).toBeUndefined();
+    it('tells the language from a line read without spaces between the words', () => {
+        expect(readLanguage('zwakteresistentieterugtrekkosten')).toBe('nl');
+        expect(readLanguage('weaknessresistan')).toBe('en');
     });
 
-    it('turns text black against its own surroundings, also where the background changes colour', () => {
-        const width = 40;
-        const height = 10;
-        const data = new Uint8ClampedArray(width * height * 4);
-        const shade = (x: number, y: number): number => {
-            const background = x < 20 ? 90 : 220;
-            const text = y >= 4 && y < 6 && x % 10 >= 4 && x % 10 < 6;
-
-            return text ? background - 60 : background;
-        };
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                data.fill(shade(x, y), (y * width + x) * 4, (y * width + x) * 4 + 3);
-                data[(y * width + x) * 4 + 3] = 255;
-            }
-        }
-
-        localThreshold({ data, width, height }, 3, 0.15);
-
-        const black = (x: number, y: number): boolean => data[(y * width + x) * 4] === 0;
-        expect([black(5, 4), black(15, 5), black(25, 4), black(35, 5)]).toEqual([true, true, true, true]);
-        expect([black(1, 1), black(12, 8), black(22, 1), black(38, 8)]).toEqual([false, false, false, false]);
+    it('starts with the strips that most often hold the name and the number', () => {
+        expect(NAME_LINES.map((line) => line.top)).toEqual([0.07, 0.08, 0.06, 0.09]);
+        expect(NUMBER_LINES.map((line) => [line.left, line.top])).toEqual([[0.76, 0.934], [0.76, 0.942], [0.76, 0.926], [0.02, 0.944]]);
     });
 });

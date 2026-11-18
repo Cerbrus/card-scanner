@@ -50,6 +50,16 @@
             "found": "Read: {name} · {number}",
             "nothing": "Name and number not found; you pick the card after saving."
         },
+        "status": {
+            "starting": "Starting the camera…",
+            "looking": "Looking for a card",
+            "steadying": "Hold still",
+            "waiting": "Turn the card over or lay the next one",
+            "manual": "Press the button to take the photo",
+            "taking": "Taking the photo…",
+            "processing": "Straightening the photo…",
+            "complete": "Both sides taken"
+        },
         "discarded": "Card discarded"
     },
     "state": {

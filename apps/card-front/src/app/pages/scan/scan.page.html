@@ -11,6 +11,7 @@
             [class.hidden]="details() || cropping()"
             [side]="nextSide()"
             [paused]="cameraPaused()"
+            [notice]="notice()"
             (captured)="taken($event)"
             (unavailable)="cameraUnavailable()"
             (failed)="cameraFailed()"
@@ -18,7 +19,7 @@
     }
 
     @if (!details() && !cropping()) {
-        @if (textReading(); as reading) {
+        @if (!live() && textReading(); as reading) {
             <p class="read-result muted mt-3 justify-center flex items-center gap-1 text-sm">
                 <i class="material-symbols-outlined text-base leading-none">{{ reading.done ? 'text_fields' : 'hourglass_top' }}</i>
                 @if (!reading.done) {
@@ -58,12 +59,12 @@
         </div>
 
         <div class="mt-4 flex flex-wrap gap-2">
-            @if (busy() === 'saving') {
+            @if (busy() === 'saving' && !live()) {
                 <p class="saving muted flex grow items-center gap-1">
                     <i class="material-symbols-outlined">hourglass_top</i>
                     {{ 'scan.saving' | translate }}
                 </p>
-            } @else if (complete()) {
+            } @else if (complete() && busy() !== 'saving') {
                 <button type="button" class="save btn primary grow" (click)="save()">
                     <i class="material-symbols-outlined">save</i>
                     {{ 'scan.save' | translate }}

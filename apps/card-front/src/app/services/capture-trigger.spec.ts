@@ -30,11 +30,14 @@ describe('taking the photo by itself', () => {
 
     it('does not take the same side twice, and takes the next one once the card is turned over', () => {
         const trigger = new CaptureTrigger();
+        expect(trigger.ready()).toBe(true);
         trigger.taken(yellow);
 
         expect(trigger.see({ corners: card(), colour: yellow, time: 0 })).toBe(false);
         expect(trigger.see({ corners: card(), colour: yellow, time: 5000 })).toBe(false);
+        expect(trigger.ready()).toBe(false);
         expect(trigger.see({ corners: card(), colour: blue, time: 5100 })).toBe(false);
+        expect(trigger.ready()).toBe(true);
         expect(trigger.see({ corners: card(), colour: blue, time: 5100 + STEADY_MILLISECONDS })).toBe(true);
     });
 

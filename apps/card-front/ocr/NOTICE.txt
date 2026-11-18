@@ -1,0 +1,3 @@
+latin-rec.onnx and latin-dict.txt: the Latin text recognition model of PaddleOCR (latin_PP-OCRv5_mobile_rec), converted to ONNX.
+Source: https://github.com/PaddlePaddle/PaddleOCR
+Licence: Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0

@@ -27,7 +27,7 @@ const scaler = {
 
 const camera = { live: false, available: (): boolean => camera.live, open: vi.fn(() => new Promise<MediaStream>(() => undefined)), takePhoto: vi.fn() };
 
-const reader = { read: vi.fn(() => Promise.resolve({ name: 'Charizard', number: '4/102' })) };
+const reader = { prepare: vi.fn(), read: vi.fn(() => Promise.resolve({ name: 'Charizard', number: '4/102' })) };
 
 describe('ScanPage', () => {
     let fixture: ComponentFixture<ScanPage>;
@@ -363,6 +363,23 @@ describe('ScanPage', () => {
             expect(api.createCard).toHaveBeenCalledTimes(1);
             expect(page.querySelector('app-card-details')).not.toBeNull();
             expect(page.querySelector('app-live-camera')?.classList).toContain('hidden');
+        });
+
+        it('tells the camera what to show in its status line: what is read, then that it saves', async () => {
+            api.createCard.mockReturnValue(new Subject<CardSummary>());
+            const notice = (): unknown => fixture.debugElement.query(By.directive(LiveCameraComponent)).componentInstance.notice();
+            expect(notice()).toBeUndefined();
+
+            shot(found);
+            await settle();
+            expect(notice()).toEqual({ icon: 'text_fields', text: 'scan.read.found', params: { name: 'Charizard', number: '4/102' } });
+            expect(page.querySelector('.read-result')).toBeNull();
+
+            shot(found);
+            await settle();
+            expect(notice()).toEqual({ icon: 'hourglass_top', text: 'scan.saving', urgent: true });
+            expect(page.querySelector('.saving')).toBeNull();
+            expect(page.querySelector('button.save')).toBeNull();
         });
 
         it('asks for the corners when the card was not found, and takes a side again after a tap on it', async () => {

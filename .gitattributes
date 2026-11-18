@@ -4,3 +4,5 @@
 Dockerfile text eol=lf
 *.template text eol=lf
 *.png binary
+*.onnx binary
+latin-dict.txt text eol=lf

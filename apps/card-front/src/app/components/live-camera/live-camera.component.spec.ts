@@ -55,6 +55,23 @@ describe('LiveCameraComponent', () => {
         expect(track.stop).toHaveBeenCalledTimes(1);
     });
 
+    it('says in one line what it waits for, and lets the page put its own message there', async () => {
+        const status = (): string => host.querySelector('.status')?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+        expect(status()).toBe('search scan.status.looking');
+
+        fixture.componentRef.setInput('notice', { icon: 'hourglass_top', text: 'scan.read.busy' });
+        await settle();
+        expect(status()).toBe('hourglass_top scan.read.busy');
+
+        click(host, '.shutter');
+        await settle();
+        expect(status()).toBe('photo_camera scan.status.taking');
+
+        fixture.componentRef.setInput('notice', { icon: 'hourglass_top', text: 'scan.saving', urgent: true });
+        await settle();
+        expect(status()).toBe('hourglass_top scan.saving');
+    });
+
     it('stops looking for the card while it is paused, and looks again after', async () => {
         const frames = vi.spyOn(window, 'requestAnimationFrame');
         const cancelled = vi.spyOn(window, 'cancelAnimationFrame');

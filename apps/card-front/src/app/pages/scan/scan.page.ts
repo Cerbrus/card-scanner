@@ -14,6 +14,7 @@ import { CardTextReader } from '../../services/card-text-reader';
 import { CollectionStore } from '../../services/collection.store';
 import { Corners } from '../../services/perspective';
 import { PhotoScaler, ScaledPhoto } from '../../services/photo-scaler';
+import { ScanStatus } from '../../services/scan-status';
 import { ToastService } from '../../services/toast.service';
 
 interface Shot extends ScaledPhoto {
@@ -63,6 +64,7 @@ export class ScanPage {
     protected readonly complete = computed(() => SIDES.every((side) => this.shots()[side]));
     protected readonly nextSide = computed(() => SIDES.find((side) => !this.shots()[side]) ?? 'back');
     protected readonly cameraPaused = computed(() => this.details() !== undefined || this.cropping() !== undefined || this.busy() !== undefined || this.complete());
+    protected readonly notice = computed(() => this.pageNotice());
     protected readonly store = inject(CollectionStore);
 
     private readonly camera = inject(Camera);
@@ -79,6 +81,7 @@ export class ScanPage {
     private left = false;
 
     constructor() {
+        this.reader.prepare();
         this.destroyRef.onDestroy(() => {
             this.left = true;
             this.forget();
@@ -216,6 +219,28 @@ export class ScanPage {
         SIDES.forEach((side) => this.release(this.shots()[side]));
         this.shots.set({});
         this.textReading.set(undefined);
+    }
+
+    private pageNotice(): ScanStatus | undefined {
+        const busy = this.busy();
+        if (busy) {
+            return { icon: 'hourglass_top', text: busy === 'saving' ? 'scan.saving' : 'scan.status.processing', urgent: true };
+        }
+        if (this.complete()) {
+            return { icon: 'check_circle', text: 'scan.status.complete', urgent: true };
+        }
+
+        const reading = this.textReading();
+        if (!reading) {
+            return undefined;
+        }
+        if (!reading.done) {
+            return { icon: 'hourglass_top', text: 'scan.read.busy' };
+        }
+
+        const { name, number } = reading.text ?? {};
+
+        return name || number ? { icon: 'text_fields', text: 'scan.read.found', params: { name: name ?? '?', number: number ?? '?' } } : { icon: 'text_fields', text: 'scan.read.nothing' };
     }
 
     private storedWithoutDetails(): Observable<undefined> {

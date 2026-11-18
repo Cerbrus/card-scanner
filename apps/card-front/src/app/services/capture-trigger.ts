@@ -42,6 +42,10 @@ export class CaptureTrigger {
         return this.armed && time - this.steadySince >= STEADY_MILLISECONDS;
     }
 
+    public ready(): boolean {
+        return this.armed;
+    }
+
     public taken(colour?: [number, number, number]): void {
         this.armed = false;
         this.lastColour = colour;

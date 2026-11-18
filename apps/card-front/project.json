@@ -17,24 +17,20 @@
                 "index": "apps/card-front/src/index.html",
                 "browser": "apps/card-front/src/main.ts",
                 "tsConfig": "apps/card-front/tsconfig.app.json",
+                "webWorkerTsConfig": "apps/card-front/tsconfig.worker.json",
                 "inlineStyleLanguage": "scss",
                 "assets": [
                     "apps/card-front/src/favicon.ico",
                     "apps/card-front/src/assets",
                     {
-                        "glob": "worker.min.js",
-                        "input": "node_modules/tesseract.js/dist",
+                        "glob": "ort-wasm-simd-threaded.wasm",
+                        "input": "node_modules/onnxruntime-web/dist",
                         "output": "ocr"
                     },
                     {
-                        "glob": "tesseract-core-*lstm.wasm.js",
-                        "input": "node_modules/tesseract.js-core",
-                        "output": "ocr/core"
-                    },
-                    {
-                        "glob": "eng.traineddata.gz",
-                        "input": "node_modules/@tesseract.js-data/eng/4.0.0_best_int",
-                        "output": "ocr/lang"
+                        "glob": "latin-*",
+                        "input": "apps/card-front/ocr",
+                        "output": "ocr"
                     }
                 ],
                 "styles": [

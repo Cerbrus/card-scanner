@@ -20,7 +20,7 @@ When a decision changes, update `docs/decisions.md` first, then the affected doc
 - Three optional parts, each off when its setting is empty: login with Google (`GOOGLE_CLIENT_ID`), reading photos with Claude (`ANTHROPIC_API_KEY`), the Google Drive copy (Google client settings plus the owner's consent). Every feature must keep working with all three off.
 - The phone makes each photo smaller and makes the thumbnail; the server stores what it gets and has no image library.
 - Login with Google for an allowlist: one global guard, signed session cookie. New routes are for logged-in users by default; mark one `@Public()` only when it must work without login and `@OwnerOnly()` when only the owner account may use it.
-- The phone reads name and number from fixed strips of the straightened front (four strips at different heights for the name) with Tesseract.js (`card-text-reader.ts`); its files are served from `ocr/` in the web app, never from a CDN.
+- The phone reads name and number from fixed strips of the straightened front, the likeliest strip first, with the PaddleOCR Latin recognition model on ONNX Runtime Web in a web worker (`card-text-reader.ts`, `text-recogniser.ts`); the runtime and the model (`apps/card-front/ocr/`) are served from `ocr/` in the web app, never from a CDN.
 - Outside sources live in `core/connectors/`: `CatalogSource` (TCGdex), `CardReader` (Claude), `GoogleClient` (Drive and Sheets, plain `fetch`). Tests replace them with a fake HTTP server, a patched reader and a fake `fetch`.
 - The same repo layout, lint rules and deployment as `www-nodejs-barcodescanner`.
 
