@@ -52,6 +52,18 @@ describe('taking the photo by itself', () => {
         expect(trigger.see({ corners: card(), colour: blue, time: STEADY_MILLISECONDS * 4 + 100 })).toBe(true);
     });
 
+    it('takes a card that lies still again once a new card is started, also when it looks like the last one', () => {
+        const trigger = new CaptureTrigger();
+        trigger.taken(blue);
+        expect(trigger.see({ corners: card(), colour: blue, time: 5000 })).toBe(false);
+
+        trigger.arm();
+
+        expect(trigger.ready()).toBe(true);
+        expect(trigger.see({ corners: card(), colour: blue, time: 6000 })).toBe(false);
+        expect(trigger.see({ corners: card(), colour: blue, time: 6000 + STEADY_MILLISECONDS })).toBe(true);
+    });
+
     it('takes the next side after the card was out of sight for a moment', () => {
         const trigger = new CaptureTrigger();
         trigger.taken(yellow);

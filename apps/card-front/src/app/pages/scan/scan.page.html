@@ -12,6 +12,7 @@
             [side]="nextSide()"
             [paused]="cameraPaused()"
             [notice]="notice()"
+            [read]="textReading()?.text"
             (captured)="taken($event)"
             (unavailable)="cameraUnavailable()"
             (failed)="cameraFailed()"

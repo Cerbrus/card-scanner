@@ -42,6 +42,11 @@ export class CaptureTrigger {
         return this.armed && time - this.steadySince >= STEADY_MILLISECONDS;
     }
 
+    public arm(): void {
+        this.armed = true;
+        this.previous = undefined;
+    }
+
     public ready(): boolean {
         return this.armed;
     }

@@ -6,6 +6,7 @@ import { PhotoSide } from '../../models';
 import { Camera } from '../../services/camera';
 import { CaptureTrigger, middleColour } from '../../services/capture-trigger';
 import { findCard } from '../../services/card-finder';
+import { CardText } from '../../services/card-text';
 import { CropStart } from '../../services/crop-start';
 import { Corners, Point } from '../../services/perspective';
 import { ScanStatus, Sight, cameraStatus } from '../../services/scan-status';
@@ -80,6 +81,12 @@ function distance(from: Point, to: Point): number {
                     <i class="material-symbols-outlined">{{ status().icon }}</i>
                     {{ status().text | translate: status().params }}
                 </p>
+                @if (read()?.name; as name) {
+                    <span class="read name">{{ name }}</span>
+                }
+                @if (read()?.number; as number) {
+                    <span class="read number">{{ number }}</span>
+                }
                 @if (capturing()) {
                     <span class="flash"></span>
                 }
@@ -105,12 +112,16 @@ function distance(from: Point, to: Point): number {
         .overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .edge { fill: none; stroke: var(--grading-mark); stroke-linejoin: round; transition: opacity 0.2s; }
         .edge.lost { opacity: 0; }
-        .badge { position: absolute; top: 8px; left: 8px; padding: 4px 10px; border-radius: 999px; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; }
-        .auto { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 999px; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; }
+        .badge, .auto, .status, .read { position: absolute; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; }
+        .badge { top: 8px; left: 8px; padding: 4px 10px; border-radius: 999px; }
+        .auto { top: 8px; right: 8px; display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 999px; }
         .auto i { font-size: 20px; }
         .auto.on { background: var(--accent); color: var(--accent-text); }
-        .status { position: absolute; top: 46px; right: 8px; left: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 5px 10px; border-radius: 8px; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; pointer-events: none; }
+        .status { top: 46px; right: 8px; left: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 5px 10px; border-radius: 8px; pointer-events: none; }
         .status i { font-size: 18px; }
+        .read { padding: 4px 10px; border-radius: 8px; pointer-events: none; }
+        .read.name { top: 8px; left: 50%; max-width: calc(100% - 210px); overflow: hidden; transform: translateX(-50%); text-overflow: ellipsis; white-space: nowrap; }
+        .read.number { right: 8px; bottom: 14px; }
         .flash { position: absolute; inset: 0; border-radius: 12px; background: var(--mark-text); opacity: 0.35; }
         .shutter { position: absolute; bottom: 14px; left: 50%; display: grid; place-items: center; width: 68px; height: 68px; transform: translateX(-50%); border: 4px solid var(--mark-text); border-radius: 50%; background: var(--crop-shade); color: var(--mark-text); }
         .shutter i { font-size: 30px; }
@@ -121,6 +132,7 @@ export class LiveCameraComponent {
     public readonly side = input.required<PhotoSide>();
     public readonly paused = input(false);
     public readonly notice = input<ScanStatus | undefined>(undefined);
+    public readonly read = input<CardText | undefined>(undefined);
     public readonly captured = output<CameraShot>();
     public readonly unavailable = output<void>();
     public readonly failed = output<void>();
@@ -162,6 +174,11 @@ export class LiveCameraComponent {
         effect(() => {
             const awake = this.ready() && !this.paused();
             untracked(() => (awake ? this.wake() : this.rest()));
+        });
+        effect(() => {
+            if (this.side() === 'front') {
+                this.trigger.arm();
+            }
         });
         inject(DestroyRef).onDestroy(() => this.stop());
     }

@@ -238,9 +238,7 @@ export class ScanPage {
             return { icon: 'hourglass_top', text: 'scan.read.busy' };
         }
 
-        const { name, number } = reading.text ?? {};
-
-        return name || number ? { icon: 'text_fields', text: 'scan.read.found', params: { name: name ?? '?', number: number ?? '?' } } : { icon: 'text_fields', text: 'scan.read.nothing' };
+        return reading.text?.name || reading.text?.number ? undefined : { icon: 'text_fields', text: 'scan.read.nothing' };
     }
 
     private storedWithoutDetails(): Observable<undefined> {

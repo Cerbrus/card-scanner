@@ -365,14 +365,15 @@ describe('ScanPage', () => {
             expect(page.querySelector('app-live-camera')?.classList).toContain('hidden');
         });
 
-        it('tells the camera what to show in its status line: what is read, then that it saves', async () => {
+        it('hands the camera what was read to show on the video, and tells it in its status line that it saves', async () => {
             api.createCard.mockReturnValue(new Subject<CardSummary>());
             const notice = (): unknown => fixture.debugElement.query(By.directive(LiveCameraComponent)).componentInstance.notice();
             expect(notice()).toBeUndefined();
 
             shot(found);
             await settle();
-            expect(notice()).toEqual({ icon: 'text_fields', text: 'scan.read.found', params: { name: 'Charizard', number: '4/102' } });
+            expect(notice()).toBeUndefined();
+            expect(liveCamera().read()).toEqual({ name: 'Charizard', number: '4/102' });
             expect(page.querySelector('.read-result')).toBeNull();
 
             shot(found);

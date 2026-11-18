@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { click } from '../../../testing/fakes';
 import { TranslateTesting } from '../../../testing/translate';
 import { Camera } from '../../services/camera';
+import { CaptureTrigger } from '../../services/capture-trigger';
 import { CropStart } from '../../services/crop-start';
 import { CameraShot, LiveCameraComponent } from './live-camera.component';
 
@@ -70,6 +71,31 @@ describe('LiveCameraComponent', () => {
         fixture.componentRef.setInput('notice', { icon: 'hourglass_top', text: 'scan.saving', urgent: true });
         await settle();
         expect(status()).toBe('hourglass_top scan.saving');
+    });
+
+    it('shows the name that was read at the top and the number bottom right, for as long as the page has them', async () => {
+        expect(host.querySelector('.read')).toBeNull();
+
+        fixture.componentRef.setInput('read', { name: 'Charizard', number: '4/102' });
+        await settle();
+        expect(host.querySelector('.read.name')?.textContent).toBe('Charizard');
+        expect(host.querySelector('.read.number')?.textContent).toBe('4/102');
+
+        fixture.componentRef.setInput('read', { number: '4/102' });
+        await settle();
+        expect(host.querySelector('.read.name')).toBeNull();
+    });
+
+    it('is ready to take a card by itself again when a new card starts with its front', async () => {
+        const arm = vi.spyOn(CaptureTrigger.prototype, 'arm');
+
+        fixture.componentRef.setInput('side', 'front');
+        await settle();
+        expect(arm).toHaveBeenCalledTimes(1);
+
+        fixture.componentRef.setInput('side', 'back');
+        await settle();
+        expect(arm).toHaveBeenCalledTimes(1);
     });
 
     it('stops looking for the card while it is paused, and looks again after', async () => {
