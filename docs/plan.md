@@ -14,7 +14,7 @@ Also open for the owner to decide:
 
 - Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15), with the secret and the Claude GitHub App in place; its first review ran on 2026-11-15.
 - The branch ruleset `protect-master` is set (done 2026-11-16 18:32): on `master` no deletion, no force-push, and only the repository admin may push. A workflow token can no longer change the scripts the Pi fetches from `master`; the Dependabot reviewer pushes to Dependabot branches only and the build pushes tags only.
-- The Dependabot reviewer still installs the proposed packages in the job that holds the Claude token ([review of 2026-11-16](review-2026-11-16.md), finding 29; all its other findings are fixed or dropped). Accepted as it is (owner, 2026-11-16).
+- The Dependabot reviewer still installs the proposed packages in the job that holds the Claude token, as in the barcode scanner. A package that turns out to be malicious within the day the reviewer waits would run there; it cannot reach the Pi, since only the repository admin may push to `master`. Accepted as it is (owner, 2026-11-16).
 
 ## Never tested
 
@@ -136,6 +136,15 @@ On 2026-11-18 the collection held 171 cards: 89 English, 80 Dutch, one German, o
 - [x] Log page for the owner, from the Settings page (done 2026-11-15 17:20)
 
 ## Open
+
+Left from the code review of 2026-11-16, whose other findings are all fixed (the review itself is in the git history, `docs/review-2026-11-16.md`):
+
+- Looking for the card ten times a second is heavy (`services/card-finder.ts`): each look sorts about 57,600 values, fills an array of about 130,000 cells and tries up to 36,100 pairs of lines. On a busy background a look may take longer than its 100 milliseconds. Waits until scanning feels slow (owner).
+- Straightening a 12-megapixel photo holds roughly 150 MB at its peak (`services/photo-scaler.ts`), an estimate. A risk on iPhones, which cap canvas memory, after many scans in a row; it would show as "unreadable". The canvases are emptied right after use; the rest waits (owner).
+- `photo-scaler.ts` has no test of its own: it wraps browser parts the test DOM lacks (owner). "Auto" finding a card is covered by the end-to-end test only.
+- The languages a card can have are four (English, Dutch, German, French), cut from eleven without a migration. A card stored with another language would be refused on its next edit; the owner has none.
+
+Other:
 
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - If the photos from the camera in the page disappoint: back to the phone's camera app, and open it by itself for the front when the scan page opens and for the back after the front is cropped. A browser only opens a file input from a tap, so the back can follow the crop button's tap; the front on page open needs checking on the phone.
