@@ -27,7 +27,7 @@ Also open for the owner to decide:
 - **A restore** from the Drive copy.
 - **Crop and straighten on a real phone**: dragging the corners with a finger, and the time the straightening takes on a 12-megapixel photo. Tested in desktop Chrome with a made-up photo.
 - **Moving photos to the Drive trash** against the real Drive; tested with the fake Google.
-- **Reading name and number from real phone photos.** With the PaddleOCR model since 2026-11-18, on the owner's 125 confirmed fronts (Base Set, Jungle, Fossil; English and Dutch) in desktop Chrome: 103 of 103 Pokémon names, 119 numbers right, 0 wrong, 6 not read, about 0.4 seconds per card. Not tried: the time and the memory on a phone, newer layouts with the number bottom left, and Trainer and Energy cards, whose name is not in the strips. With Tesseract.js before that: on the owner's 58 photographed fronts on 2026-11-16 (Base Set, Jungle, Fossil): names right on all but 2 not read (an Energy card and a Jigglypuff) and Venonat read as "Yenonat" twice; numbers 48 right, 0 wrong, 10 not read, mostly holo cards. About 0.5 seconds per card in desktop Chrome. Earlier: tried on the catalogue pictures of eight Base Set and Jungle cards (600 pixels wide, sharper photos are expected from a phone): all seven Pokémon names right, five of seven numbers right and none wrong, about one second per card in desktop Chrome. Trainer and Energy cards, newer layouts and Dutch prints are not tried; the time on a phone is not known. First real card from the owner's phone (Fossil Dragonite): number right, name wrong; right after the change of 2026-11-15 21:30.
+- **Reading name and number from real phone photos.** With the PaddleOCR model since 2026-11-18, on the owner's 125 confirmed fronts (Base Set, Jungle, Fossil; English and Dutch) in desktop Chrome: 103 of 103 Pokémon names, 119 numbers right, 0 wrong, 6 not read, about 0.4 seconds per card. Not tried: the time and the memory on a phone, newer layouts with the number bottom left, Trainer cards in Dutch or in a newer layout (the owner has none scanned), and telling the type of a basic Energy card without its number. With Tesseract.js before that: on the owner's 58 photographed fronts on 2026-11-16 (Base Set, Jungle, Fossil): names right on all but 2 not read (an Energy card and a Jigglypuff) and Venonat read as "Yenonat" twice; numbers 48 right, 0 wrong, 10 not read, mostly holo cards. About 0.5 seconds per card in desktop Chrome. Earlier: tried on the catalogue pictures of eight Base Set and Jungle cards (600 pixels wide, sharper photos are expected from a phone): all seven Pokémon names right, five of seven numbers right and none wrong, about one second per card in desktop Chrome. Trainer and Energy cards, newer layouts and Dutch prints are not tried; the time on a phone is not known. First real card from the owner's phone (Fossil Dragonite): number right, name wrong; right after the change of 2026-11-15 21:30.
 - **The camera in the page on a real phone**: the sharpness of its photos against the camera app, `ImageCapture` on the owner's phone, how fast the card is found per frame, and, with "Auto" on, whether turning the card over always takes the back. Quality of the photos checked by the owner on 2026-11-16: fine. Tested in headless Chrome with a fake camera playing a made-up card.
 - **Finding the card in real photos.** The line detection was tried on nine of the owner's uncropped photos on a dark mat: the seven where the whole card is in the photo got their outer edges, fronts and backs; the two where the card fills the photo got an outline along the photo's edge. Not tried on a light or busy table, or with a shiny sleeve, and not timed on a phone.
 
@@ -82,6 +82,8 @@ Also open for the owner to decide:
 - [x] The name read stays top middle on the video and the number bottom right; back at the camera for a new card, the photo is taken by itself without first taking the card away (done 2026-11-18 13:10)
 - [x] On the video the name gets all the room between the side and "Auto" and is cut off with one dot; the flag of the language read sits bottom left (done 2026-11-18 13:35)
 - [x] A number whose slash was read as a 1 ("7164"): the phone sends the digits, the server puts the slash back when a set of that size exists and it fits the name (done 2026-11-18 14:05)
+- [x] The name of a Trainer card, read from strips under the banner when the name strips hold none: 8 of the owner's 9 right, the ninth close enough to be found. Basic Energy cards have no printed name and are found by number (done 2026-11-18 13:50)
+- [x] The server learns a read name that is not in the catalogue when the user confirms the card, so a Dutch, German or French name is found by name from the second time on (done 2026-11-18 13:50)
 
 ### Milestone 4: prices
 
@@ -138,24 +140,11 @@ Also open for the owner to decide:
 
 ## Planned
 
-Looked into on 2026-11-18, not built. Each waits for the owner's answers to the questions under it.
-
-### Names of Trainer and Energy cards
-
-Now: 0 of the owner's 20 Trainer and Energy cards get a name. The name strips sit where a Pokémon name is; on these cards they hold "TRAINER" or "ENERGY" in capitals, which the name rule drops. Their numbers are read like any other, so most are found by number alone.
-
-1. Measure first. Take the 20 fronts from the Pi, read the top third in thin strips, and note at which height and width the name sits on old Trainer cards (under the "TRAINER" banner), on basic Energy and on special Energy. Positions below are guesses until then.
-2. Tell the kind from what is already read: a name strip that holds "TRAINER", "ENERGY" or "ENERGIE" marks the card. No extra strip for Pokémon cards, so their speed and their 103 of 103 stay as they are.
-3. For a marked card, read one or two strips at the measured height, with its own name rule: several words, and the words the Pokémon rule drops are allowed ("Energy Removal", "Pokémon Center", "Professor Oak").
-4. Basic Energy: the name is the type plus "Energy". When the text is not read, the type could come from the colour of the card; only if step 1 shows the text fails.
-5. Dutch cards: the catalogue has English names only. A table for the eight basic Energy names (Vuur, Water, Gras and so on) is small; Dutch Trainer names are not translated and stay on the number.
-6. Check on the 20 cards plus the 105 others: names found on Trainer and Energy, and nothing lost on Pokémon cards.
-
-Not known: newer layouts, where the name of a Trainer card sits on the same line as a Pokémon name; the owner has none scanned.
-
-Question: is a Dutch Trainer card without a name match good enough when its number is read?
+Looked into on 2026-11-18, not built.
 
 ### Separate collections
+
+Parked by the owner on 2026-11-18.
 
 Now: one table of owned cards, one total value, one export, one sheet in Drive. Nothing says to which collection a card belongs.
 

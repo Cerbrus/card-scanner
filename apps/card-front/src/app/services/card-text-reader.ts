@@ -1,7 +1,23 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 
-import { CardText, LANGUAGE_REGION, NAME_LINES, NUMBER_LINES, NameReading, Region, bestName, nameSettled, readDigits, readLanguage, readName, readNumber } from './card-text';
+import {
+    CardText,
+    LANGUAGE_REGION,
+    MIN_TITLE_CONFIDENCE,
+    NAME_LINES,
+    NUMBER_LINES,
+    NameReading,
+    Region,
+    TITLE_LINES,
+    bestName,
+    nameSettled,
+    readDigits,
+    readLanguage,
+    readName,
+    readNumber,
+    readTitle
+} from './card-text';
 import { LINE_HEIGHT, LinePixels, MIN_LINE_WIDTH } from './text-lines';
 import { TextRecogniser } from './text-recogniser';
 
@@ -45,10 +61,14 @@ export class CardTextReader {
     }
 
     private async readName(card: ImageBitmap): Promise<string | undefined> {
+        return (await this.nameFrom(card, NAME_LINES, readName, 0)) ?? (await this.nameFrom(card, TITLE_LINES, readTitle, MIN_TITLE_CONFIDENCE));
+    }
+
+    private async nameFrom(card: ImageBitmap, regions: Array<Region>, read: (text: string) => string | undefined, minConfidence: number): Promise<string | undefined> {
         const readings: Array<NameReading> = [];
-        for (const region of NAME_LINES) {
+        for (const region of regions) {
             const { text, confidence } = await this.recogniser.recognise(this.line(card, region));
-            const name = readName(text);
+            const name = confidence >= minConfidence ? read(text) : undefined;
             if (name) {
                 readings.push({ name, confidence });
             }

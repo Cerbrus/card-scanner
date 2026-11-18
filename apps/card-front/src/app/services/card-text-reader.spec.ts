@@ -79,11 +79,25 @@ describe('CardTextReader', () => {
         expect(asked.slice(0, 4)).toEqual(['50,70', '50,80', '50,60', '760,934']);
     });
 
+    it('looks under the banner for the title of a Trainer card when the name strips hold none, and takes no unsure scribble', async () => {
+        lines = {
+            '50,70': { text: 'TRAINER', confidence: 0.99 },
+            '50,170': { text: 'Energy Rmoval', confidence: 0.77 },
+            '50,185': { text: 'Energy Removal', confidence: 0.91 },
+            '50,155': { text: 'Energy Removal', confidence: 0.89 }
+        };
+        expect((await reader.read(new Blob())).name).toBe('Energy Removal');
+        expect(asked.slice(0, 7)).toEqual(['50,70', '50,80', '50,60', '50,90', '50,170', '50,185', '50,155']);
+
+        lines = { '50,70': { text: 'ENERGY', confidence: 0.98 }, '50,170': { text: 'Remem', confidence: 0.32 } };
+        expect((await reader.read(new Blob())).name).toBeUndefined();
+    });
+
     it('tries the next number strip, down to the left corner of newer cards', async () => {
         lines = { '760,934': { text: '1999 Wizards', confidence: 0.9 }, '20,944': { text: '025/165', confidence: 0.9 } };
 
         expect(await reader.read(new Blob())).toEqual({ name: undefined, number: '025/165', language: undefined });
-        expect(asked.slice(4, 8)).toEqual(['760,934', '760,942', '760,926', '20,944']);
+        expect(asked.slice(7, 11)).toEqual(['760,934', '760,942', '760,926', '20,944']);
     });
 
     it('hands over the digits of a number whose slash was not read, and drops them when a later strip has the number', async () => {

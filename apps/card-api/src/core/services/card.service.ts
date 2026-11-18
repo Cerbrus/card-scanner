@@ -206,9 +206,12 @@ export class CardService implements OnApplicationBootstrap {
 
     public async confirm(id: number, catalogCardId: string): Promise<CardDetail> {
         const card = await this.find(id);
-        if (!(await this.catalog.byIds([catalogCardId])).has(catalogCardId)) {
+        const chosen = (await this.catalog.byIds([catalogCardId])).get(catalogCardId);
+        if (!chosen) {
             throw new BadRequestException('Unknown catalogue card');
         }
+
+        await this.catalog.learnName(card.reading?.name, chosen.name);
 
         card.catalogCardId = catalogCardId;
         card.status = 'confirmed';

@@ -1,4 +1,4 @@
-import { NAME_LINES, NUMBER_LINES, bestName, nameSettled, readDigits, readLanguage, readName, readNumber } from './card-text';
+import { NAME_LINES, NUMBER_LINES, TITLE_LINES, bestName, nameSettled, readDigits, readLanguage, readName, readNumber, readTitle } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -35,6 +35,21 @@ describe('reading name and number from the text on a card', () => {
         expect(readName('ENGI')).toBeUndefined();
         expect(readName('')).toBeUndefined();
         expect(readName('STAGENidorina 70 HP')).toBe('Nidorina');
+        expect(readName('TRAINER')).toBeUndefined();
+        expect(readName('M EnERG')).toBeUndefined();
+        expect(readName('Ho-Oh 90 HP')).toBe('Ho-Oh');
+    });
+
+    it('takes the whole title under the banner of a Trainer card, in any language, up to the first digit', () => {
+        expect(readTitle('Energy Removal')).toBe('Energy Removal');
+        expect(readTitle('Mysterious Fossil 10 HP')).toBe('Mysterious Fossil');
+        expect(readTitle(' Poké Ball ')).toBe('Poké Ball');
+        expect(readTitle('Energie-Absauger.')).toBe('Energie-Absauger');
+        expect(readTitle('IRHINER')).toBeUndefined();
+        expect(readTitle('Ee')).toBeUndefined();
+        expect(readTitle('remem')).toBeUndefined();
+        expect(readTitle('')).toBeUndefined();
+        expect(TITLE_LINES.map((line) => line.top)).toEqual([0.17, 0.185, 0.155]);
     });
 
     it('settles on a name once a strip is sure of it or two strips agree, and prefers the name read most often', () => {

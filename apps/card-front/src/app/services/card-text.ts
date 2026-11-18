@@ -16,6 +16,8 @@ export interface Region {
 
 export const NAME_LINES: Array<Region> = [0.07, 0.08, 0.06, 0.09].map((top) => ({ left: 0.05, top, width: 0.61, height: 0.058 }));
 const SURE_NAME = 0.93;
+export const TITLE_LINES: Array<Region> = [0.17, 0.185, 0.155].map((top) => ({ left: 0.05, top, width: 0.61, height: 0.058 }));
+export const MIN_TITLE_CONFIDENCE = 0.5;
 export const NUMBER_LINES: Array<Region> = [
     ...[0.934, 0.942, 0.926].map((top) => ({ left: 0.76, top, width: 0.167, height: 0.022 })),
     { left: 0.02, top: 0.944, width: 0.32, height: 0.048 }
@@ -38,7 +40,8 @@ const MAX_NUMBER_DIGITS = 3;
 const NAME_WORD = /^[A-ZÀ-Ý][A-Za-zÀ-ÿ.'’♀♂-]*$/;
 const NOT_NAME = new Set(['basic', 'stage', 'pokemon', 'pokémon', 'evolves', 'from', 'put', 'hp', 'lv', 'level', 'trainer', 'energy', 'item', 'supporter', 'ex', 'gx', 'v', 'leg', 'ontwikkeld', 'uit', 'basis', 'fase']);
 const MIN_NAME_LETTERS = 3;
-const ALL_CAPITALS = /^[A-ZÀ-Ý]{2,}$/;
+const CAPITAL = /[A-ZÀ-Ý]/g;
+const AFTER_TITLE = /[^A-Za-zÀ-ÿ.'’♀♂ -][^]*$/;
 const GLUED_CAPITALS = /(^|\s)[A-ZÀ-Ý]{2,}(?=[A-ZÀ-Ý][a-zà-ÿ])/g;
 
 export function readNumber(text: string): string | undefined {
@@ -126,11 +129,26 @@ export function readName(text: string): string | undefined {
     return lines.sort((left, right) => letters(right) - letters(left))[0];
 }
 
+export function readTitle(text: string): string | undefined {
+    const title = text
+        .replace(AFTER_TITLE, '')
+        .replace(/\s+/g, ' ')
+        .replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ]+$/g, '');
+
+    return letters(title) >= MIN_NAME_LETTERS && /^[A-ZÀ-Ý]/.test(title) && !title.split(' ').some((word) => mostlyCapitals(word)) ? title : undefined;
+}
+
+function mostlyCapitals(word: string): boolean {
+    const size = letters(word);
+
+    return size > 1 && (word.match(CAPITAL)?.length ?? 0) * 2 > size;
+}
+
 function nameIn(line: string): string | undefined {
     const groups: Array<Array<string>> = [[]];
     for (const raw of line.split(/\s+/)) {
         const word = raw.replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ.'’♀♂]+$/g, '');
-        if (word && NAME_WORD.test(word) && !NOT_NAME.has(word.toLowerCase()) && !ALL_CAPITALS.test(word)) {
+        if (word && NAME_WORD.test(word) && !NOT_NAME.has(word.toLowerCase()) && !mostlyCapitals(word)) {
             groups[groups.length - 1].push(word);
         } else if (groups[groups.length - 1].length) {
             groups.push([]);

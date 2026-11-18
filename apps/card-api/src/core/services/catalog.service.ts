@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Like, Repository } from 'typeorm';
 
-import { Candidate, CatalogCardEntity, CatalogSetEntity } from '../../data/entities';
+import { Candidate, CatalogCardEntity, CatalogSetEntity, LearnedNameEntity } from '../../data/entities';
 import { CatalogSource } from '../connectors/catalog.source';
-import { MatchQuery, MatchSet, localIdForms, rankMatches, setIdOf } from '../rules/matching';
+import { MatchQuery, MatchSet, localIdForms, normalizeText, rankMatches, setIdOf } from '../rules/matching';
 import { readPricing } from '../rules/pricing';
 import { SettingService } from './setting.service';
 
@@ -31,6 +31,7 @@ export class CatalogService {
     constructor(
         @InjectRepository(CatalogSetEntity) private readonly sets: Repository<CatalogSetEntity>,
         @InjectRepository(CatalogCardEntity) private readonly cards: Repository<CatalogCardEntity>,
+        @InjectRepository(LearnedNameEntity) private readonly learned: Repository<LearnedNameEntity>,
         private readonly source: CatalogSource,
         private readonly settings: SettingService
     ) {
@@ -62,7 +63,19 @@ export class CatalogService {
         return this.refreshing;
     }
 
-    public async search(query: MatchQuery, limit = CANDIDATE_LIMIT): Promise<Array<Candidate>> {
+    public async learnName(read: string | null | undefined, name: string): Promise<void> {
+        const key = normalizeText(read);
+        if (!key || key === normalizeText(name) || (await this.cards.existsBy({ name: Like((read ?? '').trim().replace(/[%_]/g, '')) }))) {
+            return;
+        }
+
+        await this.learned.save({ read: key, name, learnedAt: new Date() });
+    }
+
+    public async search(read: MatchQuery, limit = CANDIDATE_LIMIT): Promise<Array<Candidate>> {
+        const key = normalizeText(read.name);
+        const known = key ? await this.learned.findOneBy({ read: key }) : null;
+        const query = known ? { ...read, name: known.name } : read;
         const pool = await this.pool(query);
         const sets = new Map<string, MatchSet>((await this.sets.find()).map((set) => [set.id, set]));
 

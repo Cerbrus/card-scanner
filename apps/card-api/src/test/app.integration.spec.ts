@@ -298,6 +298,29 @@ describe('the whole app', () => {
         assert.equal(unread.status, 'new');
     });
 
+    it('learns the name printed on a card in another language once the user says which card it is, and leaves real names alone', async () => {
+        Object.assign(app.get(CardReader), { enabled: false });
+        const scan = async (text: Record<string, string>): Promise<Card> => {
+            const created = await json<Card>('/cards', { method: 'POST', body: photoForm(undefined, undefined, {}, text) });
+
+            return json<Card>(`/cards/${created.id}`);
+        };
+        const confirm = (id: number, catalogCardId: string): Promise<Card> =>
+            json<Card>(`/cards/${id}/confirm`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ catalogCardId }) });
+
+        assert.equal((await scan({ name: 'Glurak' })).status, 'new');
+        const german = await scan({ name: 'Glurak', number: '4/102' });
+        await confirm(german.id, 'base1-4');
+
+        const next = await scan({ name: 'glurak' });
+        assert.equal(next.candidates?.[0].catalogCardId, 'base1-4');
+        assert.equal((await json<Array<{ catalogCardId: string }>>('/catalog/search?name=Glurak'))[0].catalogCardId, 'base1-4');
+
+        const mistaken = await scan({ name: 'Pikachu', number: '4/102' });
+        await confirm(mistaken.id, 'base1-4');
+        assert.equal((await scan({ name: 'Pikachu' })).candidates?.[0].catalogCardId, 'base1-58');
+    });
+
     it('puts the slash back in a number the phone read as digits only, when that fits a set and the name', async () => {
         Object.assign(app.get(CardReader), { enabled: false });
         const read = async (text: Record<string, string>): Promise<Card & { reading?: { name: string | null; number: string | null } }> => {
