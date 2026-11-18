@@ -183,6 +183,11 @@ A failed reading or a failed lookup leaves the card as it is, with its photos.
 
 The pool is every catalogue card with that number or with the name as part of its name. The best eight are offered. Number and set total are the same in every language, so a German or Dutch print finds its English catalogue card.
 
+Two steps come before the scoring:
+
+- A name that is in `learned_name` is replaced by the catalogue name it stands for. The table is filled when the user confirms a card whose reading has a name that no catalogue card carries, so a name in another language, or a misreading that returns, matches by name from then on.
+- A scan that has digits instead of a number (`digits`, the slash read as a 1) gets its slash back with `numbersWithSlash`: only for a set size that exists, and with a name only when the number makes a better match than the name alone.
+
 ## Prices
 
 `core/rules/pricing.ts` turns a TCGdex card into the stored `pricing` and picks the figure for a print:

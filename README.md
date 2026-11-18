@@ -1,6 +1,6 @@
 # Card Scanner
 
-Photograph a Pokémon card, front and back, with a phone. The app keeps the photos, helps to find out which card it is, looks up its value on the European market and keeps the collection in a database. Photos and card details can be copied to Google Drive and a Google Sheet. One user, home use, about 100 to 150 cards.
+Photograph a Pokémon card, front and back, with a phone. The app keeps the photos, helps to find out which card it is, looks up its value on the European market and keeps the collection in a database. Photos and card details can be copied to Google Drive and a Google Sheet. One user, home use, a few hundred cards.
 
 ## What it does
 

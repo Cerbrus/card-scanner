@@ -18,17 +18,18 @@ Also open for the owner to decide:
 
 ## Never tested
 
+On 2026-11-18 the collection held 171 cards: 89 English, 80 Dutch, one German, one French.
+
 - **Reading photos with the real model.** The call is written against the Anthropic SDK and type-checked; the flow around it is tested with a stand-in reader. No API key was available, so no real photo has been read yet. The instructions for the model in `card.reader.ts` are a first version.
-- **The scan page on a real phone**: opening the camera, the size and quality of the scaled photos, rotation of portrait photos.
 - **Condition estimates**: whether the model's judgement from phone photos is useful at all.
 - **The filtered Cardmarket link for other languages than Dutch.** The owner checked on 2026-11-15 that Cardmarket keeps the filter when it forwards from the product id to the product page (Dutch, Excellent). The language numbers for the other languages come from memory and are not checked.
-- **Dutch and other non-English prints**: found through number and set total in tests with made-up readings; not tried with real cards.
+- **Prints in other languages than Dutch and English**: one German and one French card, both found by number. Learning a name was tried with Dutch Trainer cards only.
 - **`install.sh` on a fresh Pi.** On the server Pi it ran fine, but Docker and the memory settings were already there.
 - **A restore** from the Drive copy.
-- **Crop and straighten on a real phone**: dragging the corners with a finger, and the time the straightening takes on a 12-megapixel photo. Tested in desktop Chrome with a made-up photo.
+- **The manual scan on a real phone**: the owner uses the camera in the page. With the phone's camera app the rotation of portrait photos and the time the straightening takes on a 12-megapixel photo were never looked at.
 - **Moving photos to the Drive trash** against the real Drive; tested with the fake Google.
-- **Reading name and number from real phone photos.** With the PaddleOCR model since 2026-11-18, on the owner's 125 confirmed fronts (Base Set, Jungle, Fossil; English and Dutch) in desktop Chrome: 103 of 103 Pokémon names, 119 numbers right, 0 wrong, 6 not read, about 0.4 seconds per card. Not tried: the time and the memory on a phone, newer layouts with the number bottom left, Trainer cards in Dutch or in a newer layout (the owner has none scanned), and telling the type of a basic Energy card without its number. With Tesseract.js before that: on the owner's 58 photographed fronts on 2026-11-16 (Base Set, Jungle, Fossil): names right on all but 2 not read (an Energy card and a Jigglypuff) and Venonat read as "Yenonat" twice; numbers 48 right, 0 wrong, 10 not read, mostly holo cards. About 0.5 seconds per card in desktop Chrome. Earlier: tried on the catalogue pictures of eight Base Set and Jungle cards (600 pixels wide, sharper photos are expected from a phone): all seven Pokémon names right, five of seven numbers right and none wrong, about one second per card in desktop Chrome. Trainer and Energy cards, newer layouts and Dutch prints are not tried; the time on a phone is not known. First real card from the owner's phone (Fossil Dragonite): number right, name wrong; right after the change of 2026-11-15 21:30.
-- **The camera in the page on a real phone**: the sharpness of its photos against the camera app, `ImageCapture` on the owner's phone, how fast the card is found per frame, and, with "Auto" on, whether turning the card over always takes the back. Quality of the photos checked by the owner on 2026-11-16: fine. Tested in headless Chrome with a fake camera playing a made-up card.
+- **Reading name and number: what is left.** Measured in desktop Chrome on the owner's own fronts (Base Set, Jungle, Fossil; English and Dutch) on 2026-11-18: 148 names right on 162 cards, the rest being eleven basic Energy cards without a printed name, the German and the French card read in their own language, and one Trainer card read as "Switc"; numbers read on 156 of 162, none wrong. On the phone the owner finds it fast enough (2026-11-18); it was not timed there. Not tried: newer layouts with the number bottom left, Trainer cards in a newer layout, the slash repair on a real card, and telling the type of a basic Energy card without its number.
+- **The camera in the page: what is left.** The owner scanned about 180 cards with it on a phone by 2026-11-18, with "Auto" on, and found the photos fine (2026-11-16). Not measured: how fast the card is found per frame, and whether `ImageCapture` or the video frame is used on the owner's phone.
 - **Finding the card in real photos.** The line detection was tried on nine of the owner's uncropped photos on a dark mat: the seven where the whole card is in the photo got their outer edges, fronts and backs; the two where the card fills the photo got an outline along the photo's edge. Not tried on a light or busy table, or with a shiny sleeve, and not timed on a phone.
 
 ## Done
@@ -141,7 +142,7 @@ Also open for the owner to decide:
 
 ## Planned
 
-Looked into on 2026-11-18, not built.
+Looked into, not built.
 
 ### Separate collections
 
