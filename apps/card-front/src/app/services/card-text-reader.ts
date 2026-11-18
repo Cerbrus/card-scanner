@@ -10,7 +10,9 @@ import {
     NameReading,
     Region,
     TITLE_LINES,
+    WIDE_TITLE_LINE,
     bestName,
+    longerTitle,
     nameSettled,
     readDigits,
     readLanguage,
@@ -61,7 +63,18 @@ export class CardTextReader {
     }
 
     private async readName(card: ImageBitmap): Promise<string | undefined> {
-        return (await this.nameFrom(card, NAME_LINES, readName, 0)) ?? (await this.nameFrom(card, TITLE_LINES, readTitle, MIN_TITLE_CONFIDENCE));
+        return (await this.nameFrom(card, NAME_LINES, readName, 0)) ?? (await this.readTitle(card));
+    }
+
+    private async readTitle(card: ImageBitmap): Promise<string | undefined> {
+        const title = await this.nameFrom(card, TITLE_LINES, readTitle, MIN_TITLE_CONFIDENCE);
+        if (!title) {
+            return undefined;
+        }
+
+        const wide = await this.recogniser.recognise(this.line(card, WIDE_TITLE_LINE));
+
+        return longerTitle(title, wide.confidence >= MIN_TITLE_CONFIDENCE ? readTitle(wide.text) : undefined);
     }
 
     private async nameFrom(card: ImageBitmap, regions: Array<Region>, read: (text: string) => string | undefined, minConfidence: number): Promise<string | undefined> {

@@ -83,6 +83,7 @@ Also open for the owner to decide:
 - [x] On the video the name gets all the room between the side and "Auto" and is cut off with one dot; the flag of the language read sits bottom left (done 2026-11-18 13:35)
 - [x] A number whose slash was read as a 1 ("7164"): the phone sends the digits, the server puts the slash back when a set of that size exists and it fits the name (done 2026-11-18 14:05)
 - [x] The name of a Trainer card, read from strips under the banner when the name strips hold none: 8 of the owner's 9 right, the ninth close enough to be found. Basic Energy cards have no printed name and are found by number (done 2026-11-18 13:50)
+- [x] A long title on a Trainer card is finished from one strip over the width of the card ("Zoeken per Computer"); the short names are still read from the narrow strips, which read them best (done 2026-11-18 14:40)
 - [x] The server learns a read name that is not in the catalogue when the user confirms the card, so a Dutch, German or French name is found by name from the second time on (done 2026-11-18 13:50)
 
 ### Milestone 4: prices

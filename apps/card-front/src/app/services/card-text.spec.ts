@@ -1,4 +1,4 @@
-import { NAME_LINES, NUMBER_LINES, TITLE_LINES, bestName, nameSettled, readDigits, readLanguage, readName, readNumber, readTitle } from './card-text';
+import { NAME_LINES, NUMBER_LINES, TITLE_LINES, WIDE_TITLE_LINE, bestName, longerTitle, nameSettled, readDigits, readLanguage, readName, readNumber, readTitle } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -50,6 +50,16 @@ describe('reading name and number from the text on a card', () => {
         expect(readTitle('remem')).toBeUndefined();
         expect(readTitle('')).toBeUndefined();
         expect(TITLE_LINES.map((line) => line.top)).toEqual([0.17, 0.185, 0.155]);
+    });
+
+    it('lets a wider strip finish a title that was cut off, and nothing else', () => {
+        expect(longerTitle('Zoeken per Comput', 'Zoeken per Computer')).toBe('Zoeken per Computer');
+        expect(longerTitle('Zoeken per Comput', 'Zoeken  per  computer')).toBe('Zoeken  per  computer');
+        expect(longerTitle('Energy Search', 'Ene rgry S earc')).toBe('Energy Search');
+        expect(longerTitle('Poké Ball', 'Poké Ball')).toBe('Poké Ball');
+        expect(longerTitle('Switc', 'Swic')).toBe('Switc');
+        expect(longerTitle('Gambler')).toBe('Gambler');
+        expect([WIDE_TITLE_LINE.top, WIDE_TITLE_LINE.width]).toEqual([0.17, 0.9]);
     });
 
     it('settles on a name once a strip is sure of it or two strips agree, and prefers the name read most often', () => {

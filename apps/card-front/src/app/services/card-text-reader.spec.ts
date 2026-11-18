@@ -14,11 +14,12 @@ describe('CardTextReader', () => {
     const recogniser = {
         prepare: vi.fn(() => Promise.resolve()),
         stop: vi.fn(),
-        recognise: vi.fn((): Promise<LineText> => {
-            asked.push(drawn);
+        recognise: vi.fn((_pixels?: { width: number }): Promise<LineText> => Promise.resolve({ text: '', confidence: 0 }))
+    };
+    const fromLines = (): Promise<LineText> => {
+        asked.push(drawn);
 
-            return Promise.resolve(lines[drawn] ?? { text: '', confidence: 0 });
-        })
+        return Promise.resolve(lines[drawn] ?? { text: '', confidence: 0 });
     };
     const context = {
         drawImage: (_card: unknown, left: number, top: number): void => {
@@ -30,7 +31,7 @@ describe('CardTextReader', () => {
     beforeEach(() => {
         lines = {};
         asked = [];
-        recogniser.recognise.mockClear();
+        recogniser.recognise.mockReset().mockImplementation(fromLines);
         recogniser.prepare.mockClear();
         recogniser.stop.mockClear();
         vi.stubGlobal('createImageBitmap', () => Promise.resolve(CARD));
@@ -87,10 +88,23 @@ describe('CardTextReader', () => {
             '50,155': { text: 'Energy Removal', confidence: 0.89 }
         };
         expect((await reader.read(new Blob())).name).toBe('Energy Removal');
-        expect(asked.slice(0, 7)).toEqual(['50,70', '50,80', '50,60', '50,90', '50,170', '50,185', '50,155']);
+        expect(asked.slice(0, 8)).toEqual(['50,70', '50,80', '50,60', '50,90', '50,170', '50,185', '50,155', '50,170']);
 
         lines = { '50,70': { text: 'ENERGY', confidence: 0.98 }, '50,170': { text: 'Remem', confidence: 0.32 } };
         expect((await reader.read(new Blob())).name).toBeUndefined();
+    });
+
+    it('reads the title once more over the width of the card, to finish a long title that the strip cut off', async () => {
+        const narrow = { text: 'Zoeken per Comput', confidence: 0.97 };
+        recogniser.recognise.mockImplementation((pixels?: { width: number }): Promise<LineText> => {
+            asked.push(drawn);
+            const wide = (pixels?.width ?? 0) > 600;
+
+            return Promise.resolve(drawn === '50,170' ? (wide ? { text: 'Zoeken per Computer', confidence: 0.89 } : narrow) : { text: '', confidence: 0 });
+        });
+
+        expect((await reader.read(new Blob())).name).toBe('Zoeken per Computer');
+        expect(asked.slice(4, 6)).toEqual(['50,170', '50,170']);
     });
 
     it('tries the next number strip, down to the left corner of newer cards', async () => {

@@ -17,6 +17,7 @@ export interface Region {
 export const NAME_LINES: Array<Region> = [0.07, 0.08, 0.06, 0.09].map((top) => ({ left: 0.05, top, width: 0.61, height: 0.058 }));
 const SURE_NAME = 0.93;
 export const TITLE_LINES: Array<Region> = [0.17, 0.185, 0.155].map((top) => ({ left: 0.05, top, width: 0.61, height: 0.058 }));
+export const WIDE_TITLE_LINE: Region = { ...TITLE_LINES[0], width: 0.9 };
 export const MIN_TITLE_CONFIDENCE = 0.5;
 export const NUMBER_LINES: Array<Region> = [
     ...[0.934, 0.942, 0.926].map((top) => ({ left: 0.76, top, width: 0.167, height: 0.022 })),
@@ -136,6 +137,12 @@ export function readTitle(text: string): string | undefined {
         .replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ]+$/g, '');
 
     return letters(title) >= MIN_NAME_LETTERS && /^[A-ZÀ-Ý]/.test(title) && !title.split(' ').some((word) => mostlyCapitals(word)) ? title : undefined;
+}
+
+export function longerTitle(title: string, wide?: string): string {
+    const squeezed = (text: string): string => text.replace(/\s+/g, '').toLowerCase();
+
+    return wide && squeezed(wide).length > squeezed(title).length && squeezed(wide).startsWith(squeezed(title)) ? wide : title;
 }
 
 function mostlyCapitals(word: string): boolean {
