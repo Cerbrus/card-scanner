@@ -5,6 +5,7 @@ import { TranslateTesting } from '../../../testing/translate';
 import { Camera } from '../../services/camera';
 import { CaptureTrigger } from '../../services/capture-trigger';
 import { CropStart } from '../../services/crop-start';
+import { languageFlag } from '../card-tile/card-tile.component';
 import { CameraShot, LiveCameraComponent } from './live-camera.component';
 
 describe('LiveCameraComponent', () => {
@@ -73,13 +74,19 @@ describe('LiveCameraComponent', () => {
         expect(status()).toBe('hourglass_top scan.saving');
     });
 
-    it('shows the name that was read at the top and the number bottom right, for as long as the page has them', async () => {
+    it('shows the name that was read at the top, the number bottom right and the flag of the language bottom left, for as long as the page has them', async () => {
         expect(host.querySelector('.read')).toBeNull();
 
         fixture.componentRef.setInput('read', { name: 'Charizard', number: '4/102' });
         await settle();
         expect(host.querySelector('.read.name')?.textContent).toBe('Charizard');
         expect(host.querySelector('.read.number')?.textContent).toBe('4/102');
+        expect(host.querySelector('.read.flag')).toBeNull();
+
+        fixture.componentRef.setInput('read', { name: 'Charizard', number: '4/102', language: 'nl' });
+        await settle();
+        expect(host.querySelector('.read.flag')?.textContent).toBe(languageFlag('nl'));
+        expect(host.querySelector('.read.flag')?.getAttribute('title')).toBe('language.nl');
 
         fixture.componentRef.setInput('read', { number: '4/102' });
         await settle();

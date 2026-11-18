@@ -10,7 +10,9 @@ import { CardText } from '../../services/card-text';
 import { CropStart } from '../../services/crop-start';
 import { Corners, Point } from '../../services/perspective';
 import { ScanStatus, Sight, cameraStatus } from '../../services/scan-status';
+import { languageFlag } from '../card-tile/card-tile.component';
 import { DASH_SHARE, LINE_SHARE } from '../crop-editor/crop-editor.component';
+import { FitTextDirective } from '../fit-text/fit-text.directive';
 
 export interface CameraShot {
     side: PhotoSide;
@@ -58,7 +60,7 @@ function distance(from: Point, to: Point): number {
 @Component({
     selector: 'app-live-camera',
     standalone: true,
-    imports: [TranslatePipe],
+    imports: [TranslatePipe, FitTextDirective],
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: { '(document:visibilitychange)': 'seen()' },
     template: `
@@ -72,17 +74,24 @@ function distance(from: Point, to: Point): number {
                         }
                     </svg>
                 }
-                <span class="badge">{{ 'scan.' + side() | translate }}</span>
-                <button type="button" class="auto" [class.on]="auto()" [attr.aria-pressed]="auto()" [attr.title]="'scan.camera.autoHint' | translate" (click)="toggleAuto()">
-                    <i class="material-symbols-outlined">{{ auto() ? 'motion_photos_auto' : 'motion_photos_off' }}</i>
-                    {{ 'scan.camera.auto' | translate }}
-                </button>
+                <div class="top">
+                    <span class="badge">{{ 'scan.' + side() | translate }}</span>
+                    <span class="slot">
+                        @if (read()?.name; as name) {
+                            <span class="read name" [appFitText]="name"></span>
+                        }
+                    </span>
+                    <button type="button" class="auto" [class.on]="auto()" [attr.aria-pressed]="auto()" [attr.title]="'scan.camera.autoHint' | translate" (click)="toggleAuto()">
+                        <i class="material-symbols-outlined">{{ auto() ? 'motion_photos_auto' : 'motion_photos_off' }}</i>
+                        {{ 'scan.camera.auto' | translate }}
+                    </button>
+                </div>
                 <p class="status" aria-live="polite">
                     <i class="material-symbols-outlined">{{ status().icon }}</i>
                     {{ status().text | translate: status().params }}
                 </p>
-                @if (read()?.name; as name) {
-                    <span class="read name">{{ name }}</span>
+                @if (read()?.language; as language) {
+                    <span class="read flag" [title]="'language.' + language | translate">{{ flag(language) }}</span>
                 }
                 @if (read()?.number; as number) {
                     <span class="read number">{{ number }}</span>
@@ -112,16 +121,20 @@ function distance(from: Point, to: Point): number {
         .overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
         .edge { fill: none; stroke: var(--grading-mark); stroke-linejoin: round; transition: opacity 0.2s; }
         .edge.lost { opacity: 0; }
-        .badge, .auto, .status, .read { position: absolute; background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; }
-        .badge { top: 8px; left: 8px; padding: 4px 10px; border-radius: 999px; }
-        .auto { top: 8px; right: 8px; display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 999px; }
+        .badge, .auto, .status, .read { background: var(--viewer-back); color: var(--mark-text); font-size: 0.85rem; font-weight: 600; }
+        .top { position: absolute; top: 8px; right: 8px; left: 8px; display: flex; align-items: center; gap: 6px; }
+        .badge { padding: 4px 10px; border-radius: 999px; }
+        .slot { display: flex; flex: 1; justify-content: center; min-width: 0; }
+        .auto { display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border-radius: 999px; }
         .auto i { font-size: 20px; }
         .auto.on { background: var(--accent); color: var(--accent-text); }
-        .status { top: 46px; right: 8px; left: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 5px 10px; border-radius: 8px; pointer-events: none; }
+        .status { position: absolute; top: 46px; right: 8px; left: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; padding: 5px 10px; border-radius: 8px; pointer-events: none; }
         .status i { font-size: 18px; }
         .read { padding: 4px 10px; border-radius: 8px; pointer-events: none; }
-        .read.name { top: 8px; left: 50%; max-width: calc(100% - 210px); overflow: hidden; transform: translateX(-50%); text-overflow: ellipsis; white-space: nowrap; }
-        .read.number { right: 8px; bottom: 14px; }
+        .read.name { max-width: 100%; overflow: hidden; white-space: nowrap; }
+        .read.number, .read.flag { position: absolute; bottom: 14px; }
+        .read.number { right: 8px; }
+        .read.flag { left: 8px; font-size: 1.1rem; line-height: 1.2; }
         .flash { position: absolute; inset: 0; border-radius: 12px; background: var(--mark-text); opacity: 0.35; }
         .shutter { position: absolute; bottom: 14px; left: 50%; display: grid; place-items: center; width: 68px; height: 68px; transform: translateX(-50%); border: 4px solid var(--mark-text); border-radius: 50%; background: var(--crop-shade); color: var(--mark-text); }
         .shutter i { font-size: 30px; }
@@ -137,6 +150,7 @@ export class LiveCameraComponent {
     public readonly unavailable = output<void>();
     public readonly failed = output<void>();
 
+    protected readonly flag = languageFlag;
     protected readonly ready = signal(false);
     protected readonly capturing = signal(false);
     protected readonly size = signal<{ width: number; height: number } | undefined>(undefined);

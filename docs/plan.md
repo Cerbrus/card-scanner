@@ -80,6 +80,7 @@ Also open for the owner to decide:
 - [x] Reading on the phone with the PaddleOCR Latin model on ONNX Runtime Web instead of Tesseract.js, the likeliest strip first and no more strips than needed. On the owner's 125 confirmed cards: 103 of 103 English and Dutch Pokémon names (was 93), 119 numbers (was 113), none wrong (done 2026-11-18 12:35)
 - [x] One status line over the camera that says what the scanner waits for (done 2026-11-18 12:35)
 - [x] The name read stays top middle on the video and the number bottom right; back at the camera for a new card, the photo is taken by itself without first taking the card away (done 2026-11-18 13:10)
+- [x] On the video the name gets all the room between the side and "Auto" and is cut off with one dot; the flag of the language read sits bottom left (done 2026-11-18 13:35)
 
 ### Milestone 4: prices
 
