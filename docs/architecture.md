@@ -41,6 +41,7 @@ One SQLite file, `/data/app.db`. A solid line is a foreign key in the database; 
 
 ```mermaid
 erDiagram
+    direction LR
     catalog_set ||..o{ catalog_card : "set_id"
     catalog_card ||..o{ owned_card : "catalog_card_id"
     owned_card ||--o{ photo : "owned_card_id"
