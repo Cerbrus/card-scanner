@@ -37,6 +37,10 @@ const NAME_PARTIAL_SCORE = 3;
 const SET_EXACT_SCORE = 3;
 const SET_PARTIAL_SCORE = 2;
 const PADDED_LENGTHS = [2, 3];
+const SLASH_AS_DIGIT = '1';
+const TOTAL_LENGTHS = [2, 3];
+const MAX_NUMBER_DIGITS = 3;
+const SECRET_RARE_ROOM = 1.3;
 
 export function normalizeText(value?: string | null): string {
     return (value ?? '')
@@ -61,6 +65,28 @@ export function parsePrintedNumber(value?: string | null): PrintedNumber {
         number: number ? normalizeNumber(number) : undefined,
         total: totalDigits ? Number(totalDigits) : undefined
     };
+}
+
+export function numbersWithSlash(digits: string, setSizes: Set<number>): Array<string> {
+    const numbers: Array<string> = [];
+    for (const length of TOTAL_LENGTHS) {
+        const slash = digits.length - length - 1;
+        const total = Number(digits.slice(slash + 1));
+        if (slash < 1 || digits[slash] !== SLASH_AS_DIGIT || !setSizes.has(total)) {
+            continue;
+        }
+
+        const before = digits.slice(Math.max(0, slash - MAX_NUMBER_DIGITS), slash);
+        for (let start = 0; start < before.length; start++) {
+            const number = Number(before.slice(start));
+            if (number > 0 && number <= total * SECRET_RARE_ROOM) {
+                numbers.push(`${before.slice(start)}/${digits.slice(slash + 1)}`);
+                break;
+            }
+        }
+    }
+
+    return numbers;
 }
 
 export function localIdForms(value?: string | null): Array<string> {

@@ -22,6 +22,7 @@ import {
 } from '../../data/entities';
 import { CardReader, describeReaderError } from '../connectors/card.reader';
 import { CollectionRow } from '../rules/collection-table';
+import { MatchQuery, numbersWithSlash } from '../rules/matching';
 import { MAX_PHOTO_BYTES, MAX_THUMB_BYTES, PhotoVersion, isJpeg, photoFileName } from '../rules/photo-file';
 import { PriceBasis, ValueSource, cardmarketUrl, ownedValue, pickPrice, worthGrading } from '../rules/pricing';
 import { CatalogService } from './catalog.service';
@@ -39,6 +40,7 @@ export interface PhotoUpload {
 export interface ScanText {
     name?: string;
     number?: string;
+    digits?: string;
     language?: Language;
 }
 
@@ -142,7 +144,7 @@ export class CardService implements OnApplicationBootstrap {
         for (const upload of uploads) {
             await this.storePhoto(card.id, upload);
         }
-        if (text.name?.trim() || text.number?.trim()) {
+        if (text.name?.trim() || text.number?.trim() || text.digits) {
             await this.applyScanText(card, text);
         }
 
@@ -440,11 +442,37 @@ export class CardService implements OnApplicationBootstrap {
 
     private async applyScanText(card: OwnedCardEntity, text: ScanText): Promise<void> {
         const name = text.name?.trim() || null;
-        const number = text.number?.trim() || null;
+        const number = text.number?.trim() || (await this.numberFromDigits(name, text.digits));
+        if (!name && !number) {
+            return;
+        }
+
         card.reading = { isPokemonCard: true, name, number, setName: null, language: null, finish: null, confidence: 'low', condition: null, conditionNotes: '' };
         card.candidates = await this.catalog.search({ name, number, setName: null });
         card.status = card.candidates.length ? 'identified' : 'new';
         await this.cards.save(card);
+    }
+
+    private async numberFromDigits(name: string | null, digits = ''): Promise<string | null> {
+        const sets = Array.from((await this.catalog.setsById()).values());
+        const numbers = numbersWithSlash(digits, new Set(sets.flatMap((set) => [set.officialCount, set.totalCount])));
+        if (!name) {
+            return numbers.length === 1 ? numbers[0] : null;
+        }
+
+        let best: { number: string | null; score: number } = { number: null, score: await this.bestScore({ name }) };
+        for (const number of numbers) {
+            const score = await this.bestScore({ name, number });
+            if (score > best.score) {
+                best = { number, score };
+            }
+        }
+
+        return best.number;
+    }
+
+    private async bestScore(query: MatchQuery): Promise<number> {
+        return (await this.catalog.search(query, 1))[0]?.score ?? 0;
     }
 
     private async applyReading(card: OwnedCardEntity, reading: CardReading): Promise<void> {

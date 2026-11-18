@@ -143,7 +143,7 @@ All under `/api/v1`. With login on, every route needs a session except the ones 
 | `GET /auth/me`, `GET /auth/google`, `GET /auth/google/callback`, `POST /auth/logout` (public) | Login |
 | `GET /system` | Version and the state of login, reading, catalogue and sync |
 | `POST /system/catalog/refresh`, `POST /system/prices/refresh` (owner) | Start a refresh |
-| `GET /cards`, `POST /cards` | The collection; a new scan as multipart with `front`, `back`, `frontThumb`, `backThumb`, optionally the originals `frontSource` and `backSource`, and optionally the `name` and `number` the phone read, which are looked up in the catalogue at once |
+| `GET /cards`, `POST /cards` | The collection; a new scan as multipart with `front`, `back`, `frontThumb`, `backThumb`, optionally the originals `frontSource` and `backSource`, and optionally the `name` and `number` the phone read (or `digits` when the slash of the number was not read; `numbersWithSlash` in `core/rules/matching.ts` puts it back), which are looked up in the catalogue at once |
 | `GET /cards/:id`, `PATCH /cards/:id`, `DELETE /cards/:id` | One card with candidates and price history; change the print, condition, notes; remove |
 | `POST /cards/:id/confirm` | Say which catalogue card it is |
 | `POST /cards/:id/read` | Read the photos again |

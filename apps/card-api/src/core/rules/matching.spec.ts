@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { MatchCard, MatchSet, localIdForms, normalizeNumber, parsePrintedNumber, rankMatches, setIdOf } from './matching';
+import { MatchCard, MatchSet, localIdForms, normalizeNumber, numbersWithSlash, parsePrintedNumber, rankMatches, setIdOf } from './matching';
 
 const sets = new Map<string, MatchSet>([
     ['base1', { id: 'base1', name: 'Base Set', officialCount: 102, totalCount: 102 }],
@@ -18,6 +18,22 @@ const cards: Array<MatchCard> = [
 const ids = (matches: ReturnType<typeof rankMatches>): Array<string> => matches.map((match) => match.card.id);
 
 describe('matching a reading to the catalogue', () => {
+    it('puts the slash back in a number where it was read as a 1, only for a set size that exists', () => {
+        const sizes = new Set([64, 102, 164, 165]);
+
+        assert.deepEqual(numbersWithSlash('7164', sizes), ['7/64']);
+        assert.deepEqual(numbersWithSlash('37164', sizes), ['37/64']);
+        assert.deepEqual(numbersWithSlash('41102', sizes), ['4/102']);
+        assert.deepEqual(numbersWithSlash('11164', sizes), ['11/64', '1/164']);
+        assert.deepEqual(numbersWithSlash('0251165', sizes), ['025/165']);
+        assert.deepEqual(numbersWithSlash('19997164', sizes), ['7/64']);
+        assert.deepEqual(numbersWithSlash('1999', sizes), []);
+        assert.deepEqual(numbersWithSlash('7264', sizes), []);
+        assert.deepEqual(numbersWithSlash('7199', sizes), []);
+        assert.deepEqual(numbersWithSlash('164', sizes), []);
+        assert.deepEqual(numbersWithSlash('', sizes), []);
+    });
+
     it('reads the printed number and the set total', () => {
         assert.deepEqual(parsePrintedNumber('4/102'), { number: '4', total: 102 });
         assert.deepEqual(parsePrintedNumber('025/165'), { number: '25', total: 165 });

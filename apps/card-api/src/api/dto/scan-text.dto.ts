@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 import { LANGUAGES, Language } from '../../data/entities/types';
 
@@ -14,6 +14,10 @@ export class ScanTextDto {
     @IsString()
     @MaxLength(MAX_TEXT_LENGTH)
     public number?: string;
+
+    @IsOptional()
+    @Matches(/^\d{4,10}$/)
+    public digits?: string;
 
     @IsOptional()
     @IsIn(LANGUAGES)

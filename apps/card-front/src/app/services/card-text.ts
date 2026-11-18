@@ -3,6 +3,7 @@ import { Language } from '../models';
 export interface CardText {
     name?: string;
     number?: string;
+    digits?: string;
     language?: Language;
 }
 
@@ -30,6 +31,8 @@ const LANGUAGE_WORDS: Record<Language, Array<string>> = {
 const MIN_WORD_MATCH = 0.75;
 
 const CARD_NUMBER = /([A-Z]{0,3})(\d+)\s*[/|]\s*([A-Z]{0,3})(\d{2,3})(?!\d)/g;
+const LETTER_O_AS_ZERO = /[Oo](?=\d)|(?<=\d)[Oo]/g;
+const LOOSE_DIGITS = /\d{4,10}/g;
 const SECRET_RARE_ROOM = 1.3;
 const MAX_NUMBER_DIGITS = 3;
 const NAME_WORD = /^[A-ZÀ-Ý][A-Za-zÀ-ÿ.'’♀♂-]*$/;
@@ -39,7 +42,7 @@ const ALL_CAPITALS = /^[A-ZÀ-Ý]{2,}$/;
 const GLUED_CAPITALS = /(^|\s)[A-ZÀ-Ý]{2,}(?=[A-ZÀ-Ý][a-zà-ÿ])/g;
 
 export function readNumber(text: string): string | undefined {
-    for (const [, prefix, digits, totalPrefix, total] of text.replace(/[Oo](?=\d)|(?<=\d)[Oo]/g, '0').matchAll(CARD_NUMBER)) {
+    for (const [, prefix, digits, totalPrefix, total] of text.replace(LETTER_O_AS_ZERO, '0').matchAll(CARD_NUMBER)) {
         const number = numberBefore(digits, Number(total));
         if (number) {
             return `${prefix}${number}/${totalPrefix}${total}`;
@@ -47,6 +50,13 @@ export function readNumber(text: string): string | undefined {
     }
 
     return undefined;
+}
+
+export function readDigits(text: string): string | undefined {
+    return text
+        .replace(LETTER_O_AS_ZERO, '0')
+        .match(LOOSE_DIGITS)
+        ?.at(-1);
 }
 
 export function readLanguage(text: string): Language | undefined {

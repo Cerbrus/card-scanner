@@ -1,4 +1,4 @@
-import { NAME_LINES, NUMBER_LINES, bestName, nameSettled, readLanguage, readName, readNumber } from './card-text';
+import { NAME_LINES, NUMBER_LINES, bestName, nameSettled, readDigits, readLanguage, readName, readNumber } from './card-text';
 
 describe('reading name and number from the text on a card', () => {
     it('finds the card number, also when the copyright year runs into it', () => {
@@ -15,6 +15,14 @@ describe('reading name and number from the text on a card', () => {
         expect(readNumber('©1995, 96, 98')).toBeUndefined();
         expect(readNumber('900/64')).toBeUndefined();
         expect(readNumber('')).toBeUndefined();
+    });
+
+    it('keeps the digits of a number whose slash was not read, for the server to put it back', () => {
+        expect(readDigits('7164')).toBe('7164');
+        expect(readDigits('1999 Wizards 37164 *')).toBe('37164');
+        expect(readDigits('2O1164')).toBe('201164');
+        expect(readDigits('LV. 42 #71')).toBeUndefined();
+        expect(readDigits('')).toBeUndefined();
     });
 
     it('takes the Pokémon name and leaves out the stage, the hit points and stray letters', () => {

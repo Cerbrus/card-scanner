@@ -298,6 +298,30 @@ describe('the whole app', () => {
         assert.equal(unread.status, 'new');
     });
 
+    it('puts the slash back in a number the phone read as digits only, when that fits a set and the name', async () => {
+        Object.assign(app.get(CardReader), { enabled: false });
+        const read = async (text: Record<string, string>): Promise<Card & { reading?: { name: string | null; number: string | null } }> => {
+            const created = await json<Card>('/cards', { method: 'POST', body: photoForm(undefined, undefined, {}, text) });
+
+            return json(`/cards/${created.id}`);
+        };
+
+        const named = await read({ name: 'Pikachu', digits: '581102' });
+        assert.deepEqual([named.reading?.name, named.reading?.number], ['Pikachu', '58/102']);
+        assert.equal(named.candidates?.[0].catalogCardId, 'base1-58');
+
+        const numberOnly = await read({ digits: '41102' });
+        assert.equal(numberOnly.reading?.number, '4/102');
+        assert.equal(numberOnly.candidates?.[0].catalogCardId, 'base1-4');
+
+        const noSuchSet = await read({ name: 'Pikachu', digits: '58164' });
+        assert.deepEqual([noSuchSet.reading?.number, noSuchSet.candidates?.[0].catalogCardId], [null, 'base1-58']);
+
+        const nothing = await read({ digits: '1999' });
+        assert.deepEqual([nothing.status, nothing.reading ?? null], ['new', null]);
+        assert.equal((await fetch(`${api}/cards`, { method: 'POST', body: photoForm(undefined, undefined, {}, { digits: '12a4' }) })).status, 400);
+    });
+
     it('keeps the original photo next to the straightened one, through a new crop, until a new photo replaces it', async () => {
         const original = Buffer.concat([JPEG.subarray(0, -2), Buffer.from([0x0a, 0xff, 0xd9])]);
         const card = await json<Card>('/cards', { method: 'POST', body: photoForm(['front', 'back', 'frontThumb', 'backThumb'], JPEG, { frontSource: original }) });

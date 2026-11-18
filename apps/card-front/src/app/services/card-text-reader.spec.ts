@@ -86,6 +86,14 @@ describe('CardTextReader', () => {
         expect(asked.slice(4, 8)).toEqual(['760,934', '760,942', '760,926', '20,944']);
     });
 
+    it('hands over the digits of a number whose slash was not read, and drops them when a later strip has the number', async () => {
+        lines = { '760,934': { text: '37164', confidence: 0.9 } };
+        expect(await reader.read(new Blob())).toEqual({ name: undefined, number: undefined, digits: '37164', language: undefined });
+
+        lines = { '760,934': { text: '37164', confidence: 0.9 }, '760,942': { text: '37/64', confidence: 0.9 } };
+        expect(await reader.read(new Blob())).toEqual({ name: undefined, number: '37/64', language: undefined });
+    });
+
     it('loads the model ahead of the first card, and lets it go after three minutes without one', async () => {
         vi.useFakeTimers();
         reader.prepare();

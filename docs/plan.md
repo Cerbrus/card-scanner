@@ -81,6 +81,7 @@ Also open for the owner to decide:
 - [x] One status line over the camera that says what the scanner waits for (done 2026-11-18 12:35)
 - [x] The name read stays top middle on the video and the number bottom right; back at the camera for a new card, the photo is taken by itself without first taking the card away (done 2026-11-18 13:10)
 - [x] On the video the name gets all the room between the side and "Auto" and is cut off with one dot; the flag of the language read sits bottom left (done 2026-11-18 13:35)
+- [x] A number whose slash was read as a 1 ("7164"): the phone sends the digits, the server puts the slash back when a set of that size exists and it fits the name (done 2026-11-18 14:05)
 
 ### Milestone 4: prices
 

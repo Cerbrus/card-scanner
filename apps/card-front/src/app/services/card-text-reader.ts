@@ -1,7 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 
-import { CardText, LANGUAGE_REGION, NAME_LINES, NUMBER_LINES, NameReading, Region, bestName, nameSettled, readLanguage, readName, readNumber } from './card-text';
+import { CardText, LANGUAGE_REGION, NAME_LINES, NUMBER_LINES, NameReading, Region, bestName, nameSettled, readDigits, readLanguage, readName, readNumber } from './card-text';
 import { LINE_HEIGHT, LinePixels, MIN_LINE_WIDTH } from './text-lines';
 import { TextRecogniser } from './text-recogniser';
 
@@ -35,7 +35,7 @@ export class CardTextReader {
                 const number = await this.readNumber(card);
                 const language = readLanguage((await this.recogniser.recognise(this.line(card, LANGUAGE_REGION))).text);
 
-                return { name, number, language };
+                return { name, ...number, language };
             } finally {
                 card.close();
             }
@@ -60,15 +60,18 @@ export class CardTextReader {
         return bestName(readings);
     }
 
-    private async readNumber(card: ImageBitmap): Promise<string | undefined> {
+    private async readNumber(card: ImageBitmap): Promise<Pick<CardText, 'number' | 'digits'>> {
+        let digits: string | undefined;
         for (const region of NUMBER_LINES) {
-            const number = readNumber((await this.recogniser.recognise(this.line(card, region))).text);
+            const { text } = await this.recogniser.recognise(this.line(card, region));
+            const number = readNumber(text);
             if (number) {
-                return number;
+                return { number };
             }
+            digits ??= readDigits(text);
         }
 
-        return undefined;
+        return { number: undefined, digits };
     }
 
     private rest(): void {
