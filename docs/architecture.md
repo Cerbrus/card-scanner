@@ -37,6 +37,95 @@ Imports point inward: `api` to `core` to `data`. Lint enforces it.
 
 ## Data model
 
+One SQLite file, `/data/app.db`. A solid line is a foreign key in the database; a dashed line is a reference the app keeps without one, so the catalogue can be copied again without touching the collection.
+
+```mermaid
+erDiagram
+    catalog_set ||..o{ catalog_card : "set_id"
+    catalog_card ||..o{ owned_card : "catalog_card_id"
+    owned_card ||--o{ photo : "owned_card_id"
+    owned_card ||--o{ price_snapshot : "owned_card_id"
+    catalog_card ||..o{ learned_name : "name"
+
+    catalog_set {
+        varchar id PK "base1"
+        varchar name
+        integer official_count
+        integer total_count
+        varchar logo
+        varchar symbol
+    }
+    catalog_card {
+        varchar id PK "base1-4"
+        varchar set_id
+        varchar local_id "number on the card"
+        varchar name "English"
+        varchar image
+        varchar rarity "fetched per card"
+        text pricing "fetched per card, JSON"
+        datetime details_fetched_at
+    }
+    owned_card {
+        integer id PK
+        varchar catalog_card_id "set once confirmed"
+        varchar status "new, identified, confirmed"
+        varchar reading_state
+        text reading_error
+        text reading "what was read, JSON"
+        text candidates "catalogue cards that fit, JSON"
+        varchar language
+        varchar variant
+        varchar condition
+        varchar condition_source
+        text condition_notes
+        text notes
+        real price_trend
+        real price_avg30
+        real price_low
+        integer price_product_id
+        datetime price_checked_at
+        real own_price
+        datetime own_price_at
+        datetime created_at
+        datetime updated_at
+    }
+    photo {
+        integer id PK
+        integer owned_card_id FK
+        varchar side "front or back"
+        varchar file
+        varchar thumb_file
+        integer bytes
+        varchar drive_file_id
+        datetime synced_at
+        varchar source_file "the photo before straightening"
+        varchar source_drive_file_id
+    }
+    price_snapshot {
+        integer owned_card_id PK, FK
+        varchar day PK
+        real trend
+        real avg30
+        real low
+    }
+    learned_name {
+        varchar read PK "name as read, normalised"
+        varchar name "catalogue name it stands for"
+        datetime learned_at
+    }
+    drive_trash {
+        integer id PK
+        varchar drive_file_id
+        datetime created_at
+    }
+    setting {
+        varchar key PK
+        text value
+    }
+```
+
+`drive_trash` and `setting` stand alone.
+
 **`catalog_set`**: a set from the catalogue. Id, name, official and total card count, logo, symbol.
 
 **`catalog_card`**: a card from the catalogue. Id, set, number within the set (`local_id`), name, picture. Filled in later, per card: rarity, the prices (`pricing`, as JSON: the general figure, the reverse figure, and one figure per print variant) and when they were fetched.
