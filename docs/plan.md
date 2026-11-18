@@ -136,6 +136,46 @@ Also open for the owner to decide:
 - A chart of the collection's value over time; the snapshots are there. Not wanted for now (2026-11-15).
 - If the photos from the camera in the page disappoint: back to the phone's camera app, and open it by itself for the front when the scan page opens and for the back after the front is cropped. A browser only opens a file input from a tap, so the back can follow the crop button's tap; the front on page open needs checking on the phone.
 
+## Planned
+
+Looked into on 2026-11-18, not built. Each waits for the owner's answers to the questions under it.
+
+### Names of Trainer and Energy cards
+
+Now: 0 of the owner's 20 Trainer and Energy cards get a name. The name strips sit where a Pokémon name is; on these cards they hold "TRAINER" or "ENERGY" in capitals, which the name rule drops. Their numbers are read like any other, so most are found by number alone.
+
+1. Measure first. Take the 20 fronts from the Pi, read the top third in thin strips, and note at which height and width the name sits on old Trainer cards (under the "TRAINER" banner), on basic Energy and on special Energy. Positions below are guesses until then.
+2. Tell the kind from what is already read: a name strip that holds "TRAINER", "ENERGY" or "ENERGIE" marks the card. No extra strip for Pokémon cards, so their speed and their 103 of 103 stay as they are.
+3. For a marked card, read one or two strips at the measured height, with its own name rule: several words, and the words the Pokémon rule drops are allowed ("Energy Removal", "Pokémon Center", "Professor Oak").
+4. Basic Energy: the name is the type plus "Energy". When the text is not read, the type could come from the colour of the card; only if step 1 shows the text fails.
+5. Dutch cards: the catalogue has English names only. A table for the eight basic Energy names (Vuur, Water, Gras and so on) is small; Dutch Trainer names are not translated and stay on the number.
+6. Check on the 20 cards plus the 105 others: names found on Trainer and Energy, and nothing lost on Pokémon cards.
+
+Not known: newer layouts, where the name of a Trainer card sits on the same line as a Pokémon name; the owner has none scanned.
+
+Question: is a Dutch Trainer card without a name match good enough when its number is read?
+
+### Separate collections
+
+Now: one table of owned cards, one total value, one export, one sheet in Drive. Nothing says to which collection a card belongs.
+
+What it takes:
+
+- **Data**: a `collection` table (id, name, order) and a `collection_id` on `owned_card`; a migration that makes one collection and puts every card in it. Deleting a collection that still holds cards is refused, or moves them; never deletes them.
+- **API**: list, add, rename and delete collections; `GET /cards` and the CSV export take a collection; a new scan says which collection it is for; a card can be moved. A viewing account reads them all and changes none, as now.
+- **Web app**: a switcher in the header, remembered on the phone; the collection page, its filters, counts, copies and total value work within the chosen collection, with "all" as a choice; the scan page shows where the card goes; the card page gets "move to"; settings gets the list to add, rename and delete.
+- **Drive**: either one sheet with a collection column and one photo folder as now, or a tab per collection. A column is the small change.
+- **Prices**: unchanged, they hang on the card.
+
+Size: about as much as the view-only accounts, mostly in the web app. The migration is the part to test hardest, on a copy of the owner's database.
+
+Questions:
+
+1. What separates them: whose cards they are (owner, brother), or kinds of cards (keep, trade, sell)? With "whose", should an account see only its own?
+2. Can a card be in one collection only? That is the plan above; a card in several would be labels instead, which is a different build.
+3. Is a copy counted within a collection, or over all of them?
+4. In Drive: a column in the one sheet, or a tab per collection?
+
 ## Package upgrades
 
 - Done 2026-11-15 21:45, in place of Dependabot #2, #3, #5, #6, #8 and #9 and as in the barcode scanner: class-validator 0.15, tslib 2.9, ESLint 10 with `eslint-plugin-import-x` in place of `eslint-plugin-import`, jsonc-eslint-parser 3, eslint-import-resolver-typescript 4, ngx-translate 18 (`TranslatePipe`, `provideTranslateService`, specs through `TranslateTesting`), NestJS 12 and TypeORM 1 with an own snake case naming strategy in place of `typeorm-naming-strategies`.
