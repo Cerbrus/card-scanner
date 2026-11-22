@@ -116,6 +116,10 @@ export function visibleCards(cards: Array<CardSummary>, filter: CardFilter, sort
     return [...(descending ? known.reverse() : known), ...unknown];
 }
 
+export function totalValue(cards: Array<CardSummary>): number {
+    return cards.filter((card) => card.status === 'confirmed').reduce((total, card) => total + (card.value ?? 0), 0);
+}
+
 export function filterOptions(cards: Array<CardSummary>): FilterOptions {
     const present = (all: ReadonlyArray<string>, pick: (card: CardSummary) => string | undefined): Array<string> => {
         const values = cards.map(pick);
@@ -143,9 +147,9 @@ export function filterOptions(cards: Array<CardSummary>): FilterOptions {
             <h1 class="page-title">{{ 'collection.title' | translate }}</h1>
 
             <div class="card mb-3 flex items-end justify-between gap-3">
-                <div>
-                    <div class="text-2xl font-bold">{{ store.totalValue() | currency: 'EUR' }}</div>
-                    <div class="muted text-xs">{{ 'collection.valueOf' | translate: { own: store.ownPricedCount(), count: store.confirmed().length } }}</div>
+                <div class="flex flex-wrap items-baseline gap-x-2">
+                    <span class="total-value text-2xl font-bold">{{ value() | currency: 'EUR' }}</span>
+                    <span class="card-count muted text-sm">{{ 'collection.cards' | translate: { count: visible().length } }}</span>
                 </div>
                 @if (store.unconfirmed().length; as waiting) {
                     <button type="button" class="unconfirmed-filter badge" [class.on]="filter().unconfirmed" (click)="narrow('unconfirmed', !filter().unconfirmed)">
@@ -240,6 +244,7 @@ export class CollectionPage {
     protected readonly sort = signal<Sort>(storedView().sort);
     protected readonly descending = signal(storedView().descending);
     protected readonly visible = computed(() => visibleCards(this.store.cards(), this.filter(), this.sort(), this.descending()));
+    protected readonly value = computed(() => totalValue(this.visible()));
     protected readonly options = computed(() => filterOptions(this.store.cards()));
     protected readonly gradingCount = computed(() => this.store.cards().filter((card) => card.worthGrading).length);
     protected readonly filtered = computed(() => {

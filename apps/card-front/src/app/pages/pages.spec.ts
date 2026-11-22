@@ -10,7 +10,7 @@ import { ApiService } from '../services/api.service';
 import { AuthService } from '../services/auth.service';
 import { CollectionStore } from '../services/collection.store';
 import { ToastService } from '../services/toast.service';
-import { CollectionPage, NO_FILTER, filterOptions, visibleCards } from './collection/collection.page';
+import { CollectionPage, NO_FILTER, filterOptions, totalValue, visibleCards } from './collection/collection.page';
 import { HelpPage } from './help/help.page';
 import { LogPage } from './log/log.page';
 import { LoginPage } from './login/login.page';
@@ -224,13 +224,16 @@ describe('the pages around the collection', () => {
     it('shows the total value, every card as a tile, and the cards still to confirm on request', () => {
         const fixture = open(CollectionPage);
 
-        expect(page.querySelector('.text-2xl')?.textContent).toContain('388.33');
+        expect(page.querySelector('.total-value')?.textContent).toContain('388.33');
+        expect(texts(page, '.card-count')).toEqual(['collection.cards']);
+        expect(totalValue([card(1, { value: 10.5 }), card(2, { value: 2 }), card(3), card(4, { status: 'identified', value: 99 })])).toBe(12.5);
         expect(page.querySelectorAll('app-card-tile').length).toBe(5);
         expect(texts(page, '.unconfirmed-filter')).toEqual(['collection.waiting']);
 
         click(page, '.unconfirmed-filter');
         fixture.detectChanges();
         expect(Array.from(page.querySelectorAll('app-card-tile a'), (link) => link.getAttribute('href'))).toEqual(['/cards/5', '/cards/4']);
+        expect(page.querySelector('.total-value')?.textContent).toContain('0.00');
         click(page, '.unconfirmed-filter');
         fixture.detectChanges();
         expect(texts(page, '.tile-price')).toEqual(['≈ €385.83', '€2.50']);
@@ -363,6 +366,7 @@ describe('the pages around the collection', () => {
         expect(texts(page, '.badge')).toEqual(['settings.on', 'settings.on']);
         expect(page.textContent).toContain('Google answered 403');
         expect(page.querySelector('a[href="https://docs.google.com/spreadsheets/d/abc"]')).not.toBeNull();
+        expect(page.querySelector('a[href="/api/v1/google/connect"]')?.textContent).toContain('settings.google.reconnect');
 
         click(page, 'button.primary');
         fixture.detectChanges();

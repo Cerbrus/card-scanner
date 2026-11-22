@@ -101,6 +101,7 @@ Notes:
 - The client secret, the session secret and the Google token exist only on the Pi.
 - Logging everyone out: delete `data/session-secret` and restart.
 - Stopping the Drive copy: **Disconnect** on the Settings page, or delete `data/google-token.json`.
+- A Drive consent that Google ended (the copy stops with "Token has been expired or revoked"): **Reconnect** on the Settings page asks for consent again and starts a copy.
 - While the consent screen is in "Testing", Google lets in only the accounts listed there as test user: add every account from `ALLOWED_EMAILS` and `VIEWER_EMAILS` on the Audience page.
 - Locked out after a typo in `ALLOWED_EMAILS`: fix `.env` over SSH and restart.
 - Moving the copy to another folder: change `DRIVE_FOLDER`, restart, and tap **Copy now**. When the old folder still exists the app keeps using it; delete or rename it first.

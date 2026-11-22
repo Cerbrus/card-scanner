@@ -41,8 +41,6 @@ export interface FakeStore {
     confirmed: Signal<Array<CardSummary>>;
     unconfirmed: Signal<Array<CardSummary>>;
     reading: Signal<boolean>;
-    totalValue: Signal<number>;
-    ownPricedCount: Signal<number>;
     copies: Signal<Map<string, number>>;
     copiesOf: (card: CardSummary) => Array<CardSummary>;
     refresh: ReturnType<typeof vi.fn>;
@@ -62,8 +60,6 @@ export function fakeStore(cards: Array<CardSummary> = []): FakeStore {
         confirmed,
         unconfirmed: computed(() => list().filter((known) => known.status !== 'confirmed')),
         reading: computed(() => list().some((known) => known.readingState === 'pending')),
-        totalValue: computed(() => confirmed().reduce((total, known) => total + (known.value ?? 0), 0)),
-        ownPricedCount: computed(() => confirmed().filter((known) => known.valueSource === 'own').length),
         copies: computed(() => countCopies(confirmed())),
         copiesOf: (wanted: CardSummary) => (copyKey(wanted) ? confirmed().filter((known) => copyKey(known) === copyKey(wanted)) : []),
         refresh: vi.fn(() => of(list())),

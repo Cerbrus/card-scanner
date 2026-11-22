@@ -15,8 +15,6 @@ export class CollectionStore {
     public readonly confirmed = computed(() => this.cards().filter((card) => card.status === 'confirmed'));
     public readonly unconfirmed = computed(() => this.cards().filter((card) => card.status !== 'confirmed'));
     public readonly reading = computed(() => this.cards().some((card) => card.readingState === 'pending'));
-    public readonly totalValue = computed(() => this.confirmed().reduce((total, card) => total + (card.value ?? 0), 0));
-    public readonly ownPricedCount = computed(() => this.confirmed().filter((card) => card.valueSource === 'own').length);
     public readonly copies = computed(() => countCopies(this.confirmed()));
 
     private readonly api = inject(ApiService);

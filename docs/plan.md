@@ -8,7 +8,7 @@ Everything below is built. Each item is switched off, or not reachable, until th
 
 | # | What | Until then | To do |
 |---|---|---|---|
-| 1 | **Consent screen in production** | The Google Cloud project is set up, but its consent screen is in "Testing" with the owner as test user. Google ends the Drive consent after 7 days; then the copy stops with an error until the owner connects again. | Audience page: Publish app. Not for now (owner, 2026-11-15): reconnect weekly. |
+| 1 | **Consent screen in production** | The Google Cloud project is set up, but its consent screen is in "Testing" with the owner as test user. Google ends the Drive consent after 7 days; then the copy stops with an error until the owner connects again. | Audience page: Publish app. Not for now (owner, 2026-11-15): reconnect weekly, with **Reconnect** on the Settings page. |
 
 Also open for the owner to decide:
 
@@ -108,6 +108,7 @@ On 2026-11-18 the collection held 171 cards: 89 English, 80 Dutch, one German, o
 - [x] The photos of a deleted card go to the Drive trash on the next run (done 2026-11-15 17:20)
 - [x] The owner's table on the `Cards` tab keeps its layout and is resized to the rows and columns after each write; checked against the real sheet on a temporary copy (done 2026-11-15 18:40)
 - [x] Running against the real Google: consent given, first copy of 12 photos, 6 rows and the database (done 2026-11-15 18:02)
+- [x] "Reconnect" on the Settings page while connected: consent again without disconnecting first, for when Google ended the consent (done 2026-11-22 21:11)
 
 ### Milestone 7: comfort
 
@@ -123,6 +124,7 @@ On 2026-11-18 the collection held 171 cards: 89 English, 80 Dutch, one German, o
 - [x] Filter the collection by set, condition and language, also on "not known", and on the cards worth grading (done 2026-11-15 17:20)
 - [x] Count of the copies of the same catalogue card on the tile, and links to the other copies on the card page (done 2026-11-15 17:20)
 - [x] A mark on copies that may be worth grading: worth €50 or more and Near Mint or better; also a column in the sheet and the CSV (done 2026-11-15 17:20)
+- [x] The total value follows the search and filters, with the number of cards shown behind it; the line about how many cards are priced by the owner is gone (done 2026-11-22 21:13)
 - [x] Export as CSV (done 2026-11-14 15:55)
 - [x] Dutch and English, light and dark theme, installable on the home screen (done 2026-11-14 15:55)
 - [x] The open app reloads itself when a new version is published, as the barcode scanner does: checked when it comes back to the screen and every minute, never while cropping, scanning or typing (done 2026-11-15 19:45)

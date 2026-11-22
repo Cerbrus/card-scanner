@@ -42,7 +42,7 @@ describe('the collection in the web app', () => {
         expect(store.copiesOf(card(5))).toEqual([]);
     });
 
-    it('splits the cards in confirmed ones and those still to confirm, and adds up the value of the confirmed ones', () => {
+    it('splits the cards in confirmed ones and those still to confirm', () => {
         api.getCards.mockReturnValue(of([card(1, { value: 10.5, valueSource: 'own' }), card(2, { value: 2, valueSource: 'trend' }), card(3), card(4, { status: 'identified', value: 99 })]));
 
         store.refresh().subscribe();
@@ -50,8 +50,6 @@ describe('the collection in the web app', () => {
         expect(store.loaded()).toBe(true);
         expect(store.confirmed().map((known) => known.id)).toEqual([1, 2, 3]);
         expect(store.unconfirmed().map((known) => known.id)).toEqual([4]);
-        expect(store.totalValue()).toBe(12.5);
-        expect(store.ownPricedCount()).toBe(1);
     });
 
     it('keeps the cards it had when the server cannot be reached, and says so', () => {

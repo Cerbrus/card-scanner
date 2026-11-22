@@ -64,6 +64,10 @@
                                 {{ 'settings.google.sheet' | translate }}
                             </a>
                         }
+                        <a class="btn" [href]="api.googleConnectUrl">
+                            <i class="material-symbols-outlined">add_to_drive</i>
+                            {{ 'settings.google.reconnect' | translate }}
+                        </a>
                         <button type="button" class="btn danger" [disabled]="busy()" (click)="disconnect()">{{ 'settings.google.disconnect' | translate }}</button>
                     }
                 </div>

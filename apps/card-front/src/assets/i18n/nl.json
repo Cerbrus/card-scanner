@@ -148,7 +148,7 @@
     },
     "collection": {
         "title": "Collectie",
-        "valueOf": "{own} van {count, plural, one {# bevestigde kaart} other {# bevestigde kaarten}} door jou geprijsd, de rest tegen de algemene prijstrend (≈)",
+        "cards": "{count, plural, one {# kaart} other {# kaarten}}",
         "waiting": "{count} nog te bevestigen",
         "search": "Naam / nummer",
         "sort": "Sorteren",
@@ -202,12 +202,13 @@
             "neverRun": "Nog niet gekopieerd",
             "waiting": "{count, plural, =0 {geen foto's in de wacht} one {# foto in de wacht} other {# foto's in de wacht}}",
             "connect": "Google Drive koppelen",
+            "reconnect": "Opnieuw koppelen",
             "syncNow": "Nu kopiëren",
             "sheet": "Spreadsheet openen",
             "disconnect": "Ontkoppelen",
             "started": "Kopiëren gestart",
             "outcome": {
-                "connected": "Google Drive is gekoppeld. De eerste kopie loopt.",
+                "connected": "Google Drive is gekoppeld. Er loopt een kopie.",
                 "failed": "Google Drive koppelen lukte niet. Probeer het opnieuw.",
                 "not_configured": "Google Drive kan niet worden gekoppeld: de server heeft geen Google-clientinstellingen."
             }

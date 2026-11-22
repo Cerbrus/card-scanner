@@ -148,7 +148,7 @@
     },
     "collection": {
         "title": "Collection",
-        "valueOf": "{own} of {count, plural, one {# confirmed card} other {# confirmed cards}} priced by you, the rest at the general price trend (≈)",
+        "cards": "{count, plural, one {# card} other {# cards}}",
         "waiting": "{count} still to confirm",
         "search": "Name / number",
         "sort": "Sort",
@@ -202,12 +202,13 @@
             "neverRun": "Not copied yet",
             "waiting": "{count, plural, =0 {no photos waiting} one {# photo waiting} other {# photos waiting}}",
             "connect": "Connect Google Drive",
+            "reconnect": "Reconnect",
             "syncNow": "Copy now",
             "sheet": "Open the sheet",
             "disconnect": "Disconnect",
             "started": "Copying started",
             "outcome": {
-                "connected": "Google Drive is connected. The first copy is running.",
+                "connected": "Google Drive is connected. A copy is running.",
                 "failed": "Connecting Google Drive did not work. Try again.",
                 "not_configured": "Google Drive cannot be connected: the server has no Google client settings."
             }
