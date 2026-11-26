@@ -15,6 +15,7 @@ Also open for the owner to decide:
 - Dependabot and its Claude reviewer are set up as in the barcode scanner (2026-11-15), with the secret and the Claude GitHub App in place; its first review ran on 2026-11-15.
 - The branch ruleset `protect-master` is set (done 2026-11-16 18:32): on `master` no deletion, no force-push, and only the repository admin may push. A workflow token can no longer change the scripts the Pi fetches from `master`; the Dependabot reviewer pushes to Dependabot branches only and the build pushes tags only.
 - The Dependabot reviewer still installs the proposed packages in the job that holds the Claude token, as in the barcode scanner. A package that turns out to be malicious within the day the reviewer waits would run there; it cannot reach the Pi, since only the repository admin may push to `master`. Accepted as it is (owner, 2026-11-16).
+- The Dependabot reviewer calls the shared workflow of [Cerbrus/workflows](https://github.com/Cerbrus/workflows) (done 2026-11-26 09:35); not run from this repository yet since the move.
 
 ## Never tested
 

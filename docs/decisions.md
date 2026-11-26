@@ -112,6 +112,8 @@ Name, number and language go with the scan; the server looks name and number up 
 
 **An account can be let in to look only.** Accounts in `VIEWER_EMAILS` log in like the others and see the collection, the cards, their photos and the export, but change nothing. The server decides: for such an account the login guard refuses every request that is not a read (`GET`, `HEAD`, `OPTIONS`); only logging out stays possible. The web app hides the scan tab and what changes a card, as a courtesy on top of that. The owner is never a viewer, also when listed as one.
 
+**The Dependabot reviewer is a shared workflow.** Its logic lives in [Cerbrus/workflows](https://github.com/Cerbrus/workflows) (owner, 2026-11-26), so that the barcode scanner, this app and the web server behind `error.cerbrus.nl` use one copy. This repository keeps a workflow that calls it and `.github/dependabot-helper.md` with what is specific to this app: the parts of the product, the checks to run and what is off limits. A change to the shared workflow reaches this repository at its next run; only the admin role can push to `master` there.
+
 ## Google sync
 
 **One way: the app writes, Google receives.** The SQLite database is the truth. The sheet and the Drive folder are a readable copy. Changes made in the sheet are overwritten at the next sync.
