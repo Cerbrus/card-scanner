@@ -33,6 +33,6 @@ jobs:
         with:
             minimum_age_hours: ${{ inputs.minimum_age_hours || '24' }}
             pull_request: ${{ inputs.pull_request }}
-            node_version: '25'
+            node_version: '26'
         secrets:
             CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
